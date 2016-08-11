@@ -1,0 +1,15 @@
+
+./postqe.py -plot_num 0 -prefix Si -outdir ../tests/Si -filplot Siout0
+./postqe.py -plot_num 1 -prefix Si -outdir ../tests/Si -filplot Siout1
+./postqe.py -plot_num 2 -prefix Si -outdir ../tests/Si -filplot Siout2
+./postqe.py -plot_num 11 -prefix Si -outdir ../tests/Si -filplot Siout11
+
+./postqe.py -plot_num 0 -prefix SiO2 -outdir ../tests/SiO2 -filplot SiO2out0
+./postqe.py -plot_num 1 -prefix SiO2 -outdir ../tests/SiO2 -filplot SiO2out1
+./postqe.py -plot_num 2 -prefix SiO2 -outdir ../tests/SiO2 -filplot SiO2out2
+./postqe.py -plot_num 11 -prefix SiO2 -outdir ../tests/SiO2 -filplot SiO2out11
+
+./postqe.py -plot_num 0 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO3out0
+./postqe.py -plot_num 1 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO3out1
+./postqe.py -plot_num 2 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO3out2
+./postqe.py -plot_num 11 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO32out11

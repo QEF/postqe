@@ -1,0 +1,11 @@
+!-----------------------------------------------------------------------
+!
+! MODIFIED VERSION OF SOME QE ROUTINES FOR F2PY:
+! - USE KINDS only DP substituted with INTEGER, PARAMETER :: DP = selected_real_kind(14,200)
+! - USE io_global only stdout substituted with   INTEGER :: stdout = 6    ! unit connected to standard output
+! - some other minor changes (see each file)
+!
+! Postfix "f2py" has been added to the original QE files
+!-----------------------------------------------------------------------
+! To be compiled with the makefile file in this directory
+
