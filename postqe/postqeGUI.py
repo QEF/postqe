@@ -3,7 +3,7 @@
 
 
 import wx
-from wxPlot1DDialog import Plot1DDialog
+from wxPlot1DDialog import Plot1DDialog, Plot2DDialog
 import matplotlib
 matplotlib.use('WXAgg')
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
 read_wavefunction_file_hdf5, read_pp_out_file, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc, compute_G
 from celldm import calcola_celldm
-from plot import plot1Dcharge
+from plot import plot1Dcharge, plot2Dcharge
 from postqe import get_from_xml
 
 
@@ -360,8 +360,39 @@ class MyFrame(wx.Frame):
             self.SetStatusText("")
         
     def OnPlot2D(self, event):
-        wx.MessageBox("This command is not implemented yet! Sorry.",
-        "Not Implemented", wx.OK | wx.ICON_INFORMATION, self)
+        if (not self.IsXmlRead):
+            wx.MessageBox("No xml file loaded!",
+                "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+            return
+        
+        if (not self.IsChargeRead):
+            wx.MessageBox("No charge file loaded!",
+                "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+            return
+        
+        try:
+            # Create the Plot1D Dialog and get the x0,e1,nx values
+            dlg = Plot2DDialog()
+            dlg.ShowModal()
+            x0 = np.array([float(dlg.x0_0.GetValue()), float(dlg.x0_1.GetValue()), float(dlg.x0_2.GetValue())])
+            e1 = np.array([float(dlg.e1_0.GetValue()), float(dlg.e1_1.GetValue()),float(dlg.e1_2.GetValue())])
+            nx = int(dlg.nx.GetValue())
+            e2 = np.array([float(dlg.e2_0.GetValue()), float(dlg.e2_1.GetValue()),float(dlg.e2_2.GetValue())])
+            ny = int(dlg.ny.GetValue())
+            dlg.Destroy()
+            # Compute the G vectors if needed
+            try:                
+                self.G
+            except:
+                self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
+            self.SetStatusText("Plotting charge...")
+            self.plot2D = plot2Dcharge(self.charge,self.G,x0,e1,e2,nx,ny)
+            self.plot2D.show()
+            self.SetStatusText("Plotting charge... done!")
+        except:
+            wx.MessageBox("Something wrong while plotting the charge...",
+            "", wx.OK | wx.ICON_EXCLAMATION, self) 
+            self.SetStatusText("")
         
     
     def OnQuit(self, event):
