@@ -4,7 +4,7 @@
 import numpy as np
 from constants import pi
 from xcpy import xc_dict
-from readutils import read_pseudo_file
+from readutils import read_pseudo_file, write_charge
 # f2py created modules
 from funct import xc   
 from setlocal import wrap_setlocal
@@ -21,10 +21,38 @@ def compute_volume(at1,at2,at3):
         
     return V 
 
-    
+
+def compute_G(b,nr,ecutrho,alat):
+    """
+    This function computes a matrix nr[0]*nr[1]*nr[2] containing the G vectors at each point
+    of the mesh points defined by nr. G are the vectors in the reciprocal lattice vector.
+    """
+
+    G = np.zeros((nr[0],nr[1],nr[2],3))
+    for x in range(0,nr[0]):
+        if (x>=nr[0]//2):
+            g0 = (x-nr[0])
+        else:
+            g0 = x
+        for y in range(0,nr[1]):
+            if (y>=nr[1]//2):
+                g1 = (y-nr[1])
+            else:
+                g1 = y
+            for z in range(0,nr[2]):
+                if (z>=nr[2]//2):
+                    g2 = (z-nr[2])
+                else:
+                    g2 = z
+ 
+                G[x,y,z,:] = (g0*b[0]+g1*b[1]+g2*b[2])    # compute the G vector
+                
+    return G
+
+
 def compute_G_squared(b,nr,ecutrho,alat):
     """
-    This function computes a matrix nr1xnr2xnr3 containing G^2 at each point, G is the 
+    This function computes a matrix nr[0]*nr[1]*nr[2] containing G^2 at each point, G is the 
     corresponding reciprocal lattice vector. Also apply a proper cut-off 
     ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2). For G^2>ecutm G^2, G^2 should be 0.
     Here G^2 is set to a big number so that n(G)/G^2 is 0 in the inverse FFT.
@@ -34,17 +62,17 @@ def compute_G_squared(b,nr,ecutrho,alat):
     ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2)  # spherical cut-off for g vectors    
     G2 = np.zeros((nr[0],nr[1],nr[2]))
     for x in range(0,nr[0]):
-        if (x>nr[0]//2):
+        if (x>=nr[0]//2):
             g0 = (x-nr[0])
         else:
             g0 = x
         for y in range(0,nr[1]):
-            if (y>nr[1]//2):
+            if (y>=nr[1]//2):
                 g1 = (y-nr[1])
             else:
                 g1 = y
             for z in range(0,nr[2]):
-                if (z>nr[2]//2):
+                if (z>=nr[2]//2):
                     g2 = (z-nr[2])
                 else:
                     g2 = z
@@ -53,8 +81,45 @@ def compute_G_squared(b,nr,ecutrho,alat):
                 G2[x,y,z] =  np.linalg.norm(G)**2           # compute the G^2
                 if (G2[x,y,z] > ecutm) or (G2[x,y,z] ==0.0):
                     G2[x,y,z] = bignum     # dummy high value so that n(G)/G^2 is 0
-                        
+ 
     return G2
+
+
+def compute_Gs(b,nr,ecutrho,alat):
+    """
+    This function computes both a matrix nr[0]*nr[1]*nr[2] containing the G vectors at each point
+    of the mesh points defined by nr and the G^2 moduli. G are the vectors in the
+    reciprocal lattice vector. Also apply a proper cut-off for G^2
+    ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2). For G^2>ecutm G^2, G^2 should be 0.
+    Here G^2 is set to a big number so that n(G)/G^2 is 0 in the inverse FFT.
+    """
+    bignum = 1.0E16
+    
+    ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2)  # spherical cut-off for g vectors    
+    G = np.zeros((nr[0],nr[1],nr[2],3))
+    G2 = np.zeros((nr[0],nr[1],nr[2]))
+    for x in range(0,nr[0]):
+        if (x>=nr[0]//2):
+            g0 = (x-nr[0])
+        else:
+            g0 = x
+        for y in range(0,nr[1]):
+            if (y>=nr[1]//2):
+                g1 = (y-nr[1])
+            else:
+                g1 = y
+            for z in range(0,nr[2]):
+                if (z>=nr[2]//2):
+                    g2 = (z-nr[2])
+                else:
+                    g2 = z
+ 
+                G[x,y,z,:] = (g0*b[0]+g1*b[1]+g2*b[2])    # compute the G vector
+                G2[x,y,z] =  np.linalg.norm(G[x,y,z,:])**2           # compute the G^2
+                if (G2[x,y,z] > ecutm) or (G2[x,y,z] ==0.0):
+                    G2[x,y,z] = bignum     # dummy high value so that n(G)/G^2 is 0
+ 
+    return G, G2
 
 
 def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species):
@@ -87,14 +152,12 @@ def compute_v_h(charge,ecutrho,alat,b):
     # Compute G^2 values for the mesh, applying the proper cutoff from ecutrho
     # and alat
     G2 = compute_G_squared(b,nr,ecutrho,alat)
-    #write_charge(pars.prefix+"G2",G2) 
     
     conv_fact = 2.0 / pi * alat**2
-    #v = np.fft.ifftn(fft_charge)
-    v = np.fft.ifftn(fft_charge / G2) * conv_fact
+    v = np.fft.ifftn(fft_charge / G2) #* conv_fact
 
-    #return v.real
-    return v
+    return v.real
+
 
 def compute_v_xc(charge,charge_core,functional):
     """

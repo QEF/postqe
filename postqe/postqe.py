@@ -4,7 +4,8 @@
 import time, sys
 import numpy as np
 from readutils import read_line, read_n_real_numbers,\
-read_charge_file_iotk, read_pp_out_file, write_charge, create_header
+read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
+read_wavefunction_file_hdf5, read_pp_out_file, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from celldm import calcola_celldm
 
@@ -120,8 +121,9 @@ def get_input_parameters():
     """
 
         )
-    default_prefix = "SiO2"
-    default_prefix = "SrTiO3"
+    default_prefix = "Si"
+    #default_prefix = "SiO2"
+    #default_prefix = "SrTiO3"
     parser.add_argument('-prefix', type=str, nargs='?', default=default_prefix,
                     help='prefix of files saved by program pw.x')
     default_outdir = "../tests/"+default_prefix
@@ -149,18 +151,19 @@ if __name__ == "__main__":
     ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
     nat, ntyp = get_from_xml(pars.outdir+"/"+pars.prefix+".xml")    
     celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
-    
+      
     charge_file = pars.outdir+"/charge-density.dat"
     charge = read_charge_file_iotk(charge_file)
     nr = charge.shape
     header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
     
-    v_bare = read_pp_out_file("SiO2_quarzo_plotnum2.dat", 15, nr[0],nr[1],nr[2])
-    v_bare_v_h = read_pp_out_file("SiO2_quarzo_plotnum11.dat", 15, nr[0],nr[1],nr[2])
-    v_h = v_bare_v_h - v_bare
-    write_charge("SiO2_vh",v_h,header)
-    v_h2 =  compute_v_h(charge,ecutrho,alat,b)
-    write_charge("SiO2_vhmio",v_h2,header)  
+    # Some lines only for testing v_bare
+    #v_bare = read_pp_out_file("SiO2_quarzo_plotnum2.dat", 15, nr[0],nr[1],nr[2])
+    #v_bare_v_h = read_pp_out_file("SiO2_quarzo_plotnum11.dat", 15, nr[0],nr[1],nr[2])
+    #v_h = v_bare_v_h - v_bare
+    #write_charge("SiO2_vh",v_h,header)
+    #v_h2 =  compute_v_h(charge,ecutrho,alat,b)
+    #write_charge("SiO2_vhmio",v_h2,header)  
         
     #v_bare = read_pp_out_file("SrTiO3_plotnum2.dat", 12, nr[0],nr[1],nr[2])
     #v_bare_v_h = read_pp_out_file("SrTiO3_plotnum11.dat", 12, nr[0],nr[1],nr[2])
@@ -168,6 +171,20 @@ if __name__ == "__main__":
     #write_charge("SrTiO3_vh",v_h,header)
     #v_h2 =  compute_v_h(charge,ecutrho,alat,b)
     #write_charge("SrTiO3_vhmio",v_h2,header)  
+    
+    #v_bare = read_pp_out_file("SrTiO3_plotnum2_ortoromb.dat", 12, nr[0],nr[1],nr[2])
+    #v_bare_v_h = read_pp_out_file("SrTiO3_plotnum11_ortoromb.dat", 12, nr[0],nr[1],nr[2])
+    #v_h = v_bare_v_h - v_bare
+    #write_charge("SrTiO3orto_vh",v_h,header)
+    #v_h2 =  compute_v_h(charge,ecutrho,alat,b)
+    #write_charge("SrTiO3orto_vhmio",v_h2,header)  
+    #v_test =  v_h2 / v_h 
+    #write_charge("SrTiO3orto_test",v_test,header)  
+    
+    v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
+    v_h =  compute_v_h(charge,ecutrho,alat,b)
+    v_tot = v_h
+    write_charge(pars.filplot,v_tot,header)  
     exit()
     
     if (pars.plot_num==0):   # Read the charge and write it in filpl       
@@ -187,9 +204,7 @@ if __name__ == "__main__":
     
     elif (pars.plot_num==11):
         v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
-        write_charge("pippo1",v_bare,header)
         v_h =  compute_v_h(charge,ecutrho,alat,b)
-        write_charge("pippo2",v_h,header)
         v_tot = v_bare + v_h
         write_charge(pars.filplot,v_tot,header)        
         

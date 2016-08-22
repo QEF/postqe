@@ -71,10 +71,8 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         name = typ["name"]
         for pos in atomic_positions:
             if pos["name"] == name:
-                pos["_text"][0] = pos["_text"][0]*alat
-                pos["_text"][1] = pos["_text"][1]*alat
-                pos["_text"][2] = pos["_text"][2]*alat
-                tau_spec.append(np.array(pos["_text"]))
+                new_atomic_positions = np.array(pos["_text"])*alat
+                tau_spec.append(new_atomic_positions)
         tau_spec = np.array(tau_spec)
         str_fact = compute_struct_fact(tau_spec, alat, g)
         strct_facs.append(str_fact)

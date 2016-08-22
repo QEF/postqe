@@ -92,8 +92,67 @@ def read_charge_file_iotk(fname):
     return charge
 
 
+def read_wavefunction_file_iotk(fname):
+    """
+    To be implemented.
+    """
+
+    return None
+
+
+def read_charge_file_hdf5(fname):
+    """
+    Reads an hdf5 charge file written with QE. nr1, nr2, nr3 (the dimensions of
+    the charge k-points grid) are read from the charge file.
+    """
+ 
+    import h5py
+    
+    f = h5py.File(fname, "r")
+    nr1 = f.attrs.get("nr1")
+    nr2 = f.attrs.get("nr2")
+    nr3 = f.attrs.get("nr3")
+    charge = np.zeros((nr1,nr2,nr3))
+    for i in range(0,nr3):   
+        dset_label = "K"+str(i+1)   # numbered from 1 to nr3 in file hdf5
+        tempcharge = np.array(f[dset_label])
+        charge[:,:,i] = np.reshape(np.array(tempcharge),(nr1,nr2))
+    
+    return charge
+
+
+def read_wavefunction_file_hdf5(fname):
+    """
+    Reads an hdf5 wavefunction file written with QE. Returns a dictionary with
+    the data structure in the hdf5 file. 
+    """
+ 
+    import h5py
+    
+    f = h5py.File(fname, "r")    
+    nkpoints = len(f["KPOINT1"].attrs.values())
+    #print ("nkpoints = ",nkpoints)
+
+    wavefunctions = {}
+
+    for i in range(0,nkpoints):
+        temp = {}
+        kpoint_label = "KPOINT"+str(i+1)
+        # read the attributes at each kpoint
+        attrs_to_read = ["gamma_only", "igwx", "ik", "ispin","ngw","nk","nbnd","nspin","scale_factor"]
+        for attr in attrs_to_read:
+            temp[attr] = f[kpoint_label].attrs.get(attr)
+        for iband in range(0,temp["nbnd"]):
+            band_label = "BAND"+str(iband+1)
+            temp[band_label] = np.array(f[kpoint_label][band_label])
+        
+        wavefunctions[kpoint_label] = temp
+        
+    return wavefunctions
+    
+    
 ################################################################################
-# Readers of pseudopotential files.
+# Reader of pseudopotential files and auxiliary functions.
 ################################################################################
 # Warning: limited functionalities for now
 #
@@ -181,7 +240,7 @@ def read_pseudo_file(fname):
 
 
 ################################################################################
-# Other readers and writers.
+# Other readers, writers, auxiliary functions.
 ################################################################################
 def write_charge(fname,charge,header):
     """
@@ -256,7 +315,34 @@ def read_pp_out_file(fname, skiplines, nr1,nr2,nr3):
     return charge
     
     
+def read_charge_text_file(fname,skiplines,nr1,nr2,nr3):
+    """
+    Reads the charge or another quantity calculated by postqe into a file fname.
+    For testing...
+    """
+    
+    tempcharge = []
+    i=0           # initialize counters
+    countline=1
+    with open(fname, "r") as lines:
+        for line in lines:
+            linesplit=line.split()
+            if countline>skiplines:                     # skip the first "skiplines" lines
+                for j in range(0,len(linesplit)):       # len(linesplit)=5 except maybe for the last line
+                    g2 = float(linesplit[j])
+                    if g2<0.1:
+                        tempcharge.append(1.0E16)
+                    else:
+                        tempcharge.append(g2)
 
+            countline += 1
+    
+    temp2charge = np.array(tempcharge)
+    charge = np.reshape(np.array(tempcharge),(nr1,nr2,nr3))
+    return charge
+    
+    fout.close()
+    
 ###########################################
 #
 # This is only for testing the functions in this module

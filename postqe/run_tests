@@ -13,3 +13,8 @@
 ./postqe.py -plot_num 1 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO3out1
 ./postqe.py -plot_num 2 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO3out2
 ./postqe.py -plot_num 11 -prefix SrTiO3 -outdir ../tests/SrTiO3 -filplot SrTiO32out11
+
+./postqe.py -plot_num 0 -prefix SrTiO3orto -outdir ../tests/SrTiO3orto -filplot SrTiO3ortoout0
+./postqe.py -plot_num 1 -prefix SrTiO3orto -outdir ../tests/SrTiO3orto -filplot SrTiO3ortoout1
+./postqe.py -plot_num 2 -prefix SrTiO3orto -outdir ../tests/SrTiO3orto -filplot SrTiO3ortoout2
+./postqe.py -plot_num 11 -prefix SrTiO3orto -outdir ../tests/SrTiO3orto -filplot SrTiO3ortoout11

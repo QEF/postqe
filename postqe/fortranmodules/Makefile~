@@ -13,6 +13,9 @@ funct: funct.f90
 	f2py3 -c -m funct funct.f90 functionals.f90 lsda_functionals.f90 expint.f90 erf.f90
 all: gshells sf vloc ggen funct celldm
 
+move :
+	mv *.so ../
+
 clean:
 	rm *.so
 	touch *.f90
