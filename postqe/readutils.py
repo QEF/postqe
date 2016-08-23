@@ -23,17 +23,18 @@ def read_line(f):
     return line
 
 
-def read_n_real_numbers(f,n,kind=8):
+def read_n_real_numbers(f,nr1,nr2,kind=8):
     """
     Read n real numbers from a binary (fortran) file section. Extra characters
     are present in the file and discarded. Potentially troublesome...
     """
-    a = np.zeros(n)
+    a = np.zeros((nr1,nr2))
     byte = f.read(12)    # discard the first 12 bytes (extra info written by iotk/fortran)
-    for i in range(0,n):
-        byte = f.read(kind)    
-        x = unpack('d',byte)  
-        a[i] = x[0]     # x is a list, take the first element only
+    for j in range(0,nr2):
+        for i in range(0,nr1):
+            byte = f.read(kind)    
+            x = unpack('d',byte)  
+            a[i,j] = x[0]     # x is a list, take the first element only
         
     return a
 
@@ -77,18 +78,17 @@ def read_charge_file_iotk(fname):
         # data are grouped in nr1*nr2 sequential reals in the charge file, each
         # starting with <z.1, <z.2, etc. tag and ending with a corresponding
         # </z.1>, </z.2> containing extra information...
+        charge = np.zeros((nr1,nr2,nr3))
         for i in range(0,nr3):   
             discard = read_line(f)
             line = read_line(f)     # this is the line <z.1 type="real" size="2025" kind="8"> or similar
         
-            temp = read_n_real_numbers(f,nr1*nr2)
-            tempcharge.append(temp)
+            temp = read_n_real_numbers(f,nr1,nr2)
+            charge[:,:,i] = temp
             
             discard = read_line(f)
             line = read_line(f)     # this is end tag </z.1>
         
-    temp2charge = np.array(tempcharge)
-    charge = np.reshape(np.array(tempcharge),(nr1,nr2,nr3))
     return charge
 
 
@@ -253,14 +253,17 @@ def write_charge(fname,charge,header):
     
     nr = charge.shape
     count = 0
-    for x in range(0,nr[0]):
+    #for x in range(0,nr[0]):
+    #    for y in range(0,nr[1]):
+    #        for z in range(0,nr[2]):
+    for z in range(0,nr[2]):
         for y in range(0,nr[1]):
-            for z in range(0,nr[2]):
+            for x in range(0,nr[0]):
                 fout.write("  {:.9E}".format(charge[x,y,z]))
                 count += 1
                 if (count%5==0):
                     fout.write("\n")
-    
+                        
     fout.close()
     
     
@@ -291,7 +294,7 @@ def create_header(prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positio
     
 
 # A function only for testing for now...  
-def read_pp_out_file(fname, skiplines, nr1,nr2,nr3):
+def read_pp_out_file(fname, skiplines, nr):
     """
     This function reads the output charge (or other quantity) as the output 
     format of QE pp. Only for testing... Initial lines are not processed
@@ -310,8 +313,18 @@ def read_pp_out_file(fname, skiplines, nr1,nr2,nr3):
 
             countline += 1
     
-    temp2charge = np.array(tempcharge)
-    charge = np.reshape(np.array(tempcharge),(nr1,nr2,nr3))
+    
+    charge = np.zeros((nr[0],nr[1],nr[2]))
+    count = 0
+    #for x in range(0,nr[0]):
+    #    for y in range(0,nr[1]):
+    #        for z in range(0,nr[2]):
+    for z in range(0,nr[2]):
+        for y in range(0,nr[1]):
+            for x in range(0,nr[0]):
+                charge[x,y,z] = tempcharge[count]
+                count += 1
+
     return charge
     
     

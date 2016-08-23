@@ -121,8 +121,9 @@ def get_input_parameters():
     """
 
         )
-    default_prefix = "Si"
-    #default_prefix = "SiO2"
+        
+    #default_prefix = "Si"
+    default_prefix = "SiO2"
     #default_prefix = "SrTiO3"
     parser.add_argument('-prefix', type=str, nargs='?', default=default_prefix,
                     help='prefix of files saved by program pw.x')
@@ -158,28 +159,11 @@ if __name__ == "__main__":
     header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
     
     # Some lines only for testing v_bare
-    #v_bare = read_pp_out_file("SiO2_quarzo_plotnum2.dat", 15, nr[0],nr[1],nr[2])
-    #v_bare_v_h = read_pp_out_file("SiO2_quarzo_plotnum11.dat", 15, nr[0],nr[1],nr[2])
-    #v_h = v_bare_v_h - v_bare
-    #write_charge("SiO2_vh",v_h,header)
-    #v_h2 =  compute_v_h(charge,ecutrho,alat,b)
-    #write_charge("SiO2_vhmio",v_h2,header)  
-        
-    #v_bare = read_pp_out_file("SrTiO3_plotnum2.dat", 12, nr[0],nr[1],nr[2])
-    #v_bare_v_h = read_pp_out_file("SrTiO3_plotnum11.dat", 12, nr[0],nr[1],nr[2])
-    #v_h = v_bare_v_h - v_bare
-    #write_charge("SrTiO3_vh",v_h,header)
-    #v_h2 =  compute_v_h(charge,ecutrho,alat,b)
-    #write_charge("SrTiO3_vhmio",v_h2,header)  
-    
-    #v_bare = read_pp_out_file("SrTiO3_plotnum2_ortoromb.dat", 12, nr[0],nr[1],nr[2])
-    #v_bare_v_h = read_pp_out_file("SrTiO3_plotnum11_ortoromb.dat", 12, nr[0],nr[1],nr[2])
-    #v_h = v_bare_v_h - v_bare
-    #write_charge("SrTiO3orto_vh",v_h,header)
-    #v_h2 =  compute_v_h(charge,ecutrho,alat,b)
-    #write_charge("SrTiO3orto_vhmio",v_h2,header)  
-    #v_test =  v_h2 / v_h 
-    #write_charge("SrTiO3orto_test",v_test,header)  
+    v_bare = read_pp_out_file("SiO2_quarzo_plotnum2.dat", 15, nr)
+    write_charge("SiO2_barerewritten",v_bare,header)
+    v_bare2 = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
+    write_charge("SiO2_bare",v_bare2,header)
+    exit()        
     
     v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
     v_h =  compute_v_h(charge,ecutrho,alat,b)

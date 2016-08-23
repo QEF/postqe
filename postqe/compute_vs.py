@@ -131,11 +131,7 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species):
     
     v_F = wrap_setlocal(alat, at1, at2, at3, nr[0], nr[1], nr[2], atomic_positions, species, 2.0*ecutrho)
 
-    # This is very stupid, but ok for now.
-    v_aux=v_F.reshape(nr[0]*nr[1]*nr[2],order='F')
-    v=v_aux.reshape((nr[0],nr[1],nr[2]))
-
-    return v
+    return v_F
 
 
 def compute_v_h(charge,ecutrho,alat,b):
@@ -154,7 +150,7 @@ def compute_v_h(charge,ecutrho,alat,b):
     G2 = compute_G_squared(b,nr,ecutrho,alat)
     
     conv_fact = 2.0 / pi * alat**2
-    v = np.fft.ifftn(fft_charge / G2) #* conv_fact
+    v = np.fft.ifftn(fft_charge / G2) * conv_fact
 
     return v.real
 

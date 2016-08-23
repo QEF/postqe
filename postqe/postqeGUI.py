@@ -19,6 +19,14 @@ from plot import plot1Dcharge, plot2Dcharge
 from postqe import get_from_xml
 
 
+class RedirectText:
+    def __init__(self,aWxTextCtrl):
+        self.out=aWxTextCtrl
+ 
+    def write(self,string):
+        self.out.WriteText(string)
+
+
 class MyApp(wx.App):
     def OnInit(self):
         frame = MyFrame("postqe", (50, 60), (450, 340))
@@ -37,10 +45,21 @@ class MyFrame(wx.Frame):
         wx.Frame.__init__(self, None, -1, title, pos, size)                
         panel = wx.Panel(self, -1)
         panel.SetBackgroundColour("White")
+        
+        #text = wx.TextCtrl(self, wx.ID_ANY, size=size, style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
+        #sizer = wx.BoxSizer(wx.VERTICAL)
+        #sizer.Add(text, 0, wx.ALL, 5)
+        #self.SetSizer(sizer)
+        #sizer.Fit(self)
+        
         self.Bind(wx.EVT_CLOSE, self.OnQuit)                             
         self.createMenuBar()       
         self.CreateStatusBar()        
         self.SetStatusText("Welcome to QE postprocessing!")
+        
+        # Redirect stout to the TextCtrl in the main panel
+        #self.redir=RedirectText(text)
+        #sys.stdout=self.redir
 
     ############################################################################
     #
@@ -358,6 +377,7 @@ class MyFrame(wx.Frame):
             wx.MessageBox("Something wrong while plotting the charge...",
             "", wx.OK | wx.ICON_EXCLAMATION, self) 
             self.SetStatusText("")
+    
         
     def OnPlot2D(self, event):
         if (not self.IsXmlRead):
