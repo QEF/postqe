@@ -13,6 +13,7 @@ Features
 - Print the charge data as a text file for further postprocessing
 - Calculate the bare potential of the atoms.
 - Calculate the bare plus the Hartree potential
-- Calculate the bare + Hartree + exchange-correlation potential
+- Calculate the bare + Hartree + exchange-correlation potential 
+- 1D and 2D plots of the charge along certain directions/planes
 
 

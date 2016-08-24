@@ -13,9 +13,9 @@ from compute_vs import compute_G
 from readutils import read_charge_file_iotk, write_charge, create_header
 
 
-def plot1Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20):
+def plot1Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
     """
-    This function calculates a 1D plot of the input charge, starting from the 
+    This function calculates a 1D plot of the input charge (or else), starting from the 
     input point x0 and along the direction given by the vector e1. The G vectors
     in the reciprocal space must also be given in input. nx is the number of 
     points where the charge is effectively calculated using Fourier interpolation.
@@ -36,6 +36,14 @@ def plot1Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20):
     deltax = m1 / (nx-1)
     toplot = np.zeros(nx,dtype=complex)
     xv = np.zeros(nx)
+    
+    try:
+        import wx
+        progdlg = wx.ProgressDialog("Plotting...","Time remaining", nx,
+        style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
+    except:
+        pass
+        
     for i in range(0,nx):
         xi = x0[0] + i * deltax * e1[0]
         yi = x0[1] + i * deltax * e1[1]
@@ -50,26 +58,38 @@ def plot1Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20):
                    
         xv[i] = i*deltax 
         toplot[i] = toplot[i]/(nr[0]*nr[1]*nr[2])
-        print (xv[i],toplot[i])
+        print (xv[i],toplot[i].real)
+        
+        try:
+            res = progdlg.Update(i)
+        except:
+            pass
+        
+    try:
+        progdlg.Destroy()
+    except:
+        pass
     
     # Plot with Matplotlib library
     import matplotlib
     matplotlib.use('WXAgg')
     import matplotlib.pyplot as plt
 
+    ylabels = ['charge','Vbare','Vbare+VH','Vtot']
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
     fig = plt.figure()
     plt.xlabel(xlab)
-    plt.ylabel("charge")
+    plt.ylabel(ylabels[ylab])
     plt.plot(xv, np.real(toplot), 'r')
     return fig
     
     
-def plot2Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20):
+def plot2Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20,zlab=0):
     """
-    This function calculates a 1D plot of the input charge, starting from the 
-    input point x0 and along the direction given by the vector e1. The G vectors
+    This function calculates a 2D plot of the input charge (or else), starting from the 
+    input point x0 and along the directions given by the vectors e1, e2. These
+    vectors define the section plane along which the plot is draw. The G vectors
     in the reciprocal space must also be given in input. nx is the number of 
     points where the charge is effectively calculated using Fourier interpolation.
     """
@@ -144,11 +164,16 @@ def plot2Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20):
     cset = ax.contour(X, Y, Z, zdir='x', offset=X.min(), cmap=cm.coolwarm)
     cset = ax.contour(X, Y, Z, zdir='y', offset=Y.max(), cmap=cm.coolwarm)
 
-    ax.set_xlabel('X')
+    zlabels = ['charge','Vbare','Vbare+VH','Vtot']
+    xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
+    xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
+    ylab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
+    ylab += "y*("+str(e2[0])+","+str(e2[1])+","+str(e2[2])+")"
+    ax.set_xlabel(xlab)
     ax.set_xlim(X.min(),X.max())
-    ax.set_ylabel('Y')
+    ax.set_ylabel(ylab)
     ax.set_ylim(Y.min(),Y.max())
-    ax.set_zlabel('charge')
+    ax.set_zlabel(zlabels[zlab])
     ax.set_zlim(Z.min(),Z.max())
 
     return fig
@@ -160,12 +185,12 @@ def plot2Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20):
 
 if __name__ == "__main__":
     
-    ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
-    nat, ntyp = get_from_xml("Ni.xml")    
-    celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
+    #ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
+    #nat, ntyp = get_from_xml("Ni.xml")    
+    #celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
     
-    charge_file = "charge-density.dat"
-    charge = read_charge_file_iotk(charge_file)
+    #charge_file = "charge-density.dat"
+    #charge = read_charge_file_iotk(charge_file)
     
     x0 = [0.0,0.0,0.0]
     e1 = [1.0,1.0,0.0]
@@ -188,6 +213,7 @@ if __name__ == "__main__":
     nx = int(dlg.nx.GetValue())
     e2 = np.array([float(dlg.e2_0.GetValue()), float(dlg.e2_1.GetValue()),float(dlg.e2_2.GetValue())])
     ny = int(dlg.ny.GetValue())
+    sel = int(dlg.radiobox.GetSelection())
     dlg.Destroy()
     
     G = compute_G(b,charge.shape,ecutrho,alat)

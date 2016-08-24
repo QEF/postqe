@@ -73,7 +73,7 @@ def read_charge_file_iotk(fname):
         line = read_line(f)     # this is the line <INFO nr1=.. />
         info_line = line.decode('utf-8')
         nr1, nr2, nr3 = get_info(info_line)
-        print ("Info read from charge file: nr1= ",nr1,"nr2= ",nr2,"nr3= ",nr3)
+        #print ("Reading from charge file: nr1= ",nr1,"nr2= ",nr2,"nr3= ",nr3)
 
         # data are grouped in nr1*nr2 sequential reals in the charge file, each
         # starting with <z.1, <z.2, etc. tag and ending with a corresponding

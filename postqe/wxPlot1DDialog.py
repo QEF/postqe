@@ -73,6 +73,10 @@ class Plot1DDialog(wx.Dialog):
     def __init__(self,texttitle="Plot 1D Charge"):
         wx.Dialog.__init__(self, None, -1, texttitle)
         
+        # Plot what?
+        choicesList = ['charge','Vbare','Vbare+VH','Vtot']
+        self.radiobox = wx.RadioBox(self, -1, "", (450, 10), wx.DefaultSize, choicesList, 4, wx.RA_SPECIFY_COLS)
+        
         # Create the text controls
         self.notes = wx.StaticText(self, -1, "Please enter the input paramters below: ")
         self.x0_l = wx.StaticText(self, -1, "Starting point (x,y,z): ")
@@ -93,6 +97,8 @@ class Plot1DDialog(wx.Dialog):
 
         # Layout with sizers
         self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.radiobox, 0, wx.ALL, 5)
+        self.sizer.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
         self.sizer.Add(self.notes, 0, wx.ALL, 5)
         self.sizer.Add(wx.StaticLine(self), 0, wx.EXPAND|wx.ALL, 5)
 

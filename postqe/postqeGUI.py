@@ -46,11 +46,11 @@ class MyFrame(wx.Frame):
         panel = wx.Panel(self, -1)
         panel.SetBackgroundColour("White")
         
-        #text = wx.TextCtrl(self, wx.ID_ANY, size=size, style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
-        #sizer = wx.BoxSizer(wx.VERTICAL)
-        #sizer.Add(text, 0, wx.ALL, 5)
-        #self.SetSizer(sizer)
-        #sizer.Fit(self)
+        text = wx.TextCtrl(self, wx.ID_ANY, size=size, style = wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(text, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+        self.Fit()
         
         self.Bind(wx.EVT_CLOSE, self.OnQuit)                             
         self.createMenuBar()       
@@ -58,8 +58,9 @@ class MyFrame(wx.Frame):
         self.SetStatusText("Welcome to QE postprocessing!")
         
         # Redirect stout to the TextCtrl in the main panel
-        #self.redir=RedirectText(text)
-        #sys.stdout=self.redir
+        self.redir=RedirectText(text)
+        sys.stdout=self.redir
+        sys.stderr=self.redir
 
     ############################################################################
     #
@@ -359,20 +360,56 @@ class MyFrame(wx.Frame):
         try:
             # Create the Plot1D Dialog and get the x0,e1,nx values
             dlg = Plot1DDialog()
-            dlg.ShowModal()
-            x0 = np.array([float(dlg.x0_0.GetValue()), float(dlg.x0_1.GetValue()), float(dlg.x0_2.GetValue())])
-            e1 = np.array([float(dlg.e1_0.GetValue()), float(dlg.e1_1.GetValue()),float(dlg.e1_2.GetValue())])
-            nx = int(dlg.nx.GetValue())
+            result = dlg.ShowModal()
             dlg.Destroy()
-            # Compute the G vectors if needed
-            try:                
-                self.G
-            except:
-                self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
-            self.SetStatusText("Plotting charge...")
-            self.plot1D = plot1Dcharge(self.charge,self.G,x0,e1,nx)
-            self.plot1D.show()
-            self.SetStatusText("Plotting charge... done!")
+            
+            if result == wx.ID_OK:
+                selection = int(dlg.radiobox.GetSelection())
+                x0 = np.array([float(dlg.x0_0.GetValue()), float(dlg.x0_1.GetValue()), float(dlg.x0_2.GetValue())])
+                e1 = np.array([float(dlg.e1_0.GetValue()), float(dlg.e1_1.GetValue()),float(dlg.e1_2.GetValue())])
+                nx = int(dlg.nx.GetValue())
+
+                # Compute the G vectors if needed
+                self.SetStatusText("Generating the g vectors...")
+                try:                
+                    self.G
+                except:
+                    self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
+                
+                
+                if (selection==0):
+                    try:
+                        toplot = self.charge
+                    except:
+                        wx.MessageBox("No charge file loaded!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                elif (selection==1):
+                    try:
+                        toplot = self.v_bare
+                    except:
+                        wx.MessageBox("No Vbare calculated!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                elif (selection==2):
+                    try:
+                        toplot = self.v_bare + self.v_h  
+                    except:
+                        wx.MessageBox("No Vbare+VH calculated!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                elif (selection==3):
+                    try:
+                        toplot = self.v_bare + self.v_h + self.v_xc 
+                    except:
+                        wx.MessageBox("No Vbare+VH calculated!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                
+                self.SetStatusText("Plotting...")
+                self.plot1D = plot1Dcharge(toplot,self.G,x0,e1,nx)
+                self.plot1D.show()
+                self.SetStatusText("Plotting... done!")
         except:
             wx.MessageBox("Something wrong while plotting the charge...",
             "", wx.OK | wx.ICON_EXCLAMATION, self) 
@@ -385,30 +422,61 @@ class MyFrame(wx.Frame):
                 "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
             return
         
-        if (not self.IsChargeRead):
-            wx.MessageBox("No charge file loaded!",
-                "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
-            return
-        
         try:
             # Create the Plot1D Dialog and get the x0,e1,nx values
             dlg = Plot2DDialog()
-            dlg.ShowModal()
-            x0 = np.array([float(dlg.x0_0.GetValue()), float(dlg.x0_1.GetValue()), float(dlg.x0_2.GetValue())])
-            e1 = np.array([float(dlg.e1_0.GetValue()), float(dlg.e1_1.GetValue()),float(dlg.e1_2.GetValue())])
-            nx = int(dlg.nx.GetValue())
-            e2 = np.array([float(dlg.e2_0.GetValue()), float(dlg.e2_1.GetValue()),float(dlg.e2_2.GetValue())])
-            ny = int(dlg.ny.GetValue())
+            result = dlg.ShowModal()
             dlg.Destroy()
-            # Compute the G vectors if needed
-            try:                
-                self.G
-            except:
-                self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
-            self.SetStatusText("Plotting charge...")
-            self.plot2D = plot2Dcharge(self.charge,self.G,x0,e1,e2,nx,ny)
-            self.plot2D.show()
-            self.SetStatusText("Plotting charge... done!")
+            
+            if result == wx.ID_OK:
+                selection = int(dlg.radiobox.GetSelection())
+                x0 = np.array([float(dlg.x0_0.GetValue()), float(dlg.x0_1.GetValue()), float(dlg.x0_2.GetValue())])
+                e1 = np.array([float(dlg.e1_0.GetValue()), float(dlg.e1_1.GetValue()),float(dlg.e1_2.GetValue())])
+                nx = int(dlg.nx.GetValue())
+                e2 = np.array([float(dlg.e2_0.GetValue()), float(dlg.e2_1.GetValue()),float(dlg.e2_2.GetValue())])
+                ny = int(dlg.ny.GetValue())
+                dlg.Destroy()
+                
+                # Compute the G vectors if needed
+                self.SetStatusText("Generating the g vectors...")
+                try:                
+                    self.G
+                except:
+                    self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
+                
+                if (selection==0):
+                    try:
+                        toplot = self.charge
+                    except:
+                        wx.MessageBox("No charge file loaded!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                elif (selection==1):
+                    try:
+                        toplot = self.v_bare
+                    except:
+                        wx.MessageBox("No Vbare calculated!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                elif (selection==2):
+                    try:
+                        toplot = self.v_bare + self.v_h  
+                    except:
+                        wx.MessageBox("No Vbare+VH calculated!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                elif (selection==3):
+                    try:
+                        toplot = self.v_bare + self.v_h + self.v_xc 
+                    except:
+                        wx.MessageBox("No Vbare+VH calculated!",
+                        "Warning!", wx.OK | wx.ICON_EXCLAMATION, self)  
+                        return
+                                       
+                self.SetStatusText("Plotting...")
+                self.plot2D = plot2Dcharge(toplot,self.G,x0,e1,e2,nx,ny,True)
+                self.plot2D.show()
+                self.SetStatusText("Plotting... done!")
         except:
             wx.MessageBox("Something wrong while plotting the charge...",
             "", wx.OK | wx.ICON_EXCLAMATION, self) 
