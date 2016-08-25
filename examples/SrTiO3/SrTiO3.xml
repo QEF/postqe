@@ -198,7 +198,7 @@
       </scf_conv>
       <opt_conv>
         <n_opt_steps>
-           0
+           1
         </n_opt_steps>
         <grad_norm>
        0.1349901E-02
@@ -729,7 +729,7 @@
       </reciprocal_lattice>
     </basis_set>
     <dft>
-      <functional> SLA  PW   PBE  PBE</functional>
+      <functional>PBE</functional>
     </dft>
     <magnetization>
       <lsda>false</lsda>

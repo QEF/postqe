@@ -4,6 +4,7 @@
 ! - USE KINDS only DP substituted with INTEGER, PARAMETER :: DP = selected_real_kind(14,200)
 ! - USE io_global only stdout substituted with   INTEGER :: stdout = 6    ! unit connected to standard output
 ! - some other minor changes (see each file)
+! - more_functionals.f90 does not compile with f2py yet
 !
 ! Postfix "f2py" has been added to the original QE files
 !-----------------------------------------------------------------------

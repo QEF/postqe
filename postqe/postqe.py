@@ -10,13 +10,13 @@ from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from celldm import calcola_celldm
 
 
-def get_from_xml(fname):
+def get_from_xml(fname,schema):
     """
     Get some useful values from xml file
     """
 
     import xsdtypes
-    xd = xsdtypes.XmlDocument("../../qexsd/qespresso/scheme/qes.xsd")
+    xd = xsdtypes.XmlDocument(schema)
     print ("Reading xml file: ",fname)
     xd.read(fname)
     d = xd.to_dict()
@@ -148,29 +148,16 @@ if __name__ == "__main__":
     print (pars)
     
     # get some needed values from the xml output
-    #print (pars.outdir+pars.prefix+".xml")
+    schema = "/home/mauropalumbo/pythonprojects/qexsd/qespresso/scheme/qes.xsd"
     ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
-    nat, ntyp = get_from_xml(pars.outdir+"/"+pars.prefix+".xml")    
+    nat, ntyp = get_from_xml(pars.outdir+"/"+pars.prefix+".xml",schema)    
     celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
       
     charge_file = pars.outdir+"/charge-density.dat"
     charge = read_charge_file_iotk(charge_file)
     nr = charge.shape
     header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
-    
-    # Some lines only for testing v_bare
-    v_bare = read_pp_out_file("SiO2_quarzo_plotnum2.dat", 15, nr)
-    write_charge("SiO2_barerewritten",v_bare,header)
-    v_bare2 = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
-    write_charge("SiO2_bare",v_bare2,header)
-    exit()        
-    
-    v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
-    v_h =  compute_v_h(charge,ecutrho,alat,b)
-    v_tot = v_h
-    write_charge(pars.filplot,v_tot,header)  
-    exit()
-    
+        
     if (pars.plot_num==0):   # Read the charge and write it in filpl       
         write_charge(pars.filplot,charge,header)
         
