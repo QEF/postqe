@@ -272,29 +272,28 @@ def create_header(prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positio
     Creates the header lines for the output file. A few fields are different from QE.
     """
 
-    text = prefix+"\n"
-    text += "{:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d}\n".format(nr[0],nr[1],nr[2],nr[0],nr[1],nr[2],nat,ntyp)
-    text += "{:6d}    {:8E}  {:8E}  {:8E}  {:8E}  {:8E}  {:8E}\n".format(ibrav,*celldms)
-    text += "      "+4*"XXXX   "+"\n"
+    text = "# "+prefix+"\n"
+    text += "# {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d}\n".format(nr[0],nr[1],nr[2],nr[0],nr[1],nr[2],nat,ntyp)
+    text += "# {:6d}    {:8E}  {:8E}  {:8E}  {:8E}  {:8E}  {:8E}\n".format(ibrav,*celldms)
+    text += "#      "+4*"XXXX   "+"\n"
     
     ityp = 1
     for typ in atomic_species:
-        text += "{:4d} ".format(ityp)+typ["name"]+"\n"
+        text += "# {:4d} ".format(ityp)+typ["name"]+"\n"
         ityp += 1
 
     ipos = 1
     for pos in atomic_positions:
-        text += "{:4d}  ".format(ipos)
+        text += "# {:4d}  ".format(ipos)
         for i in range(0,3):
-            text += "{:9E}  ".format(pos["_text"][i])
+            text += " {:9E}  ".format(pos["_text"][i])
         text += pos["name"]+"\n"
         ipos += 1
     
     return text
     
-
-# A function only for testing for now...  
-def read_pp_out_file(fname, skiplines, nr):
+ 
+def read_postqe_output_file(fname):
     """
     This function reads the output charge (or other quantity) as the output 
     format of QE pp. Only for testing... Initial lines are not processed
@@ -302,59 +301,33 @@ def read_pp_out_file(fname, skiplines, nr):
     """
     
     tempcharge = []
-    i=0           # initialize counters
-    countline=1
+    count = 0
+    nr = np.zeros(3,dtype=int)
     with open(fname, "r") as lines:
         for line in lines:
             linesplit=line.split()
-            if countline>skiplines:                     # skip the first "skiplines" lines
+            if count==1:
+                nr[0] = int(linesplit[1])
+                nr[1] = int(linesplit[2])
+                nr[2] = int(linesplit[3])
+            if linesplit[0]!='#':                       # skip the first lines beginning with #
                 for j in range(0,len(linesplit)):       # len(linesplit)=5 except maybe for the last line
                     tempcharge.append(float(linesplit[j]))
-
-            countline += 1
-    
+            count += 1
+   
     
     charge = np.zeros((nr[0],nr[1],nr[2]))
     count = 0
-    #for x in range(0,nr[0]):
-    #    for y in range(0,nr[1]):
-    #        for z in range(0,nr[2]):
+    # Loops according to the order it is done in QE
     for z in range(0,nr[2]):
         for y in range(0,nr[1]):
             for x in range(0,nr[0]):
                 charge[x,y,z] = tempcharge[count]
                 count += 1
 
-    return charge
+    return charge, nr
     
     
-def read_charge_text_file(fname,skiplines,nr1,nr2,nr3):
-    """
-    Reads the charge or another quantity calculated by postqe into a file fname.
-    For testing...
-    """
-    
-    tempcharge = []
-    i=0           # initialize counters
-    countline=1
-    with open(fname, "r") as lines:
-        for line in lines:
-            linesplit=line.split()
-            if countline>skiplines:                     # skip the first "skiplines" lines
-                for j in range(0,len(linesplit)):       # len(linesplit)=5 except maybe for the last line
-                    g2 = float(linesplit[j])
-                    if g2<0.1:
-                        tempcharge.append(1.0E16)
-                    else:
-                        tempcharge.append(g2)
-
-            countline += 1
-    
-    temp2charge = np.array(tempcharge)
-    charge = np.reshape(np.array(tempcharge),(nr1,nr2,nr3))
-    return charge
-    
-    fout.close()
     
 ###########################################
 #

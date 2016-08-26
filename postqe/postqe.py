@@ -5,7 +5,7 @@ import time, sys
 import numpy as np
 from readutils import read_line, read_n_real_numbers,\
 read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
-read_wavefunction_file_hdf5, read_pp_out_file, write_charge, create_header
+read_wavefunction_file_hdf5, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from celldm import calcola_celldm
 import settings
