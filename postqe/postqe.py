@@ -8,6 +8,7 @@ read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
 read_wavefunction_file_hdf5, read_pp_out_file, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from celldm import calcola_celldm
+import settings
 
 
 def get_from_xml(fname,schema):
@@ -148,9 +149,8 @@ if __name__ == "__main__":
     print (pars)
     
     # get some needed values from the xml output
-    schema = "/home/mauropalumbo/pythonprojects/qexsd/qespresso/scheme/qes.xsd"
     ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
-    nat, ntyp = get_from_xml(pars.outdir+"/"+pars.prefix+".xml",schema)    
+    nat, ntyp = get_from_xml(pars.outdir+"/"+pars.prefix+".xml",settings.schema)    
     celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
       
     charge_file = pars.outdir+"/charge-density.dat"

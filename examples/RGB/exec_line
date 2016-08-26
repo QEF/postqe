@@ -1,0 +1,9 @@
+#calculate rgb, average spectra and print plots
+
+python3 calcRGB.py -eig "example/EIG/*" -rgb "example/rgbSingleSpectra" -av "example/S_av" -plot "all" -outS "example/plot/S" 
+
+
+
+#calculate rgb and make a movie representative of the molecular dinamics
+
+python3 calcRGB.py -eig "example/EIG/*" -rgb "example/rgbSingleSpectra"  -movie "example/movie" 

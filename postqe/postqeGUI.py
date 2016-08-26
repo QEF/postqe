@@ -15,8 +15,9 @@ read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
 read_wavefunction_file_hdf5, read_pp_out_file, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc, compute_G
 from celldm import calcola_celldm
-from plot import plot1Dcharge, plot2Dcharge
+from plot import plot1D, plot2D
 from postqe import get_from_xml
+import settings
 
 
 class RedirectText:
@@ -129,9 +130,6 @@ class MyFrame(wx.Frame):
     #
     
     def OnOpenxml(self, event):
-
-        import xsdtypes
-        xd = xsdtypes.XmlDocument("../../qexsd/qespresso/scheme/qes.xsd")
         wildcard =  "Xml file (*.xml)|*.xml|" \
                     "All files (*.*)|*.*"
         dialog = wx.FileDialog(None, "Choose an xml QE file", os.getcwd(),"", wildcard)
@@ -140,7 +138,7 @@ class MyFrame(wx.Frame):
                 fname = dialog.GetPath()
                 self.ecutwfc, self.ecutrho, self.ibrav, self.alat, self.a, self.b,\
                 self.functional, self.atomic_positions, self.atomic_species,\
-                self.nat, self.ntyp = get_from_xml(fname)    
+                self.nat, self.ntyp = get_from_xml(fname,settings.schema)    
                 self.celldms = calcola_celldm(self.alat,self.a[0],self.a[1],self.a[2],self.ibrav)
                 self.IsXmlRead = True
                 self.SetStatusText("Read xml file: "+fname)
@@ -291,7 +289,8 @@ class MyFrame(wx.Frame):
                 
         try:
             self.v_bare = compute_v_bare(self.ecutrho, self.alat, self.a[0],\
-            self.a[1], self.a[2], self.nr, self.atomic_positions, self.atomic_species)  
+            self.a[1], self.a[2], self.nr, self.atomic_positions, self.atomic_species,\
+            settings.pseudodir)  
             self.vtot = self.v_bare
             self.SetStatusText("V bare calculated!")
         except:
@@ -312,7 +311,8 @@ class MyFrame(wx.Frame):
                 
         try:
             self.v_bare = compute_v_bare(self.ecutrho, self.alat, self.a[0],\
-            self.a[1], self.a[2], self.nr, self.atomic_positions, self.atomic_species)              
+            self.a[1], self.a[2], self.nr, self.atomic_positions, self.atomic_species,\
+            settings.pseudodir)              
             self.v_h =  compute_v_h(self.charge,self.ecutrho,self.alat,self.b)
             self.vtot = self.v_bare + self.v_h
             self.SetStatusText("Bare and Hartree potentials calculated!")
@@ -334,7 +334,8 @@ class MyFrame(wx.Frame):
                 
         try:
             self.v_bare = compute_v_bare(self.ecutrho, self.alat, self.a[0],\
-            self.a[1], self.a[2], self.nr, self.atomic_positions, self.atomic_species)              
+            self.a[1], self.a[2], self.nr, self.atomic_positions, self.atomic_species,\
+            settings.pseudodir)              
             self.v_h =  compute_v_h(self.charge,self.ecutrho,self.alat,self.b)
             self.charge_core = np.zeros(self.charge.shape)    # only for now, later in input
             self.v_xc = compute_v_xc(self.charge,self.charge_core,str(self.functional))
@@ -407,7 +408,7 @@ class MyFrame(wx.Frame):
                         return
                 
                 self.SetStatusText("Plotting...")
-                self.plot1D = plot1Dcharge(toplot,self.G,x0,e1,nx)
+                self.plot1D = plot1D(toplot,self.G,x0,e1,nx)
                 self.plot1D.show()
                 self.SetStatusText("Plotting... done!")
         except:
@@ -474,7 +475,7 @@ class MyFrame(wx.Frame):
                         return
                                        
                 self.SetStatusText("Plotting...")
-                self.plot2D = plot2Dcharge(toplot,self.G,x0,e1,e2,nx,ny,True)
+                self.plot2D = plot2D(toplot,self.G,x0,e1,e2,nx,ny,True)
                 self.plot2D.show()
                 self.SetStatusText("Plotting... done!")
         except:

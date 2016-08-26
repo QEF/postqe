@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# switch python2/python3
+PYTH=python3
+POSTQEDIR=~/pythonprojects/postqe/postqe
+
+QEXSDDIR=~/pythonprojects/qexsd
+
+# run from directory where this script is
+cd `echo $0 | sed 's/\(.*\)\/.*/\1/'` # extract pathname
+EXAMPLE_DIR=`pwd`
+
+# check whether echo has the -e option
+if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
+
+$ECHO
+$ECHO "This example shows how to use postqe for SiO2"
+$ECHO "Running options: plotnum 0, 1, 2, 11"
+
+$PYTH $POSTQEDIR/postqe.py -plot_num 0 -prefix SiO2 -outdir ./ -filplot SiO2out0
+$PYTH $POSTQEDIR/postqe.py -plot_num 1 -prefix SiO2 -outdir ./ -filplot SiO2out1
+$PYTH $POSTQEDIR/postqe.py -plot_num 2 -prefix SiO2 -outdir ./ -filplot SiO2out2
+$PYTH $POSTQEDIR/postqe.py -plot_num 11 -prefix SiO2 -outdir ./ -filplot SiO2out11
+
+$ECHO " done"
+
+

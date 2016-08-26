@@ -1,3 +1,4 @@
+
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
     import numpy as np
     import ggen
@@ -55,7 +56,7 @@ def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
     return np.fft.ifftn(aux)*(nr1*nr2*nr3)
 
 
-def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho):
+def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho, pseudodir="./"):
     import numpy as np
     import readutils as rp
     #
@@ -80,7 +81,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
     vlocs = []
     for typ in species:
         filename = typ["pseudo_file"]
-        pseudo = rp.read_pseudo_file(filename)
+        pseudo = rp.read_pseudo_file(pseudodir+filename)
         vloc_r = pseudo["PP_LOCAL"]
         r = pseudo["PP_MESH"]["PP_R"]
         rab = pseudo["PP_MESH"]["PP_RAB"]

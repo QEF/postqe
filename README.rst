@@ -2,10 +2,14 @@
 postqe
 =========
 
-This is a first experimental implementation of post processing tools for QE
-developed in Python 3 (tested with Python 3.4.3).
+This is a first experimental implementation of post processing tools for QE developed in Python 3 (tested with Python 3.4.3). Tested also in Python 2.7. It relies on numpy, which must be available in your platform.
+Some functionalities, for example RGB calculations, need additional Python modules (moviepy, colormath, natsort) which can be easily downloaded and installed from the web or with "pip".
 
-A first version of a GUI has also been created as "postqeGUI.py". It is based on Python version of wxWidgets, i.e. WxPython. Since the postqe code is written in Python 3, we are using here the Phoenix version of WxPython. Please note that the porting of WxPython to Python 3 is still ongoing. More details on https://wiki.wxpython.org/ProjectPhoenix.
+A first version of a GUI has also been created as "postqeGUI.py". It is based on the Python version of wxWidgets, i.e. WxPython. It is available as a module in Python2, while the full migration to Python3 is ongoing (more details on https://wiki.wxpython.org/ProjectPhoenix) and is named
+WxPhoenix. PostqeGUI has been tested with Python3 and it is working, but minor issues can still be present and may change during the migration process. 
+
+Some examples are provided in the directory examples, running the command line version of the code. RGA factors are not yet available in the GUI.
+ 
 
 Features
 --------
@@ -14,6 +18,8 @@ Features
 - Calculate the bare potential of the atoms.
 - Calculate the bare plus the Hartree potential
 - Calculate the bare + Hartree + exchange-correlation potential 
-- 1D and 2D plots of the charge along certain directions/planes
+- Print the potentials as a text file for further postprocessing
+- 1D and 2D plots of the charge along certain directions/planes using Fourier interpolation
+- Calculate RGB factors
 
 

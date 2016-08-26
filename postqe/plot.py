@@ -13,7 +13,7 @@ from compute_vs import compute_G
 from readutils import read_charge_file_iotk, write_charge, create_header
 
 
-def plot1Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
+def plot1D(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
     """
     This function calculates a 1D plot of the input charge (or else), starting from the 
     input point x0 and along the direction given by the vector e1. The G vectors
@@ -85,7 +85,7 @@ def plot1Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
     return fig
     
     
-def plot2Dcharge(charge,G,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20,zlab=0):
+def plot2D(charge,G,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20,zlab=0):
     """
     This function calculates a 2D plot of the input charge (or else), starting from the 
     input point x0 and along the directions given by the vectors e1, e2. These
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     ny = 15
     
     #G = compute_G(b,charge.shape,ecutrho,alat)
-    #fig = plot2Dcharge(charge,G,x0,e1,e2,nx,ny)
+    #fig = plot2D(charge,G,x0,e1,e2,nx,ny)
     #fig.show()
     #exit()
     
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     dlg.Destroy()
     
     G = compute_G(b,charge.shape,ecutrho,alat)
-    fig = plot2Dcharge(charge,G,x0,e1,e2,nx,ny)
+    fig = plot2D(charge,G,x0,e1,e2,nx,ny)
     fig.show()
     
     app.MainLoop()

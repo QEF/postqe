@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# switch python2/python3
+PYTH=python3
+POSTQEDIR=~/pythonprojects/postqe/postqe
+
+# run from directory where this script is
+cd `echo $0 | sed 's/\(.*\)\/.*/\1/'` # extract pathname
+EXAMPLE_DIR=`pwd`
+
+# check whether echo has the -e option
+if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
+
+$ECHO
+$ECHO "This example shows how to compute rgb, average spectra and print plots"
+
+$PYTH $POSTQEDIR/calcRGB.py -eig "EIG/*" -rgb "rgbSingleSpectra" -av "S_av" -plot "all" -outS "plot/S"
+
+$ECHO " done"
+
+
