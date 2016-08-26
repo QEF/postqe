@@ -249,13 +249,12 @@ def write_charge(fname,charge,header):
     
     fout = open(fname, "w")
     
+    # The header contains some information on the system, the grid nr, etc.
     fout.write(header)
     
     nr = charge.shape
     count = 0
-    #for x in range(0,nr[0]):
-    #    for y in range(0,nr[1]):
-    #        for z in range(0,nr[2]):
+    # Loop with the order as in QE files
     for z in range(0,nr[2]):
         for y in range(0,nr[1]):
             for x in range(0,nr[0]):
@@ -296,8 +295,7 @@ def create_header(prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positio
 def read_postqe_output_file(fname):
     """
     This function reads the output charge (or other quantity) as the output 
-    format of QE pp. Only for testing... Initial lines are not processed
-    and the function needs to know how many there are (skiplines).
+    format of postqe. 
     """
     
     tempcharge = []
@@ -325,7 +323,7 @@ def read_postqe_output_file(fname):
                 charge[x,y,z] = tempcharge[count]
                 count += 1
 
-    return charge, nr
+    return charge
     
     
     

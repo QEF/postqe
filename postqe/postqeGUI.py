@@ -12,7 +12,7 @@ import time, sys, os
 import numpy as np
 from readutils import read_line, read_n_real_numbers,\
 read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
-read_wavefunction_file_hdf5, read_pp_out_file, write_charge, create_header
+read_wavefunction_file_hdf5, read_postqe_output_file, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc, compute_G
 from celldm import calcola_celldm
 from plot import plot1D, plot2D
@@ -408,7 +408,7 @@ class MyFrame(wx.Frame):
                         return
                 
                 self.SetStatusText("Plotting...")
-                self.plot1D = plot1D(toplot,self.G,x0,e1,nx)
+                self.plot1D = plot1D(toplot,self.G,self.a,x0,e1,nx,selection)
                 self.plot1D.show()
                 self.SetStatusText("Plotting... done!")
         except:
@@ -475,7 +475,7 @@ class MyFrame(wx.Frame):
                         return
                                        
                 self.SetStatusText("Plotting...")
-                self.plot2D = plot2D(toplot,self.G,x0,e1,e2,nx,ny,True)
+                self.plot2D = plot2D(toplot,self.G,self.a,x0,e1,e2,nx,ny,selection)
                 self.plot2D.show()
                 self.SetStatusText("Plotting... done!")
         except:

@@ -162,7 +162,8 @@ if __name__ == "__main__":
         write_charge(pars.filplot,charge,header)
         
     elif (pars.plot_num==1):
-        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)      
+        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
+        atomic_species, settings.pseudodir)      
         v_h =  compute_v_h(charge,ecutrho,alat,b)
         charge_core = np.zeros(charge.shape)    # only for now, later in input
         v_xc = compute_v_xc(charge,charge_core,str(functional))
@@ -170,11 +171,13 @@ if __name__ == "__main__":
         write_charge(pars.filplot,v_tot,header)     
             
     elif (pars.plot_num==2):
-        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)          
+        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
+        atomic_species, settings.pseudodir)          
         write_charge(pars.filplot,v_bare,header)   
     
     elif (pars.plot_num==11):
-        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species)    
+        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
+        atomic_species,settings.pseudodir)    
         v_h =  compute_v_h(charge,ecutrho,alat,b)
         v_tot = v_bare + v_h
         write_charge(pars.filplot,v_tot,header)        
