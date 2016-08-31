@@ -1,4 +1,5 @@
 import os
+import glob
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
 from setuptools.command.sdist import sdist
@@ -48,6 +49,17 @@ setup (
     url='',
     license='MIT',
     long_description='Post processing tools for Quantum Espresso',
+
+    data_files=[
+        ('/usr/share/doc/postqe/pseudos', glob.glob('examples/pseudos/*')),
+        ('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
+        ('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
+        ('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
+        ('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
+        ('/usr/share/doc/postqe/Si', glob.glob('examples/Si/*')),
+        ('/usr/share/doc/postqe/SiO2', glob.glob('examples/SiO2/*')),
+        ('/usr/share/doc/postqe/SrTiO3', glob.glob('examples/SrTiO3/*'))
+    ],
 
     cmdclass={
         'build_ext': MyBuildExt,
