@@ -1,4 +1,33 @@
+import os
 from setuptools import setup, find_packages
+from setuptools.command.build_ext import build_ext
+from setuptools.command.sdist import sdist
+from setuptools.command.install import install
+
+
+class MyBuildExt(build_ext):
+
+    def run(self):
+        os.system('make -C postqe/fortranmodules all')
+        os.system('make -C postqe/fortranmodules move')
+        build_ext.run(self)
+
+
+class MySDist(sdist):
+
+    def run(self):
+        os.system('make -C postqe/fortranmodules all')
+        os.system('make -C postqe/fortranmodules move')
+        sdist.run(self)
+
+
+class MyInstall(install):
+
+    def run(self):
+        os.system('make -C postqe/fortranmodules all')
+        os.system('make -C postqe/fortranmodules move')
+        install.run(self)
+
 
 setup (
     name='postqe',
@@ -7,7 +36,7 @@ setup (
 
     # Declare your packages' dependencies here, for eg:
     install_requires=[
-        'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'wx'
+        'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib',  # 'wx'
     ],
 
     # Fill in these to make your Egg ready for upload to
@@ -19,6 +48,12 @@ setup (
     url='',
     license='MIT',
     long_description='Post processing tools for Quantum Espresso',
+
+    cmdclass={
+        'build_ext': MyBuildExt,
+        'sdist': MySDist,
+        'install': MyInstall
+    },
 
     # could also include long_description, download_url, classifiers, etc.
     classifiers=[
