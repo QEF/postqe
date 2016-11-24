@@ -3,25 +3,26 @@
 
 import time, sys
 import numpy as np
-from readutils import read_line, read_n_real_numbers,\
-read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
-read_wavefunction_file_hdf5, write_charge, create_header
+from readutils import (
+    read_line, read_n_real_numbers, read_charge_file_iotk, read_charge_file_hdf5,
+    read_wavefunction_file_iotk, read_wavefunction_file_hdf5, write_charge, create_header
+)
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from celldm import calcola_celldm
 import settings
 
 
-def get_from_xml(fname,schema):
+def get_from_xml(fname, schema):
     """
     Get some useful values from xml file
     """
-
-    import xsdtypes
-    xd = xsdtypes.XmlDocument(schema)
+    import xmlschema
+    from xml.etree import ElementTree
+    xs = xmlschema.XMLSchema(schema)
     print ("Reading xml file: ",fname)
-    xd.read(fname)
-    d = xd.to_dict()
-    
+    xd = ElementTree.parse(fname)
+    d = xmlschema.etree_to_dict(xd, xs)
+
     dout = d["{http://www.quantum-espresso.org/ns/qes/qes-1.0}espresso"]["output"]
     ecutwfc = (dout["basis_set"]["ecutwfc"])
     ecutrho = (dout["basis_set"]["ecutrho"])
@@ -45,8 +46,7 @@ def get_from_xml(fname,schema):
         atomic_species = a_s
     else:
         atomic_species = [a_s,]
-        
-       
+
     if (type(a_p)==type([])):
         atomic_positions = a_p
     else:

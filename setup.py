@@ -37,7 +37,7 @@ setup (
 
     # Declare your packages' dependencies here, for eg:
     install_requires=[
-        'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib',  # 'wx'
+        'xmlschema', 'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib',  # 'wx'
     ],
 
     # Fill in these to make your Egg ready for upload to
