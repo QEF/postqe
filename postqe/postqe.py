@@ -38,6 +38,8 @@ def get_from_xml(fname,schema):
     a_s = (dout["atomic_species"]["species"])
     nat = (dout["atomic_structure"]["nat"])
     ntyp = (dout["atomic_species"]["ntyp"])
+    nspin = (dout["magnetization"]["do_magnetization"])
+    noncolin = (dout["magnetization"]["noncolin"])
     
     # for subsequent loops it is important to have always lists for atomic_positions
     # and atomic_species. If this is not, convert
@@ -55,7 +57,7 @@ def get_from_xml(fname,schema):
     a = np.array([a1,a2,a3])
     b = np.array([b1,b2,b3])
     
-    return ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, nat, ntyp
+    return ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, nat, ntyp, nspin, noncolin
 
 
 
@@ -67,7 +69,7 @@ def get_input_parameters():
     
     parser = argparse.ArgumentParser(description='QE post processing')
     
-    parser.add_argument('-plot_num', type=int, nargs='?', default=2, choices=range(0, 21),
+    parser.add_argument('-plot_num', type=int, nargs='?', default=0, choices=range(0, 21),
     help="""selects what to save in filplot:\n
     0  = electron (pseudo-)charge density\n
     1  = total potential V_bare + V_H + V_xc\n
@@ -134,6 +136,12 @@ def get_input_parameters():
     parser.add_argument('-filplot', type=str, nargs='?', default="filplot",
                     help='file \"filplot\" contains the quantity selected by plot_num\
                         (can be saved for further processing)')
+
+    parser.add_argument('-spin_component', type=int, nargs='?', default=0,
+                    help='if plot_num==0: 0 = total charge (default value), 1 = spin up charge, 2 = spin down charge.\
+                          if plot_num==1: 0 = spin averaged potential (default value), 1 = spin up potential,\
+                          2 = spin down potential.')
+
     args = parser.parse_args()
     
     return args
@@ -150,7 +158,7 @@ if __name__ == "__main__":
     
     # get some needed values from the xml output
     ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
-    nat, ntyp = get_from_xml(pars.outdir+"/"+pars.prefix+".xml",settings.schema)    
+    nat, ntyp, nspin, noncolin = get_from_xml(pars.outdir+"/"+pars.prefix+".xml",settings.schema)
     celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
       
     charge_file = pars.outdir+"/charge-density.dat"
@@ -158,7 +166,8 @@ if __name__ == "__main__":
     nr = charge.shape
     header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
         
-    if (pars.plot_num==0):   # Read the charge and write it in filpl       
+    if (pars.plot_num==0):   # Read the charge and write it in filplot
+        # TO DO: handle different spin cases
         write_charge(pars.filplot,charge,header)
         
     elif (pars.plot_num==1):
@@ -173,8 +182,11 @@ if __name__ == "__main__":
     elif (pars.plot_num==2):
         v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
         atomic_species, settings.pseudodir)          
-        write_charge(pars.filplot,v_bare,header)   
-    
+        write_charge(pars.filplot,v_bare,header)
+
+    # TO DO: add plot_num == 6 case, should be easy
+
+
     elif (pars.plot_num==11):
         v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
         atomic_species,settings.pseudodir)    
