@@ -22,10 +22,11 @@ def compute_volume(at1,at2,at3):
     return V 
 
 
-def compute_G(b,nr,ecutrho,alat):
+def compute_G(b,nr):
     """
     This function computes a matrix nr[0]*nr[1]*nr[2] containing the G vectors at each point
     of the mesh points defined by nr. G are the vectors in the reciprocal lattice vector.
+    b[0], b[1], b[2] are the reciprocal cell base vectors
     """
 
     G = np.zeros((nr[0],nr[1],nr[2],3))
@@ -89,7 +90,7 @@ def compute_Gs(b,nr,ecutrho,alat):
     """
     This function computes both a matrix nr[0]*nr[1]*nr[2] containing the G vectors at each point
     of the mesh points defined by nr and the G^2 moduli. G are the vectors in the
-    reciprocal lattice vector. Also apply a proper cut-off for G^2
+    reciprocal space. Also apply a proper cut-off for G^2
     ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2). For G^2>ecutm G^2, G^2 should be 0.
     Here G^2 is set to a big number so that n(G)/G^2 is 0 in the inverse FFT.
     """
@@ -137,10 +138,9 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, 
 
 def compute_v_h(charge,ecutrho,alat,b):
     """
-    This function computes the exchange-correlation potential from the charge and
-    the type of functional given in input. The charge is a numpy matrix nr1*nr2*nr3.
-    The functional is a string identifying the functional as in QE convention.
-    
+    This function computes the hartree potential from the charge and
+    the cut off energy "ecutrho" on the charge. The charge is a numpy matrix nr1*nr2*nr3.
+
     """    
     # First compute the FFT of the charge          
     fft_charge = np.fft.fftn(charge)

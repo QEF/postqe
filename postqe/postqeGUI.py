@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #encoding: UTF-8
 
 
 import wx
 from wxPlot1DDialog import Plot1DDialog, Plot2DDialog
 import matplotlib
-matplotlib.use('WXAgg')
+#matplotlib.use('WXAgg')
 import matplotlib.pyplot as plt
 
 import time, sys, os
@@ -13,7 +13,7 @@ import numpy as np
 from readutils import read_line, read_n_real_numbers,\
 read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
 read_wavefunction_file_hdf5, read_postqe_output_file, write_charge, create_header
-from compute_vs import compute_v_bare, compute_v_h, compute_v_xc, compute_G
+from compute_vs import compute_v_bare, compute_v_h, compute_v_xc, compute_Gs
 from celldm import calcola_celldm
 from plot import plot1D, plot2D
 from postqe import get_from_xml
@@ -363,7 +363,7 @@ class MyFrame(wx.Frame):
             dlg = Plot1DDialog()
             result = dlg.ShowModal()
             dlg.Destroy()
-            
+
             if result == wx.ID_OK:
                 selection = int(dlg.radiobox.GetSelection())
                 x0 = np.array([float(dlg.x0_0.GetValue()), float(dlg.x0_1.GetValue()), float(dlg.x0_2.GetValue())])
@@ -372,11 +372,11 @@ class MyFrame(wx.Frame):
 
                 # Compute the G vectors if needed
                 self.SetStatusText("Generating the g vectors...")
-                try:                
+                try:
                     self.G
                 except:
-                    self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
-                
+                    self.G, discard = compute_Gs(self.b,self.charge.shape,self.ecutrho,self.alat)
+
                 
                 if (selection==0):
                     try:
@@ -443,7 +443,7 @@ class MyFrame(wx.Frame):
                 try:                
                     self.G
                 except:
-                    self.G = compute_G(self.b,self.charge.shape,self.ecutrho,self.alat)
+                    self.G, discard = compute_Gs(self.b,self.charge.shape,self.ecutrho,self.alat)
                 
                 if (selection==0):
                     try:

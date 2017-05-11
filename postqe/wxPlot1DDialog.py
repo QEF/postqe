@@ -20,7 +20,7 @@ class PosIntValidator(wx.PyValidator):
             int(text)
             if (int(text)<1):
                 raise
-            textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            #textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
             textCtrl.Refresh()
             return True
         except:
@@ -52,7 +52,7 @@ class FloatValidator(wx.PyValidator):
         text = textCtrl.GetValue()
         try:
             float(text)
-            textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            #textCtrl.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
             textCtrl.Refresh()
             return True
         except:
