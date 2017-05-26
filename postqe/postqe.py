@@ -7,37 +7,58 @@ from readutils import read_line, read_n_real_numbers,\
 read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
 read_wavefunction_file_hdf5, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
-from celldm import calcola_celldm
+from pyQ import pyq_getcelldm as calcola_celldm
 import settings
 
-
-def get_from_xml(fname,schema):
+def get_from_xml(fname, schema = None):
     """
     Get some useful values from xml file
     """
 
-    import xsdtypes
-    xd = xsdtypes.XmlDocument(schema)
+    import xmlschema
+    from xml.etree import ElementTree as ET
+    try:
+        from urllib.request import urlopen
+        from urllib.parse import urlparse
+    except ImportError:
+        from urllib2 import urlopen
+        from urllib2 import urlparse
+        from urlparse import urlparse
+
+    root = ET.parse(fname).getroot()
+    schemaLoc = root.get('{http://www.w3.org/2001/XMLSchema-instance}schemaLocation').split()[1]
+    schemaLoc = urlparse(schemaLoc)
+    if schemaLoc.scheme =='':
+        xd = xmlschema.XMLSchema(schemaLoc.path)
+    else:
+        lines = urlopen(schemaLoc.geturl() ).readlines()
+        with open('temp.xsd','w') as tempSchemaFile:
+            tempSchemaFile.writelines([l.decode("utf-8") for l in lines ])
+        xd = xmlschema.XMLSchema('temp.xsd')
+        import os
+        os.remove('temp.xsd')
     print ("Reading xml file: ",fname)
-    xd.read(fname)
-    d = xd.to_dict()
-    
-    dout = d["{http://www.quantum-espresso.org/ns/qes/qes-1.0}espresso"]["output"]
+    d = xd.to_dict(fname)
+    try:
+        settings.pseudodir = d["input"]["control_variables"]["pseudo_dir"]
+    except KeyError:
+        pass
+    dout = d["output"]
     ecutwfc = (dout["basis_set"]["ecutwfc"])
     ecutrho = (dout["basis_set"]["ecutrho"])
-    alat = (dout["atomic_structure"]["alat"])
+    alat = (dout["atomic_structure"]["@alat"])
     a1 = np.array(dout["atomic_structure"]["cell"]["a1"])
     a2 = np.array(dout["atomic_structure"]["cell"]["a2"])
     a3 = np.array(dout["atomic_structure"]["cell"]["a3"])   
-    ibrav = (dout["atomic_structure"]["bravais_index"])
+    ibrav = (dout["atomic_structure"]["@bravais_index"])
     b1 = np.array(dout["basis_set"]["reciprocal_lattice"]["b1"])
     b2 = np.array(dout["basis_set"]["reciprocal_lattice"]["b2"])
     b3 = np.array(dout["basis_set"]["reciprocal_lattice"]["b3"])
     functional = np.array(dout["dft"]["functional"])
     a_p = (dout["atomic_structure"]["atomic_positions"]["atom"])
     a_s = (dout["atomic_species"]["species"])
-    nat = (dout["atomic_structure"]["nat"])
-    ntyp = (dout["atomic_species"]["ntyp"])
+    nat = (dout["atomic_structure"]["@nat"])
+    ntyp = (dout["atomic_species"]["@ntyp"])
     nspin = (dout["magnetization"]["do_magnetization"])
     noncolin = (dout["magnetization"]["noncolin"])
     
@@ -181,7 +202,7 @@ if __name__ == "__main__":
             
     elif (pars.plot_num==2):
         v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
-        atomic_species, settings.pseudodir)          
+        atomic_species, pseudodir)
         write_charge(pars.filplot,v_bare,header)
 
     # TO DO: add plot_num == 6 case, should be easy

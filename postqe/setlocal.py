@@ -1,21 +1,23 @@
 
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
     import numpy as np
-    import ggen
-    import gshells
+    from pyQ import pyq_recips as recips,\
+        pyq_get_gg_list as generate_gg_list,\
+        pyq_get_igtongl as get_igtongl,\
+        pyq_get_gl      as get_gl
     nrrr = nr1 * nr2 * nr3
     tpiba = 2 * np.pi / alat
     tpiba2 = tpiba**2
-    bg1, bg2, bg3 = ggen.recips(at1 / alat, at2 / alat, at3 / alat)
-    g, gg, mill = ggen.generate_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
+    bg1, bg2, bg3 = recips(at1 / alat, at2 / alat, at3 / alat)
+    g, gg, mill = generate_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
     gzip = zip(gg, g, mill)
     gzip = (el for el in gzip if el[0] <= ecutrho / tpiba2)
     gzip = sorted(gzip, key=lambda el: el[0])
     mill_cut = [el[2] for el in gzip]
     g_cut = [el[1] for el in gzip]
     gg_cut =[el[0] for el in gzip]
-    igtongl, ngl = gshells.get_igtongl(gg_cut)
-    gl = gshells.get_gl(gg_cut, ngl)
+    igtongl, ngl = get_igtongl(gg_cut)
+    gl = get_gl(gg_cut, ngl)
     return g_cut, gg_cut, mill_cut, igtongl, gl
 
 
@@ -29,16 +31,16 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     :type alat: float
     :type gl: np.ndarray
     """
-    import vloc
+    from pyQ import pyq_vloc_of_g 
     import numpy as np
     msh = len(rab)
     tpiba2 = (np.pi * 2.e0 / alat) ** 2
-    return vloc.vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp, tpiba2=tpiba2, gl=gl, omega=omega)
+    return pyq_vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp, tpiba2=tpiba2, gl=gl, omega=omega)
 
 
 def compute_struct_fact(tau, alat, g):
-    import sf
-    str_fact, checkgg, check_tau = sf.struc_fact(tau / alat, g)
+    from pyQ import pyq_struct_fact as struc_fact
+    str_fact, checkgg, check_tau = struc_fact(tau / alat, g)
     return str_fact
 
 
@@ -69,10 +71,11 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
 
     for typ in species:
         tau_spec = []
-        name = typ["name"]
+        name = typ["@name"]
         for pos in atomic_positions:
-            if pos["name"] == name:
-                new_atomic_positions = np.array(pos["_text"])*alat
+            if pos["@name"] == name:
+                coords = [float(x) for x in pos['#text'].split()]
+                new_atomic_positions = np.array(coords  )*alat
                 tau_spec.append(new_atomic_positions)
         tau_spec = np.array(tau_spec)
         str_fact = compute_struct_fact(tau_spec, alat, g)
