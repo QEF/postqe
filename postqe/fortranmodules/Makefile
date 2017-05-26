@@ -1,17 +1,23 @@
 
-celldm: calcola_celldm.f90
-	f2py -c -m celldm calcola_celldm.f90
-ggen:   generate_gg_list.f90
-	f2py -c -m ggen generate_gg_list.f90
-vloc:	vloc_of_g.f90  simpsn.f90  erf.f90
-	f2py -c -m vloc vloc_of_g.f90 simpsn.f90 erf.f90
-sf:	struct_fact.f90
-	f2py -c -m sf struct_fact.f90
-gshells: gshells.f90
-	f2py -c -m gshells gshells.f90
+.SUFFIXES :
+.SUFFIXES : .o .c .f .f90
+
+
+
+.f90.o:
+	gfortran -c -fPIC $<
+
+
+libQE.a: touch-dummy
+	(cd flib ; make all)
+
+pyQ:  wrappers_and_drivers.f90 libQE.a
+	f2py -c wrappers_and_drivers.f90 -m pyQ flib/libQE.a  
+	
+
 funct: funct.f90
 	f2py -c -m funct funct.f90 functionals.f90 lsda_functionals.f90 expint.f90 erf.f90
-all: gshells sf vloc ggen funct celldm
+all: pyQ funct
 
 move :
 	mv *.so ../
@@ -19,3 +25,5 @@ move :
 clean:
 	rm *.so
 	touch *.f90
+touch-dummy:
+	$(dummy-variable)
