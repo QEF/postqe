@@ -68,8 +68,6 @@ def get_from_xml(fname, schema = None):
         atomic_species = a_s
     else:
         atomic_species = [a_s,]
-        
-       
     if (type(a_p)==type([])):
         atomic_positions = a_p
     else:
