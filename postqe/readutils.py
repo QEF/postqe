@@ -366,7 +366,7 @@ def create_header(prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positio
     ipos = 1
     for pos in atomic_positions:
         text += "# {:4d}  ".format(ipos)
-        coords = [float(x) for x in pos['#text'].split()]
+        coords = [float(x) for x in pos['#text'] ]
         text += " {:9E} {:9E} {:9E}\n".format(*coords)
         text += pos["@name"]+"\n"
         ipos += 1

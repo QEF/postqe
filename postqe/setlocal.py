@@ -74,7 +74,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         name = typ["@name"]
         for pos in atomic_positions:
             if pos["@name"] == name:
-                coords = [float(x) for x in pos['#text'].split()]
+                coords = [float(x) for x in pos['#text'] ]
                 new_atomic_positions = np.array(coords  )*alat
                 tau_spec.append(new_atomic_positions)
         tau_spec = np.array(tau_spec)
@@ -90,9 +90,12 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         rab = pseudo["PP_MESH"]["PP_RAB"]
         #
         if ( "PP_HEADER" in pseudo.keys()):
-            header = pseudo["PP_HEADER"].split('\n')
-            my_line = [l for l in header if 'Z valence' in l][0]
-            zp = float(my_line.split()[0])
+            try:
+                header = pseudo["PP_HEADER"].split('\n')
+                my_line = [l for l in header if 'Z valence' in l][0]
+                zp = float(my_line.split()[0])
+            except AttributeError:
+                zp = pseudo['PP_HEADER']['z_valence']
         else:
             with open (filename, 'r') as f:
                 my_line = [ l for l in f.readlines() if 'z_valence=' in l][0]
