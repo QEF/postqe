@@ -200,24 +200,106 @@ def read_tags(lines,list_tags):
         i += 1
     return dic
 
-
+def read_upf2 (doc):
+    """
+    extracts pseudo data from upf v.2 files
+    :param doc: doc is the ElementTree object representing the pseudo file in xml format
+    :return: a dictionary 
+    """
+    pseudo ={}
+    psroot = doc.getroot()
+    #PP_INFO
+    pp_info = psroot.find('./PP_INFO').text
+    pp_input = psroot.find('./PP_INFO/PP_INPUTFILE').text
+    pseudo.update(PP_INFO=dict(INFO=pp_info,PP_INPUT = pp_input))
+    #
+    #PP_HEADER
+    pp_header = dict(psroot.find('./PP_HEADER').items())
+    pseudo.update(PP_HEADER=pp_header)
+    #PP_MESH
+    pp_mesh = dict(psroot.find('./PP_MESH').items() )
+    pp_r   = np.array([float(x) for x in psroot.find('./PP_MESH/PP_R').text.split() ])
+    pp_rab = np.array([float(x) for x in psroot.find('./PP_MESH/PP_RAB').text.split()])
+    pp_mesh.update(PP_R=pp_r, PP_RAB = pp_rab)
+    pseudo.update(PP_MESH = pp_mesh)
+    #PP_LOCAL
+    pp_local = None
+    node = psroot.find('./PP_LOCAL')
+    if not node is None:
+        pp_local = np.array([x for x in map(float, node.text.split() )])
+    pseudo.update(PP_LOCAL = pp_local )
+    #
+    node = psroot.find('./PP_RHOATOM')
+    if not node is None :
+        pp_rhoatom = np.array([v for v in map(float,node.text.split()) ])
+    else:
+        pp_rhoatom = None
+    pseudo.update(PP_RHOATOM=pp_rhoatom)
+    #
+    node = psroot.find('./PP_NONLOCAL')
+    if not node is None:
+        betas = list()
+        dij = None
+        pp_aug = None
+        elements = node.getchildren()
+        for el in elements:
+            if 'PP_BETA' in el.tag:
+                beta = dict( el.items() )
+                val  = np.array([x for x in map(float,el.text.split() )])
+                beta.update(beta = val)
+                betas.append(beta)
+            elif 'PP_DIJ' in el.tag:
+                dij = np.array([ x for x in map(float,el.text.split() )])
+            elif 'PP_AUGMENTATION':
+                pp_aug = dict(el.items () )
+                aug_elements = el.getchildren()
+                pp_qijl = list()
+                pp_qij  = list()
+                for q in aug_elements:
+                    if 'PP_QIJL' in q.tag:
+                        qijl = dict( q.items() )
+                        val = np.array( [ x for x in map(float, q.text.split() )])
+                        qijl.update(qijl = val)
+                        pp_qijl.append(qijl)
+                    elif 'PP_QIJ' in q.tag:
+                        qij = dict(q.items() )
+                        val = np.array( [x for x in map(float,q.text.split() )])
+                        qij.update(qij = val)
+                        pp_qij.append(qij)
+                    elif q.tag =='PP_Q':
+                        pp_q = np.array( [x for x in map(float, q.text.split() )])
+                pp_aug.update(PP_QIJL=pp_qijl, PP_QIJ = pp_qij, PP_Q=pp_q)
+        pp_nonlocal = dict(PP_BETA = betas, PP_DIJ = dij, PP_AUGMENTATION = pp_aug )
+    else:
+        pp_nonlocal = None
+    pseudo.update(PP_NONLOCAL = pp_nonlocal)
+    return pseudo
 
 def read_pseudo_file(fname):
+    from xml.etree import ElementTree as ET
+    from os  import remove
     """
     This function reads a pseudopotential file in the QE UPF format (text), returning
-    the content of each tag in a dictionary. 
+        the content of each tag in a dictionary. 
     WARNING: does not handle multiple tags with the same name yet and has limited 
     functionalities for now. It is meant to be used only for postqe, not as a general
     reader of pseudopotentials files.
     """
-    
+
     list_tags = ["PP_INFO","PP_HEADER","PP_MESH","PP_NLCC", "PP_LOCAL","PP_NONLOCAL","PP_PSWFC","PP_RHOATOM"]
-    
+    with open (fname, 'r') as psfile, open('temp.pseudo','w') as temp:
+        for line in psfile:
+            temp.write(line.replace('&input','&amp;input'))
+    try:
+        psdoc = ET.parse('temp.pseudo')
+        remove('temp.pseudo')
+        return read_upf2(psdoc)
+    except ParseError:
+        remove('temp.pseudo')
     lines = []
     with open(fname, "r") as temp:
         for line in temp:
             lines.append(line)
-
     pseudo = read_tags(lines,list_tags)
     ### convert strings to float numpy arrays
     rloc = np.array( [ float(x) for x in pseudo["PP_LOCAL"].split()] )
