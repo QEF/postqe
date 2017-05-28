@@ -230,7 +230,7 @@ def read_upf2 (doc):
     pseudo.update(PP_LOCAL = pp_local )
     #
     node = psroot.find('./PP_RHOATOM')
-    if not node is None :
+    if not node is None:
         pp_rhoatom = np.array([v for v in map(float,node.text.split()) ])
     else:
         pp_rhoatom = None
@@ -250,7 +250,7 @@ def read_upf2 (doc):
                 betas.append(beta)
             elif 'PP_DIJ' in el.tag:
                 dij = np.array([ x for x in map(float,el.text.split() )])
-            elif 'PP_AUGMENTATION':
+            elif 'PP_AUGMENTATION' in el.tag:
                 pp_aug = dict(el.items () )
                 aug_elements = el.getchildren()
                 pp_qijl = list()
