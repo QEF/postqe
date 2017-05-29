@@ -4,7 +4,7 @@
 import time, sys
 import numpy as np
 from readutils import read_line, read_n_real_numbers,\
-read_charge_file_iotk, read_charge_file_hdf5, read_wavefunction_file_iotk,\
+read_charge_file_iotk, read_charge_file_hdf5,\
 read_wavefunction_file_hdf5, write_charge, create_header
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from pyQ import pyq_getcelldm as calcola_celldm
@@ -18,10 +18,8 @@ def get_from_xml(fname, schema = None):
     import xmlschema
     from xml.etree import ElementTree as ET
     try:
-        from urllib.request import urlopen
         from urllib.parse import urlparse
     except ImportError:
-        from urllib2 import urlopen
         from urllib2 import urlparse
         from urlparse import urlparse
 
@@ -31,12 +29,7 @@ def get_from_xml(fname, schema = None):
     if schemaLoc.scheme =='':
         xd = xmlschema.XMLSchema(schemaLoc.path)
     else:
-        lines = urlopen(schemaLoc.geturl() ).readlines()
-        with open('temp.xsd','w') as tempSchemaFile:
-            tempSchemaFile.writelines([l.decode("utf-8") for l in lines ])
-        xd = xmlschema.XMLSchema('temp.xsd')
-        import os
-        os.remove('temp.xsd')
+        xd = xmlschema.XMLSchema(schemaLoc.geturl())
     print ("Reading xml file: ",fname)
     d = xd.to_dict(fname)
     try:
