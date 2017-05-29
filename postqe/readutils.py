@@ -237,8 +237,7 @@ def read_upf2 (psroot):
         dij = None
         pp_aug = None
         pp_q = None
-        elements = node.getchildren()
-        for el in elements:
+        for el in node:
             if 'PP_BETA' in el.tag:
                 beta = dict( el.items() )
                 val  = np.array([x for x in map(float,el.text.split() )])
@@ -248,10 +247,9 @@ def read_upf2 (psroot):
                 dij = np.array([ x for x in map(float,el.text.split() )])
             elif 'PP_AUGMENTATION' in el.tag:
                 pp_aug = dict(el.items () )
-                aug_elements = el.getchildren()
                 pp_qijl = list()
                 pp_qij  = list()
-                for q in aug_elements:
+                for q in el:
                     if 'PP_QIJL' in q.tag:
                         qijl = dict( q.items() )
                         val = np.array( [ x for x in map(float, q.text.split() )])
