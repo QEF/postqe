@@ -27,7 +27,7 @@ real(8)     :: at(3,3)
           celldm(5:6) = 0.d0
        CASE (6) 
           celldm(1)= alat 
-          celldm(3)= SQRT( DOT_PRODUCT(at(:,2),at(:,2)))/alat
+          celldm(3)= SQRT( DOT_PRODUCT(at(:,3),at(:,3)))/alat
           celldm(2)= 1.d0
           celldm(4:6) = 0.d0
        CASE (7) 
@@ -68,7 +68,7 @@ real(8)     :: at(3,3)
           celldm(1) = alat
           celldm(2) = SQRT( DOT_PRODUCT(at(:,2),at(:,2)))/(2.d0*at(1,1))
           celldm(3) = ABS (at(3,3)/at(1,3))
-          celldm(4) = ATAN(at(2,2)/at(1,2))
+          celldm(4) = COS( ATAN(at(2,2)/at(1,2)) )
           celldm(5:6) = 0.d0
        CASE (14) 
           celldm(1) = alat 
