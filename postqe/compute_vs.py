@@ -136,22 +136,16 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, 
     return v_F
 
 
-def get_v_h_from_hdf5(filename, nr, nr_orig = None, dataset = 'rhotot_g'):
+def get_v_h_from_hdf5(filename, nr, dataset = 'rhotot_g'):
     """
     computes the Hartree potential, reading the data from the hdf5 charge-density file.
     :param filename: name of the hdf5 containing the charge density in reciprocal space 
-    :param nr: three-ple containing nr1, nr2, nr3 integers defining the fft mesh
-    :param nr_orig: three-ple containing the original grid parameters 
+    :param nr: three-ple containing nr1, nr2, nr3 integers defining the fft mesh 
     :param dataset: the name of the dataset containing the charge density
     :return: returns the value of the hartree potential defined in a nr1,nr2,nr3 mesh
     """
     import h5py
-
-    try:
-        scalef = nr[0]*nr[1]*nr[2]/(nr_orig[0]*nr_orig[1]*nr_orig[2])
-    except TypeError:
-        scalef = 1.e0
-
+    nrrr = nr[0]*nr[1]*nr[2]
     with h5py.File(filename) as h5f:
         h5d = h5f[dataset]
         ngm = h5f.attrs.get('ngm_g')
@@ -165,7 +159,7 @@ def get_v_h_from_hdf5(filename, nr, nr_orig = None, dataset = 'rhotot_g'):
         next(my_zip)
         for el in my_zip:
             m = el[0]
-            rhog = el[1].dot((1.e0,1.j))
+            rhog = el[1].dot((1.e0,1.j))*nrrr
             g = m.dot((b1,b2,b3))
             gg = g.dot(g)
             try:
@@ -173,7 +167,7 @@ def get_v_h_from_hdf5(filename, nr, nr_orig = None, dataset = 'rhotot_g'):
             except IndexError:
                 pass
 
-    return np.fft.ifftn(aux).real*scalef*8.e0*np.pi
+    return np.fft.ifftn(aux).real*8.e0*np.pi
 
 
 

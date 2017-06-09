@@ -129,7 +129,7 @@ def read_charge_file_hdf5(fname, dataset='rhotot_g'):
             (i,j,k), rho = el
             aux2[i,j,k]=rho
 
-    rho_r = np.fft.ifftn(aux2)
+    rho_r = np.fft.ifftn(aux2)*nr1*nr2*nr3
     return rho_r.real
 
 
