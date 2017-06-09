@@ -13,6 +13,8 @@ generate_gg_list.o\
 vloc_of_g.o\
 erf.o\
 simpsn.o\
+latgen.o\
+errore.o\
 struct_fact.o
 
 

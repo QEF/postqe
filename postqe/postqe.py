@@ -35,7 +35,7 @@ def get_from_xml(fname, schema = None):
     try:
         settings.pseudodir = d["input"]["control_variables"]["pseudo_dir"]
     except KeyError:
-        pass
+        settings.pseudodir = './'
     dout = d["output"]
     ecutwfc = (dout["basis_set"]["ecutwfc"])
     ecutrho = (dout["basis_set"]["ecutrho"])
@@ -173,8 +173,8 @@ if __name__ == "__main__":
     nat, ntyp, nspin, noncolin = get_from_xml(pars.outdir+"/"+pars.prefix+".xml",settings.schema)
     celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
       
-    charge_file = pars.outdir+"/charge-density.dat"
-    charge = read_charge_file_iotk(charge_file)
+    charge_file = pars.outdir+"/charge-density.hdf5"
+    charge  = read_charge_file_hdf5(charge_file)
     nr = charge.shape
     header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
         

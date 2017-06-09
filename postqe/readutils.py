@@ -94,25 +94,45 @@ def read_charge_file_iotk(fname):
 
 
 
-def read_charge_file_hdf5(fname):
+def read_charge_file_hdf5(fname, dataset='rhotot_g'):
     """
     Reads an hdf5 charge file written with QE. nr1, nr2, nr3 (the dimensions of
     the charge k-points grid) are read from the charge file.
     """
  
     import h5py
+
     
-    f = h5py.File(fname, "r")
-    nr1 = f.attrs.get("nr1")
-    nr2 = f.attrs.get("nr2")
-    nr3 = f.attrs.get("nr3")
-    charge = np.zeros((nr1,nr2,nr3))
-    for i in range(0,nr3):   
-        dset_label = "K"+str(i+1)   # numbered from 1 to nr3 in file hdf5
-        tempcharge = np.array(f[dset_label])
-        charge[:,:,i] = np.reshape(np.array(tempcharge),(nr1,nr2))
-    
-    return charge
+    with h5py.File(fname, "r") as h5f:
+        if h5f.get(dataset) is None:
+            nr1 = h5f.attrs.get("nr1")
+            nr2 = h5f.attrs.get("nr2")
+            nr3 = h5f.attrs.get("nr3")
+            charge = np.zeros((nr1,nr2,nr3))
+            for i in range(0,nr3):
+                dset_label = "K"+str(i+1)   # numbered from 1 to nr3 in file hdf5
+                # tempcharge = np.array(h5f[dset_label])
+                # charge[:,:,i] = np.reshape(np.array(tempcharge),(nr1,nr2))
+            return charge
+
+
+
+        nr1 = max(h5f['MillerIndices'], key = lambda x: x[0])[0]*2+1
+        nr2 = max(h5f['MillerIndices'], key = lambda x: x[1])[1]*2+1
+        nr3 = max(h5f['MillerIndices'], key = lambda x: x[2])[2]*2+1
+        ngm_g = h5f.attrs.get('ngm_g')
+        aux = np.array(h5f[dataset]).reshape([ngm_g,2])
+        rho_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
+        aux2 = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
+        del aux
+        for el in zip( h5f['MillerIndices'],rho_g):
+            (i,j,k), rho = el
+            aux2[i,j,k]=rho
+
+    rho_r = np.fft.ifftn(aux2)
+    return rho_r.real
+
+
 
 
 def read_wavefunction_file_hdf5(fname):

@@ -12,7 +12,7 @@ real(8)     :: at(3,3)
     at(:,2) = at2
     at(:,3) = at3
     SELECT CASE  (ibrav ) 
-       CASE (0:3) 
+       CASE (0:3,-3) 
           celldm(1) = alat
           celldm(2:6) = 0.d0
        CASE (4) 
@@ -32,7 +32,7 @@ real(8)     :: at(3,3)
           celldm(4:6) = 0.d0
        CASE (7) 
           celldm(1) = alat
-          celldm(3) = at(3,3) 
+          celldm(3) = ABS(at(3,3)/at(1,3)) 
           celldm(2)=0.d0
           celldm(4:6) = 0.d0
        CASE (8)
@@ -68,7 +68,7 @@ real(8)     :: at(3,3)
           celldm(1) = alat
           celldm(2) = SQRT( DOT_PRODUCT(at(:,2),at(:,2)))/(2.d0*at(1,1))
           celldm(3) = ABS (at(3,3)/at(1,3))
-          celldm(4) = COS( ATAN(at(2,2)/at(1,2)) )
+          celldm(4) = COS( ATAN2(at(2,2),at(1,2)) )
           celldm(5:6) = 0.d0
        CASE (14) 
           celldm(1) = alat 
@@ -224,5 +224,12 @@ implicit none
   call struc_fact( nat, tau, ngm, g, strf ,check_gg, check_tau)
 end subroutine pyq_struct_fact
 
-
-
+subroutine pyq_latgen(ibrav, celldm, at)
+implicit none
+integer, intent(in)   :: ibrav
+real(8),intent(in)    :: celldm(6) 
+real(8),intent(out)   :: at(3,3) 
+! 
+real(8)               :: volume
+call latgen (ibrav,celldm, at(:,1), at(:,2), at(:,3), volume) 
+end subroutine pyq_latgen
