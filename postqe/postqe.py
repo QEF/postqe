@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #encoding: UTF-8
 
-import time, sys
+import sys, time
 import numpy as np
 from readutils import read_line, read_n_real_numbers,\
 read_charge_file_iotk, read_charge_file_hdf5,\
@@ -61,6 +61,7 @@ def get_from_xml(fname, schema = None):
         atomic_species = a_s
     else:
         atomic_species = [a_s,]
+
     if (type(a_p)==type([])):
         atomic_positions = a_p
     else:
@@ -134,12 +135,11 @@ def get_input_parameters():
         For PAW calculations only; requires a very dense
         real-space grid.
     """
-
-        )
+    )
         
-    #default_prefix = "Si"
+    # default_prefix = "Si"
     default_prefix = "SiO2"
-    #default_prefix = "SrTiO3"
+    # default_prefix = "SrTiO3"
     parser.add_argument('-prefix', type=str, nargs='?', default=default_prefix,
                     help='prefix of files saved by program pw.x')
     default_outdir = "../tests/"+default_prefix
@@ -179,15 +179,15 @@ if __name__ == "__main__":
     header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
         
     if (pars.plot_num==0):   # Read the charge and write it in filplot
-        # TO DO: handle different spin cases
-        write_charge(pars.filplot,charge,header)
+        # TODO: handle different spin cases
+        write_charge(pars.filplot, charge, header)
         
     elif (pars.plot_num==1):
-        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
+        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,
         atomic_species, settings.pseudodir)      
-        v_h =  compute_v_h(charge,ecutrho,alat,b)
+        v_h =  compute_v_h(charge,ecutrho, alat, b)
         charge_core = np.zeros(charge.shape)    # only for now, later in input
-        v_xc = compute_v_xc(charge,charge_core,str(functional))
+        v_xc = compute_v_xc(charge, charge_core, str(functional))
         v_tot = v_bare + v_h + v_xc
         write_charge(pars.filplot,v_tot,header)     
             
@@ -196,15 +196,15 @@ if __name__ == "__main__":
         atomic_species, pseudodir)
         write_charge(pars.filplot,v_bare,header)
 
-    # TO DO: add plot_num == 6 case, should be easy
+    # TODO: add plot_num == 6 case, should be easy
 
 
     elif (pars.plot_num==11):
-        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,\
-        atomic_species,settings.pseudodir)    
-        v_h =  compute_v_h(charge,ecutrho,alat,b)
+        v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,
+        atomic_species, settings.pseudodir)
+        v_h =  compute_v_h(charge, ecutrho, alat, b)
         v_tot = v_bare + v_h
-        write_charge(pars.filplot,v_tot,header)        
+        write_charge(pars.filplot, v_tot, header)
         
     else:
         print ("Not implemented yet")

@@ -125,7 +125,7 @@ def compute_Gs(b,nr,ecutrho,alat):
 
 def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, pseudodir):
     """
-    This function computes the bare potential. It calls from wrapper function
+    This function computes the bare potential. It calls the wrapper function
     wrap_setlocal from the setlocal python module which is an interface to
     call the proper fortran functions.
     """    
