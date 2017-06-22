@@ -1,6 +1,6 @@
 import os
 import glob
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.command.sdist import sdist
 from setuptools.command.install import install
@@ -29,27 +29,20 @@ class MyInstall(install):
         os.system('make -C postqe/fortranmodules move')
         install.run(self)
 
-
-setup (
+setup(
     name='postqe',
     version='0.1',
-    packages=find_packages(),
-
-    # Declare your packages' dependencies here, for eg:
+    packages=['postqe'],
+    package_data={'postqe': ['schemas/*.xsd']},
     install_requires=[
-        'xmlschema', 'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib',  # 'wx'
+        'xmlschema', 'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib'
     ],
-
-    # Fill in these to make your Egg ready for upload to
-    # PyPI
     author='Mauro Palumbo',
     author_email='mpalumbo@sissa.it',
 
-    #summary = 'Just another Python package for the cheese shop',
-    url='',
+    # summary = 'Just another Python package for the cheese shop',
     license='MIT',
     long_description='Post processing tools for Quantum Espresso',
-
     data_files=[
         ('/usr/share/doc/postqe/pseudos', glob.glob('examples/pseudos/*')),
         ('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
@@ -60,7 +53,12 @@ setup (
         ('/usr/share/doc/postqe/SiO2', glob.glob('examples/SiO2/*')),
         ('/usr/share/doc/postqe/SrTiO3', glob.glob('examples/SrTiO3/*'))
     ],
-
+    entry_points={
+        'console_scripts': [
+            'postqe=postqe.cli:main'
+        ]
+    },
+    requires=['python (>=2.7)'],
     cmdclass={
         'build_ext': MyBuildExt,
         'sdist': MySDist,
@@ -75,7 +73,10 @@ setup (
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Fortran',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
