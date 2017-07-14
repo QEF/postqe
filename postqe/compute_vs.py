@@ -4,7 +4,7 @@
 import numpy as np
 from constants import pi
 from xcpy import xc_dict
-from readutils import read_pseudo_file, write_charge
+
 # f2py created modules
 from funct import xc   
 from setlocal import wrap_setlocal

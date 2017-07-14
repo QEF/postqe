@@ -7,8 +7,8 @@ from readutils import (
     read_line, read_n_real_numbers, read_charge_file_iotk, read_charge_file_hdf5,
     read_wavefunction_file_hdf5, write_charge, create_header
 )
-from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
-from pyQ import pyq_getcelldm as calcola_celldm
+#from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
+#from pyQ import pyq_getcelldm as calcola_celldm
 
 
 def get_from_xml(filename):
@@ -16,8 +16,15 @@ def get_from_xml(filename):
     Get some useful values from xml file
     """
     import xmlschema
-    schemaLoc = xmlschema.fetch_schema(filename)
-    xs = xmlschema.XMLSchema(schemaLoc)
+
+    ##########################################################
+    # TODO for whatever reason this is not working now
+    #schemaLoc = xmlschema.fetch_schema(filename)
+    #xs = xmlschema.XMLSchema(schemaLoc)
+    #
+    # temporary stupid solution
+    xs = xmlschema.XMLSchema('qes.xsd')
+    ##########################################################
 
     print ("Reading xml file: ", filename)
     d = xs.to_dict(filename)
@@ -43,7 +50,9 @@ def get_from_xml(filename):
     ntyp = (dout["atomic_species"]["@ntyp"])
     nspin = (dout["magnetization"]["do_magnetization"])
     noncolin = (dout["magnetization"]["noncolin"])
-    
+    nr = np.array([dout["basis_set"]["fft_grid"]["@nr1"],dout["basis_set"]["fft_grid"]["@nr2"],dout["basis_set"]["fft_grid"]["@nr3"]])
+    nr_smooth = np.array([dout["basis_set"]["fft_smooth"]["@nr1"],dout["basis_set"]["fft_smooth"]["@nr2"],dout["basis_set"]["fft_smooth"]["@nr3"]])
+
     # for subsequent loops it is important to have always lists for atomic_positions
     # and atomic_species. If this is not, convert
     if (type(a_s)==type([])):
@@ -60,7 +69,7 @@ def get_from_xml(filename):
     b = np.array([b1,b2,b3])
     
     return (ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions,
-            atomic_species, nat, ntyp, nspin, noncolin, pseudodir)
+            atomic_species, nat, ntyp, nspin, noncolin, pseudodir, nr, nr_smooth)
 
 
 def run(pars):

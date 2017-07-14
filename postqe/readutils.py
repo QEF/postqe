@@ -56,8 +56,8 @@ def get_info(info_line):
 
 def read_charge_file_iotk(filename):
     """
-    Read a binary charge file written with QE and iotk. Warning: platform dependent,
-    use hdf5 format when available
+    Read a binary charge file written with QE and iotk.
+    Warning: platform dependent, use hdf5 format when available
     """
  
     tempcharge = []
@@ -90,39 +90,42 @@ def read_charge_file_iotk(filename):
     return charge
 
 
-def read_charge_file_hdf5(filename, dataset='rhotot_g'):
+def read_charge_file_hdf5(filename, nr, dataset='rhotot_g'):
     """
-    Reads an hdf5 charge file written with QE. nr1, nr2, nr3 (the dimensions of
-    the charge k-points grid) are read from the charge file.
+    Reads a charge file written with QE in HDF5 format. nr = [nr1,nr2,nr3] (the dimensions of
+    the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
+
+    Notes: In the new format, the values of the charge in the reciprocal space are stored.
+    Besides, only the values of the charge > cutoff are stored, together with the Miller indexes.
+     Hence
     """
     import h5py
 
+    nr1, nr2, nr3 = nr
     with h5py.File(filename, "r") as h5f:
-        if h5f.get(dataset) is None:
-            nr1 = h5f.attrs.get("nr1")
-            nr2 = h5f.attrs.get("nr2")
-            nr3 = h5f.attrs.get("nr3")
-            charge = np.zeros((nr1,nr2,nr3))
-            for i in range(0,nr3):
-                dset_label = "K"+str(i+1)   # numbered from 1 to nr3 in file hdf5
-                # tempcharge = np.array(h5f[dset_label])
-                # charge[:,:,i] = np.reshape(np.array(tempcharge),(nr1,nr2))
-            return charge
-
-        nr1 = max(h5f['MillerIndices'], key = lambda x: x[0])[0]*2+1
-        nr2 = max(h5f['MillerIndices'], key = lambda x: x[1])[1]*2+1
-        nr3 = max(h5f['MillerIndices'], key = lambda x: x[2])[2]*2+1
         ngm_g = h5f.attrs.get('ngm_g')
-        aux = np.array(h5f[dataset]).reshape([ngm_g,2])
-        rho_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
-        aux2 = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
-        del aux
-        for el in zip( h5f['MillerIndices'],rho_g):
+        # Read the total charge
+        aux = np.array(h5f['rhotot_g']).reshape([ngm_g,2])
+        rhotot_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
+        rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
+        for el in zip( h5f['MillerIndices'],rhotot_g):
             (i,j,k), rho = el
-            aux2[i,j,k]=rho
+            rho_temp[i,j,k]=rho
+        rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
-    rho_r = np.fft.ifftn(aux2)*nr1*nr2*nr3
-    return rho_r.real
+        # Read the charge difference spin up - spin down if present (for magnetic calculations)
+        try:
+            aux = np.array(h5f['rhodiff_g']).reshape([ngm_g, 2])
+            rhodiff_g = np.array(list(map(lambda x: x.dot((1e0, 1.j)), aux)))
+            rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+            for el in zip(h5f['MillerIndices'], rhodiff_g):
+                (i, j, k), rho = el
+                rho_temp[i, j, k] = rho
+            rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+        except:
+            rhodiff_r = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+
+    return rhotot_r.real, rhodiff_r.real
 
 
 def read_wavefunction_file_hdf5(filename):
@@ -346,14 +349,24 @@ def write_charge(filename, charge, header):
     fout.close()
     
     
-def create_header(prefix, nr, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
+def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
     """
-    Creates the header lines for the output file. A few fields are different from QE.
+    Creates the header lines for the output file. The format is:
+
+    system_prefix
+    fft_grid (nr1,nr2,nr3)  fft_smooth (nr1,nr2,nr3)  nat  ntyp
+    ibrav     celldms (6 real as in QE)
+    missing line with respect to pp.x
+    List of atoms
+    List of positions for each atom
+
+    Note: a few fields are different from pp.x.
     """
 
     text = "# "+prefix+"\n"
-    text += "# {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d}\n".format(nr[0],nr[1],nr[2],nr[0],nr[1],nr[2],nat,ntyp)
+    text += "# {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d}\n".format(nr[0],nr[1],nr[2],nr_smooth[0],nr_smooth[1],nr_smooth[2],nat,ntyp)
     text += "# {:6d}    {:8E}  {:8E}  {:8E}  {:8E}  {:8E}  {:8E}\n".format(ibrav,*celldms)
+    # TODO This line is to be implemented
     text += "#      "+4*"XXXX   "+"\n"
     
     ityp = 1
@@ -365,7 +378,7 @@ def create_header(prefix, nr, ibrav, celldms, nat, ntyp, atomic_species, atomic_
     for pos in atomic_positions:
         text += "# {:4d}  ".format(ipos)
         coords = [float(x) for x in pos['#text'] ]
-        text += " {:9E} {:9E} {:9E}\n".format(*coords)
+        text += " {:9E} {:9E} {:9E}  ".format(*coords)
         text += pos["@name"]+"\n"
         ipos += 1
     
