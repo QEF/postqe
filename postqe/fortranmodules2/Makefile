@@ -1,4 +1,6 @@
 
+QE_DIR = /home/mauropalumbo/q-e
+
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90
 
@@ -6,14 +8,13 @@
 .f90.o:
 	gfortran -c -fPIC $<
 
+pyqe:  wrappers_utils.f90 wrappers_funct.f90 
+	f2py -c wrappers_utils.f90 wrappers_funct.f90 -m pyqe -I$(QE_DIR)/Modules/ -I$(QE_DIR)/clib/ -llapack -lblas libqemod.a clib.a libqefft.a libpw.a
 
-libQE.a: touch-dummy
-	(cd flib ; make all)
-
-qeutils:  wrappers_utils.f90
-	f2py -c wrappers_utils.f90 -m qeutils
+pyqe2:  wrappers_vloc.f90
+	f2py -c wrappers_vloc.f90 -m pyqe2 libQE.a
 	
-all: qeutils
+all: pyqe pyqe2 move
 
 move :
 	mv *.so ../
