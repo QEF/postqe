@@ -90,7 +90,7 @@ def read_charge_file_iotk(filename):
     return charge
 
 
-def read_charge_file_hdf5(filename, nr, dataset='rhotot_g'):
+def read_charge_file_hdf5(filename, nr):
     """
     Reads a charge file written with QE in HDF5 format. nr = [nr1,nr2,nr3] (the dimensions of
     the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
@@ -377,7 +377,7 @@ def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_speci
     ipos = 1
     for pos in atomic_positions:
         text += "# {:4d}  ".format(ipos)
-        coords = [float(x) for x in pos['#text'] ]
+        coords = [float(x) for x in pos['$'] ]
         text += " {:9E} {:9E} {:9E}  ".format(*coords)
         text += pos["@name"]+"\n"
         ipos += 1

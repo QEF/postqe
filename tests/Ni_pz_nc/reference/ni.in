@@ -1,0 +1,33 @@
+ &control
+    calculation = 'scf'  	 			
+    prefix='Ni'      						
+    pseudo_dir = './',  				
+    outdir='./tmp/'						     
+ /
+ &system
+    ibrav=2, 							
+    celldm(1) =6.65,					
+    nat=  1, 						
+    ntyp= 1,							
+    nspin=2,							
+    starting_magnetization(1)=0.5,				
+    occupations='smearing',					
+    smearing='mp',						
+    degauss=0.02,						
+    ecutwfc =40							
+    ecutrho =600.0						
+ /
+ &electrons
+    conv_thr =  1.0d-10     					
+    mixing_mode = 'TF'      					
+ /
+ &ions
+ /
+ &cell
+ / 
+ATOMIC_SPECIES
+ Ni  58.6934  Ni.pz-hgh.UPF
+ATOMIC_POSITIONS {alat}
+ Ni 0 0 0
+K_POINTS automatic
+  3 3 3 1 1 1

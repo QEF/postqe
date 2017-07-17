@@ -6,7 +6,7 @@ from constants import pi
 from xcpy import xc_dict
 
 # f2py created modules
-from funct import xc   
+from pyfunct import py_xc as xc
 from setlocal import wrap_setlocal
 
 

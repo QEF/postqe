@@ -7,8 +7,8 @@ from readutils import (
     read_line, read_n_real_numbers, read_charge_file_iotk, read_charge_file_hdf5,
     read_wavefunction_file_hdf5, write_charge, create_header
 )
-#from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
-#from pyQ import pyq_getcelldm as calcola_celldm
+from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
+from qeutils import py_getcelldms
 
 
 def get_from_xml(filename):
@@ -22,8 +22,8 @@ def get_from_xml(filename):
     #schemaLoc = xmlschema.fetch_schema(filename)
     #xs = xmlschema.XMLSchema(schemaLoc)
     #
-    # temporary stupid solution
-    xs = xmlschema.XMLSchema('qes.xsd')
+    # temporary local solution
+    xs = xmlschema.XMLSchema('schemas/qes.xsd')
     ##########################################################
 
     print ("Reading xml file: ", filename)
@@ -77,17 +77,16 @@ def run(pars):
     ### DB: creare un oggetto per i parametri??
 
     # get some needed values from the xml output
-    ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species,\
-    nat, ntyp, nspin, noncolin, pseudodir = get_from_xml(pars.outdir +"/" + pars.prefix +".xml")
-    celldms = calcola_celldm(alat,a[0],a[1],a[2],ibrav)
+    ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
+    nat, ntyp, nspin, noncolin, pseudodir, nr, nr_smooth = get_from_xml("Ni.xml")
+    celldms = py_getcelldms(alat, a[0], a[1], a[2], ibrav)
       
     charge_file = pars.outdir + "/charge-density.hdf5"
-    charge  = read_charge_file_hdf5(charge_file)
-    nr = charge.shape
-    header = create_header(pars.prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions)
+    charge, chargediff  = read_charge_file_hdf5(charge_file)
+    header = create_header("Ni", nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions)
         
     if (pars.plot_num==0):   # Read the charge and write it in filplot
-        # TODO: handle different spin cases
+        # TODO: handle different spin cases (easy)
         write_charge(pars.filplot, charge, header)
         
     elif (pars.plot_num==1):
@@ -106,8 +105,8 @@ def run(pars):
         )
         write_charge(pars.filplot,v_bare,header)
 
-    # TODO: add plot_num == 6 case, should be easy
-
+    if (pars.plot_num==6):   # Write the charge difference (spin up - spin down) for magnetic systems
+        write_charge(pars.filplot, chargediff, header)
 
     elif (pars.plot_num==11):
         v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions,
