@@ -159,7 +159,7 @@ def get_v_h_from_hdf5(filename, nr, dataset = 'rhotot_g'):
         next(my_zip)
         for el in my_zip:
             m = el[0]
-            rhog = el[1].dot((1.e0,1.j))*nrrr
+            rhog = el[1].dot((1.e0,1.j))
             g = m.dot((b1,b2,b3))
             gg = g.dot(g)
             try:
@@ -167,7 +167,7 @@ def get_v_h_from_hdf5(filename, nr, dataset = 'rhotot_g'):
             except IndexError:
                 pass
 
-    return np.fft.ifftn(aux).real*8.e0*np.pi
+    return np.fft.ifftn(aux).real*8.e0*np.pi*nrrr
 
 
 
