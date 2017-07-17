@@ -3,6 +3,7 @@
 *.so
 *.o
 *.a
+*.mod
 *~
 *.swp
 *.egg-info

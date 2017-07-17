@@ -1,6 +1,5 @@
 #encoding: UTF-8
 
-import time, sys
 import numpy as np
 from struct import *
 
@@ -55,16 +54,15 @@ def get_info(info_line):
     return nr[0], nr[1], nr[2]
 
 
-
-def read_charge_file_iotk(fname):
+def read_charge_file_iotk(filename):
     """
-    Read a binary charge file written with QE and iotk. Warning: platform dependent,
-    use hdf5 format when available
+    Read a binary charge file written with QE and iotk.
+    Warning: platform dependent, use hdf5 format when available
     """
  
     tempcharge = []
     
-    with open(fname, "rb") as f:
+    with open(filename, "rb") as f:
         line = b''
         while (line!=b'  <CHARGE-DENSITY>'):    # skip lines till the <CHARGE-DENSITY> tag is found
             line = read_line(f)
@@ -92,58 +90,52 @@ def read_charge_file_iotk(fname):
     return charge
 
 
-
-
-def read_charge_file_hdf5(fname, dataset='rhotot_g'):
+def read_charge_file_hdf5(filename, nr):
     """
-    Reads an hdf5 charge file written with QE. nr1, nr2, nr3 (the dimensions of
-    the charge k-points grid) are read from the charge file.
+    Reads a charge file written with QE in HDF5 format. nr = [nr1,nr2,nr3] (the dimensions of
+    the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
+
+    Notes: In the new format, the values of the charge in the reciprocal space are stored.
+    Besides, only the values of the charge > cutoff are stored, together with the Miller indexes.
+     Hence
     """
- 
     import h5py
 
-    
-    with h5py.File(fname, "r") as h5f:
-        if h5f.get(dataset) is None:
-            nr1 = h5f.attrs.get("nr1")
-            nr2 = h5f.attrs.get("nr2")
-            nr3 = h5f.attrs.get("nr3")
-            charge = np.zeros((nr1,nr2,nr3))
-            for i in range(0,nr3):
-                dset_label = "K"+str(i+1)   # numbered from 1 to nr3 in file hdf5
-                # tempcharge = np.array(h5f[dset_label])
-                # charge[:,:,i] = np.reshape(np.array(tempcharge),(nr1,nr2))
-            return charge
-
-
-
-        nr1 = max(h5f['MillerIndices'], key = lambda x: x[0])[0]*2+1
-        nr2 = max(h5f['MillerIndices'], key = lambda x: x[1])[1]*2+1
-        nr3 = max(h5f['MillerIndices'], key = lambda x: x[2])[2]*2+1
+    nr1, nr2, nr3 = nr
+    with h5py.File(filename, "r") as h5f:
         ngm_g = h5f.attrs.get('ngm_g')
-        aux = np.array(h5f[dataset]).reshape([ngm_g,2])
-        rho_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
-        aux2 = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
-        del aux
-        for el in zip( h5f['MillerIndices'],rho_g):
+        # Read the total charge
+        aux = np.array(h5f['rhotot_g']).reshape([ngm_g,2])
+        rhotot_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
+        rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
+        for el in zip( h5f['MillerIndices'],rhotot_g):
             (i,j,k), rho = el
-            aux2[i,j,k]=rho
+            rho_temp[i,j,k]=rho
+        rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
-    rho_r = np.fft.ifftn(aux2)*nr1*nr2*nr3
-    return rho_r.real
+        # Read the charge difference spin up - spin down if present (for magnetic calculations)
+        try:
+            aux = np.array(h5f['rhodiff_g']).reshape([ngm_g, 2])
+            rhodiff_g = np.array(list(map(lambda x: x.dot((1e0, 1.j)), aux)))
+            rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+            for el in zip(h5f['MillerIndices'], rhodiff_g):
+                (i, j, k), rho = el
+                rho_temp[i, j, k] = rho
+            rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+        except:
+            rhodiff_r = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+
+    return rhotot_r.real, rhodiff_r.real
 
 
-
-
-def read_wavefunction_file_hdf5(fname):
+def read_wavefunction_file_hdf5(filename):
     """
     Reads an hdf5 wavefunction file written with QE. Returns a dictionary with
     the data structure in the hdf5 file. 
     """
- 
     import h5py
     
-    f = h5py.File(fname, "r")    
+    f = h5py.File(filename, "r")
     nkpoints = len(f["KPOINT1"].attrs.values())
     #print ("nkpoints = ",nkpoints)
 
@@ -232,7 +224,7 @@ def read_upf2 (psroot):
     pp_header = dict(psroot.find('./PP_HEADER').items())
     res.update(dict(PP_HEADER=pp_header))
     #PP_MESH
-    pp_mesh = dict(psroot.find('./PP_MESH').items() )
+    pp_mesh = dict(psroot.find('./PP_MESH').items())
     pp_r   = np.array([float(x) for x in psroot.find('./PP_MESH/PP_R').text.split()])
     pp_rab = np.array([float(x) for x in psroot.find('./PP_MESH/PP_RAB').text.split()])
     pp_mesh.update(dict(PP_R=pp_r, PP_RAB = pp_rab))
@@ -290,7 +282,7 @@ def read_upf2 (psroot):
     return res
 
 
-def read_pseudo_file(fname):
+def read_pseudo_file(filename):
     from xml.etree import ElementTree as ET
     from os import remove
     """
@@ -302,7 +294,7 @@ def read_pseudo_file(fname):
     """
 
     list_tags = ["PP_INFO","PP_HEADER","PP_MESH","PP_NLCC", "PP_LOCAL","PP_NONLOCAL","PP_PSWFC","PP_RHOATOM"]
-    with open (fname, 'r') as temp:
+    with open (filename, 'r') as temp:
         pslines = [ line.replace('&input','&amp;input') for line in temp ]
     try:
         upf_el = ET.fromstringlist(pslines)
@@ -333,12 +325,12 @@ def read_pseudo_file(fname):
 ################################################################################
 # Other readers, writers, auxiliary functions.
 ################################################################################
-def write_charge(fname,charge,header):
+def write_charge(filename, charge, header):
     """
-    Write the charge or another quantity calculated by postqe into a file fname.    
+    Write the charge or another quantity calculated by postqe into a file name.
     """
     
-    fout = open(fname, "w")
+    fout = open(filename, "w")
     
     # The header contains some information on the system, the grid nr, etc.
     fout.write(header)
@@ -357,14 +349,24 @@ def write_charge(fname,charge,header):
     fout.close()
     
     
-def create_header(prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positions):
+def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
     """
-    Creates the header lines for the output file. A few fields are different from QE.
+    Creates the header lines for the output file. The format is:
+
+    system_prefix
+    fft_grid (nr1,nr2,nr3)  fft_smooth (nr1,nr2,nr3)  nat  ntyp
+    ibrav     celldms (6 real as in QE)
+    missing line with respect to pp.x
+    List of atoms
+    List of positions for each atom
+
+    Note: a few fields are different from pp.x.
     """
 
     text = "# "+prefix+"\n"
-    text += "# {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d}\n".format(nr[0],nr[1],nr[2],nr[0],nr[1],nr[2],nat,ntyp)
+    text += "# {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d} {:8d}\n".format(nr[0],nr[1],nr[2],nr_smooth[0],nr_smooth[1],nr_smooth[2],nat,ntyp)
     text += "# {:6d}    {:8E}  {:8E}  {:8E}  {:8E}  {:8E}  {:8E}\n".format(ibrav,*celldms)
+    # TODO This line is to be implemented
     text += "#      "+4*"XXXX   "+"\n"
     
     ityp = 1
@@ -375,15 +377,15 @@ def create_header(prefix,nr,ibrav,celldms,nat,ntyp,atomic_species,atomic_positio
     ipos = 1
     for pos in atomic_positions:
         text += "# {:4d}  ".format(ipos)
-        coords = [float(x) for x in pos['#text'] ]
-        text += " {:9E} {:9E} {:9E}\n".format(*coords)
+        coords = [float(x) for x in pos['$'] ]
+        text += " {:9E} {:9E} {:9E}  ".format(*coords)
         text += pos["@name"]+"\n"
         ipos += 1
     
     return text
     
  
-def read_postqe_output_file(fname):
+def read_postqe_output_file(filename):
     """
     This function reads the output charge (or other quantity) as the output 
     format of postqe. 
@@ -392,7 +394,7 @@ def read_postqe_output_file(fname):
     tempcharge = []
     count = 0
     nr = np.zeros(3,dtype=int)
-    with open(fname, "r") as lines:
+    with open(filename, "r") as lines:
         for line in lines:
             linesplit=line.split()
             if count==1:
@@ -423,7 +425,6 @@ def read_postqe_output_file(fname):
 # This is only for testing the functions in this module
 if __name__ == "__main__":
     prefix = "../tests/"
-    from readutils import read_pseudo_file
     pseudo = read_pseudo_file(prefix+"Al.pz-vbc.UPF")
  
     print ("PP_INFO\n")

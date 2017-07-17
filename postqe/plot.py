@@ -5,14 +5,14 @@
 
 from constants import pi
 from math import sin, cos
-import cmath, time
+import cmath
 import numpy as np
 try:
     import wx
 except:
     pass
 
-def plot1D(charge,G,a,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
+def plot1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
     """
     This function calculates a 1D plot of the input charge (or else), starting from the 
     input point x0 and along the direction given by the vector e1. The G vectors
@@ -37,12 +37,12 @@ def plot1D(charge,G,a,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
     xv = np.zeros(nx)
     
     try:
-        progdlg = wx.ProgressDialog("Plotting...","Time remaining", nx,
-        style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
+        progdlg = wx.ProgressDialog("Plotting...", "Time remaining", nx,
+            style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
     except:
         pass
         
-    for i in range(0,nx):
+    for i in range(0, nx):
         xi = x0[0] + i * deltax * e1[0]
         yi = x0[1] + i * deltax * e1[1]
         zi = x0[2] + i * deltax * e1[2]
@@ -87,7 +87,7 @@ def plot1D(charge,G,a,x0=[0,0,0],e1=[1,0,0],nx=20,ylab=0):
     return fig
     
     
-def plot2D(charge,G,a,x0=[0,0,0],e1=[1,0,0],e2=[1,0,0],nx=20,ny=20,zlab=0):
+def plot2D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab=0):
     """
     This function calculates a 2D plot of the input charge (or else), starting from the 
     input point x0 and along the directions given by the vectors e1, e2. These

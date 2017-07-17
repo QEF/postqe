@@ -1,0 +1,11 @@
+Tests for a Fortran wrapper
+
+These are some tests for a Fortran wrapper in order to access some QE subroutines and functions from Python.
+The wrapper Fortran file is compiled with f2py, using the following command:
+
+f2py3 -c functwrapper.f90 -m pyfunct -I/home/mauropalumbo/espresso-6.1/Modules/ -I/home/mauropalumbo/espresso-6.1/clib/ -llapack -lblas libqemod.a clib.a libqefft.a  libpw.a libqela.a libiotk.a
+
+It needs the following QE library (compiled as shared libraries with the option -fPIC both for the fortran and C compilers in the QE makefile):
+libqemod.a clib.a libqefft.a  libpw.a libqela.a libiotk.a
+
+It also need lapack and blas libraries installed in your system. 

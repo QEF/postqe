@@ -4,9 +4,9 @@
 import numpy as np
 from constants import pi
 from xcpy import xc_dict
-from readutils import read_pseudo_file, write_charge
+
 # f2py created modules
-from funct import xc   
+from pyfunct import py_xc as xc
 from setlocal import wrap_setlocal
 
 
@@ -125,7 +125,7 @@ def compute_Gs(b,nr,ecutrho,alat):
 
 def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, pseudodir):
     """
-    This function computes the bare potential. It calls from wrapper function
+    This function computes the bare potential. It calls the wrapper function
     wrap_setlocal from the setlocal python module which is an interface to
     call the proper fortran functions.
     """    
