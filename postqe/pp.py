@@ -8,7 +8,7 @@ from readutils import (
     read_wavefunction_file_hdf5, write_charge, create_header
 )
 from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
-from qeutils import py_getcelldms
+from pyqe import pyqe_getcelldms
 
 
 def get_from_xml(filename):

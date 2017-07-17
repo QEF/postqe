@@ -4,10 +4,10 @@
 import numpy as np
 from constants import pi
 from xcpy import xc_dict
+from setlocal import wrap_setlocal
 
 # f2py created modules
-from pyfunct import py_xc as xc
-from setlocal import wrap_setlocal
+from pyqe import pyqe_xc as xc
 
 
 # Compute the volume from a1, a2, a3 vectors in direct space.  
@@ -214,11 +214,3 @@ def compute_v_xc(charge,charge_core,functional):
                     v[x,y,z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
 
     return v
-
-
-################################################################################
-################################################################################
-#
-#if __name__ == "__main__":
-#    pass
-
