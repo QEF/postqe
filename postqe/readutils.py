@@ -457,21 +457,3 @@ def read_postqe_output_file(filename):
                 count += 1
 
     return charge
-    
-    
-    
-###########################################
-#
-# This is only for testing the functions in this module
-if __name__ == "__main__":
-    prefix = "../tests/"
-    pseudo = read_pseudo_file(prefix+"Al.pz-vbc.UPF")
- 
-    print ("PP_INFO\n")
-    print (pseudo["PP_INFO"])
-    print ("PP_MESH\n")
-    print (pseudo["PP_MESH"])
-    
-    print (pseudo["PP_MESH"]["PP_R"])
-    print (pseudo["PP_MESH"]["PP_RAB"])
-    

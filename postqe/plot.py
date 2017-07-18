@@ -56,7 +56,7 @@ def plot1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
                    
         xv[i] = i*deltax 
         toplot[i] = toplot[i]/(nr[0]*nr[1]*nr[2])
-        print (xv[i],toplot[i].real)
+        #print (xv[i],toplot[i].real)
         
         try:
             res = progdlg.Update(i)
