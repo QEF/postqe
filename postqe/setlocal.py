@@ -1,10 +1,10 @@
 import numpy as np
-from readutils import read_pseudo_file
+from readutils import read_pseudo_file, read_pseudo_file_old
 
 # f2py module
-from pyqe import pyqe_getcelldms, pyqe_recips, pyqe_latgen, pyqe_struct_fact
+from pyqe import pyqe_getcelldms, pyqe_recips, pyqe_latgen
 from pyqe import pyqe_get_gg_list, pyqe_get_gl, pyqe_get_igtongl
-from pyqe2 import pyqe_vloc_of_g
+from pyqe2 import pyqe_vloc_of_g, pyqe_struct_fact
 
 
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
@@ -39,11 +39,6 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     return pyqe_vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp, tpiba2=tpiba2, gl=gl, omega=omega)
 
 
-def compute_struct_fact(tau, alat, g):
-    str_fact, checkgg, check_tau = pyqe_struct_fact(tau / alat, g)
-    return str_fact
-
-
 def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
     aux = np.zeros([nr1, nr2, nr3], dtype="D")
     for nt in range(len(vlocs)):
@@ -54,6 +49,11 @@ def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
             k = int(ijk[2])
             aux[i, j, k] += strct_facs[nt][ig ] * vlocs[nt][igtongl[ig]-1]
     return np.fft.ifftn(aux)*(nr1*nr2*nr3)
+
+
+def compute_struct_fact(tau, alat, g):
+    str_fact, checkgg, check_tau = pyqe_struct_fact(tau / alat, g)
+    return str_fact
 
 
 def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho, pseudodir="./"):
@@ -79,7 +79,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
     vlocs = []
     for typ in species:
         filename = typ["pseudo_file"]
-        pseudo = read_pseudo_file(pseudodir+filename)
+        pseudo = read_pseudo_file_old(pseudodir+filename)
         vloc_r = pseudo["PP_LOCAL"]
         r = pseudo["PP_MESH"]["PP_R"]
         rab = pseudo["PP_MESH"]["PP_RAB"]

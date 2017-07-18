@@ -113,34 +113,6 @@ call latgen (ibrav,celldm, at(:,1), at(:,2), at(:,3), volume)
 end subroutine pyqe_latgen
 
 
-subroutine pyqe_struct_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
-implicit none
-  !
-  !   calculate the structure factors for each type of atoms in the unit
-  !   cell
-  !
-  !   Here the dummy variables
-  !
-  integer, intent(in) :: nat, ngm 
-  ! input: the number of identical atom in the unit cell
-  ! input: the number of G vectors
-  ! input: fft dimension along x
-  ! input: fft dimension along y
-  ! input: fft dimension along z
-  
-  real(8),intent ( in)  :: tau (nat, 3 ), g (ngm, 3 )
-  ! input: reciprocal crystal basis vectors
-  ! input: the positions of the atoms in the c
-  ! input: the coordinates of the g vectors
-
-  complex(8),intent(out)  :: strf (ngm ) 
-  real(8), intent ( out)  :: check_gg(ngm) 
-  real(8), intent ( out)  :: check_tau(3*nat) 
-  ! output: the structure factor
-  call struc_fact( nat, tau, ngm, g, strf ,check_gg, check_tau)
-end subroutine pyqe_struct_fact
-
-
 subroutine pyqe_get_igtongl(ngm, gg, igtongl, ngl) 
 implicit none
 real(8), parameter :: eps8 = 1.d-8

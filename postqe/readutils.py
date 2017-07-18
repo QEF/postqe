@@ -322,6 +322,43 @@ def read_pseudo_file(filename):
     return pseudo
 
 
+def read_pseudo_file_old(filename):
+    """
+    This function reads a pseudopotential file in the QE UPF format (text), returning
+    the content of each tag in a dictionary.
+    WARNING: does not handle multiple tags with the same name yet and has limited
+    functionalities for now. It is meant to be used only for postqe, not as a general
+    reader of pseudopotentials files.
+    """
+
+    list_tags = ["PP_INFO", "PP_HEADER", "PP_MESH", "PP_NLCC", "PP_LOCAL", "PP_NONLOCAL", "PP_PSWFC", "PP_RHOATOM"]
+
+    lines = []
+    with open(filename, "r") as temp:
+        for line in temp:
+            lines.append(line)
+
+    pseudo = read_tags(lines, list_tags)
+    ### convert strings to float numpy arrays
+    rloc = np.array([float(x) for x in pseudo["PP_LOCAL"].split()])
+    pseudo["PP_LOCAL"] = rloc
+    #### Read subfields
+    list_tags_PP_MESH = ["PP_R", "PP_RAB"]
+    pseudo["PP_MESH"] = read_tags(pseudo["PP_MESH"].splitlines(), list_tags_PP_MESH)
+    rr = np.array([float(x) for x in pseudo["PP_MESH"]["PP_R"].split()])
+    rrab = np.array([float(x) for x in pseudo["PP_MESH"]["PP_RAB"].split()])
+    tempdict = dict(PP_R=rr, PP_RAB=rrab)
+    pseudo["PP_MESH"] = tempdict
+
+    rhoat = np.array([float(x) for x in pseudo["PP_RHOATOM"].split()])
+    pseudo["PP_RHOATOM"] = rhoat
+
+    list_tags_PP_NONLOCAL = ["PP_BETA", "PP_DIJ"]
+    pseudo["PP_NONLOCAL"] = read_tags(pseudo["PP_NONLOCAL"].splitlines(), list_tags_PP_NONLOCAL)
+
+    return pseudo
+
+
 ################################################################################
 # Other readers, writers, auxiliary functions.
 ################################################################################
