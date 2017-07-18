@@ -203,14 +203,14 @@ def compute_v_xc(charge,charge_core,functional):
     rhoneg = 0.0
     nr = charge.shape
     v = np.zeros(nr)
-    
+
     for x in range(0,nr[0]):
         for y in range(0,nr[1]):
             for z in range(0,nr[2]):
                 rhox = charge[x,y,z] + charge_core[x,y,z]
                 arhox = abs(rhox)
                 if (arhox > vanishing_charge):
-                    ex, ec, vx, vc = xc (arhox, *xc_dict[functional])
+                    ex, ec, vx, vc = xc (arhox, functional)
                     v[x,y,z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
 
     return v

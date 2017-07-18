@@ -217,7 +217,10 @@ def read_upf2 (psroot):
     res ={}
     #PP_INFO
     pp_info = psroot.find('./PP_INFO').text
-    pp_input = psroot.find('./PP_INFO/PP_INPUTFILE').text
+    try:
+        pp_input = psroot.find('./PP_INFO/PP_INPUTFILE').text
+    except:
+        pp_input = ""
     res.update(dict(PP_INFO=dict(INFO=pp_info, PP_INPUT = pp_input)))
     #
     #PP_HEADER

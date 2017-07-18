@@ -79,7 +79,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
     vlocs = []
     for typ in species:
         filename = typ["pseudo_file"]
-        pseudo = read_pseudo_file_old(pseudodir+filename)
+        pseudo = read_pseudo_file(pseudodir+filename)
         vloc_r = pseudo["PP_LOCAL"]
         r = pseudo["PP_MESH"]["PP_R"]
         rab = pseudo["PP_MESH"]["PP_RAB"]

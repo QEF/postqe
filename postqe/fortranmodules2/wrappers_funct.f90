@@ -64,7 +64,7 @@ subroutine pyqe_xc (rho, functional, ex, ec, vx, vc)
   test_iexch = get_iexch()
   test_icorr = get_icorr()
   test_igcx = get_igcx ()
-  PRINT *, test_iexch, test_icorr, test_igcx
+  !PRINT *, test_iexch, test_icorr, test_igcx
   CALL xc (rho, ex, ec, vx, vc)
   !
   return
