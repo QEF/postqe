@@ -1,10 +1,10 @@
 import numpy as np
-from readutils import read_pseudo_file, read_pseudo_file_old
+from .readutils import read_pseudo_file
 
 # f2py module
-from pyqe import pyqe_getcelldms, pyqe_recips, pyqe_latgen
-from pyqe import pyqe_get_gg_list, pyqe_get_gl, pyqe_get_igtongl
-from pyqe2 import pyqe_vloc_of_g, pyqe_struct_fact
+from .pyqe import pyqe_getcelldms, pyqe_recips, pyqe_latgen
+from .pyqe import pyqe_get_gg_list, pyqe_get_gl, pyqe_get_igtongl
+from .pyqe2 import pyqe_vloc_of_g, pyqe_struct_fact
 
 
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):

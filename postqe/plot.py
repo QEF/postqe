@@ -16,8 +16,9 @@ import cmath
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from eos import calculate_fitted_points
-from constants import pi
+from mpl_toolkits.mplot3d import axes3d
+from .eos import calculate_fitted_points
+from .constants import pi
 
 
 def plotcharge1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
@@ -137,7 +138,6 @@ def plotcharge2D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, 
             print (X[i,j],Y[i,j],Z[i,j])
     
 
-    # Plot with Matplotlib library
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3)

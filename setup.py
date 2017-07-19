@@ -44,9 +44,9 @@ setup(
     license='MIT',
     long_description='Post processing tools for Quantum Espresso',
     data_files=[
-        ('/usr/share/doc/postqe/example1', glob.glob('examples/example1/*')),
-        ('/usr/share/doc/postqe/example2', glob.glob('examples/example2/*')),
-        ('/usr/share/doc/postqe/example3', glob.glob('examples/example3/*')),
+        #('/usr/share/doc/postqe/example1', glob.glob('examples/example1/*')),
+        #('/usr/share/doc/postqe/example2', glob.glob('examples/example2/*')),
+        #('/usr/share/doc/postqe/example3', glob.glob('examples/example3/*')),
         ('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
         ('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
         ('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),

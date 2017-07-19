@@ -2,12 +2,12 @@
 #encoding: UTF-8
 
 import numpy as np
-from constants import pi
-from xcpy import xc_dict
-from setlocal import wrap_setlocal
+
+from .constants import pi
+from .setlocal import wrap_setlocal
 
 # f2py created modules
-from pyqe import pyqe_xc as xc
+from .pyqe import pyqe_xc as xc
 
 
 # Compute the volume from a1, a2, a3 vectors in direct space.  

@@ -4,8 +4,7 @@
 
 import numpy as np
 from pp import get_from_xml
-from readutils import (
-    read_line, read_n_real_numbers, read_charge_file_iotk, read_charge_file_hdf5,
+from readutils import ( read_charge_file_hdf5,
     read_wavefunction_file_hdf5, write_charge, create_header
 )
 
@@ -61,7 +60,7 @@ write_charge('../tests/Si/postqeout1', v_tot, header)
 
 #  Plotting tests, second step pp.x
 
-from plot import plot1D, plot2D
+from plot import plotcharge1D, plotcharge2D
 from readutils import read_postqe_output_file, write_charge, create_header
 from compute_vs import compute_G
 
@@ -72,7 +71,7 @@ x0 = [0., 0., 0.]
 e1 = [1., 0., 0.]
 nx = 50
 G = compute_G(b, charge.shape)
-fig = plot1D(charge, G, a, x0, e1, nx)
+fig = plotcharge1D(charge, G, a, x0, e1, nx)
 fig.show()
 
 # Plot a 2D section
@@ -82,7 +81,7 @@ nx = 50
 e2 = [0., 1., 0.]
 ny = 50
 G = compute_G(b, charge.shape)
-fig = plot2D(charge, G, a, x0, e1, e2, nx, ny)
+fig = plotcharge2D(charge, G, a, x0, e1, e2, nx, ny)
 fig.show()
 
 import time

@@ -5,11 +5,12 @@
 This submodule groups for fitting the energy using the Murnaghan EOS.
 """
 
-from constants import RY_KBAR
-from readutils import read_EtotV
 from math import pow
 import numpy as np
 from scipy.optimize import curve_fit
+
+from .constants import RY_KBAR
+from .readutils import read_EtotV
 
 ################################################################################
 # Murnaghan EOS functions 
