@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+A collection of wrappers for the *matplotlib* functions.
+
+.. Note::
+  All functions return a *matplotlib* which can be modified by the user.
+"""
+
 ################################################################################
 
-from constants import pi
+import numpy as np
 from math import sin, cos
 import cmath
-import numpy as np
-try:
-    import wx
-except:
-    pass
 
-def plot1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from eos import calculate_fitted_points
+from constants import pi
+
+
+def plotcharge1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
     """
     This function calculates a 1D plot of the input charge (or else), starting from the 
     input point x0 and along the direction given by the vector e1. The G vectors
@@ -35,13 +43,7 @@ def plot1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
     deltax = m1 / (nx-1)
     toplot = np.zeros(nx,dtype=complex)
     xv = np.zeros(nx)
-    
-    try:
-        progdlg = wx.ProgressDialog("Plotting...", "Time remaining", nx,
-            style=wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_REMAINING_TIME)
-    except:
-        pass
-        
+
     for i in range(0, nx):
         xi = x0[0] + i * deltax * e1[0]
         yi = x0[1] + i * deltax * e1[1]
@@ -58,25 +60,6 @@ def plot1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
         toplot[i] = toplot[i]/(nr[0]*nr[1]*nr[2])
         #print (xv[i],toplot[i].real)
         
-        try:
-            res = progdlg.Update(i)
-        except:
-            pass
-        
-    try:
-        progdlg.Destroy()
-    except:
-        pass
-    
-    # Plot with Matplotlib library
-    try:
-        wx
-        from matplotlib import use
-        use('WXAgg')
-    except:
-        pass
-    import matplotlib.pyplot as plt
-
     ylabels = ['charge','Vbare','Vbare+VH','Vtot']
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
@@ -87,7 +70,7 @@ def plot1D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab=0):
     return fig
     
     
-def plot2D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab=0):
+def plotcharge2D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab=0):
     """
     This function calculates a 2D plot of the input charge (or else), starting from the 
     input point x0 and along the directions given by the vectors e1, e2. These
@@ -155,16 +138,6 @@ def plot2D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20,
     
 
     # Plot with Matplotlib library
-    try:
-        wx
-        from matplotlib import use
-        use('WXAgg')
-    except:
-        pass
-    from mpl_toolkits.mplot3d import axes3d
-    import matplotlib.pyplot as plt
-    from matplotlib import cm
-
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3)
@@ -185,5 +158,78 @@ def plot2D(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20,
     ax.set_zlim(Z.min(),Z.max())
 
     return fig
-    
-    
+
+
+def simple_plot_xy(x, y, xlabel="", ylabel=""):
+    """
+    This function generates a simple xy plot with matplotlib.
+    """
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)  # create an axes object in the figure
+    ax.plot(x, y, 'r')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    plt.show()
+
+    return fig
+
+
+def multiple_plot_xy(x, y, xlabel="", ylabel="", labels=""):
+    """
+    This function generates a simple xy plot with matplotlib overlapping several
+    lines as in the matrix y. y second index refers to a line in the plot, the first
+    index is for the array to be plotted.
+    """
+
+    if (len(y[0, :]) > 7):
+        print("Too many data on y axis!")
+        return
+
+    colors = ['k', 'r', 'b', 'g', 'c', 'm', 'y']
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)  # create an axes object in the figure
+    if (labels == ""):
+        try:  # try if there are multiple data on x axis
+            for i in range(0, len(y[0, :])):
+                ax.plot(x[:, i], y[:, i], colors[i])
+        except:  # if not use a single x axis
+            for i in range(0, len(y[0, :])):
+                ax.plot(x, y[:, i], colors[i])
+    else:
+        try:  # try if there are multiple data on x axis
+            for i in range(0, len(y[0, :])):
+                ax.plot(x[:, i], y[:, i], colors[i], label=labels[i])
+        except:  # if not use a single x axis
+            for i in range(0, len(y[0, :])):
+                ax.plot(x, y[:, i], colors[i], label=labels[i])
+        ax.legend()
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    plt.show()
+
+    return fig
+
+
+def plot_EV(V, E, a=[0., 0., 0., 0.], labely="Etot"):
+    """
+    This function plots with matplotlib E(V) data and if a is given it also plot
+    the fitted results
+    """
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)  # create an axes object in the figure
+
+    ax.plot(V, E, 'o', label=labely + " data", markersize=10)
+    if (a.all() != 0):
+        Vdense, Edensefitted = calculate_fitted_points(V, a)
+        ax.plot(Vdense, Edensefitted, 'r', label='Fitted EOS')
+    ax.legend()
+    ax.set_xlabel('V (a.u.^3)')
+    ax.set_ylabel('E (Ry)')
+    plt.show()
+
+    return fig
+

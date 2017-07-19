@@ -57,7 +57,8 @@ def get_info(info_line):
 def read_charge_file_iotk(filename):
     """
     Read a binary charge file written with QE and iotk.
-    Warning: platform dependent, use hdf5 format when available
+    Warning: the binary format is tricky and platform dependent. It will not be supported in the future.
+    Use the hdf5 format instead.
     """
  
     tempcharge = []
@@ -92,7 +93,7 @@ def read_charge_file_iotk(filename):
 
 def read_charge_file_hdf5(filename, nr):
     """
-    Reads a charge file written with QE in HDF5 format. nr = [nr1,nr2,nr3] (the dimensions of
+    Reads a charge file written with QE in HDF5 format. *nr = [nr1,nr2,nr3]* (the dimensions of
     the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
 
     Notes: In the new format, the values of the charge in the reciprocal space are stored.
@@ -325,49 +326,12 @@ def read_pseudo_file(filename):
     return pseudo
 
 
-def read_pseudo_file_old(filename):
-    """
-    This function reads a pseudopotential file in the QE UPF format (text), returning
-    the content of each tag in a dictionary.
-    WARNING: does not handle multiple tags with the same name yet and has limited
-    functionalities for now. It is meant to be used only for postqe, not as a general
-    reader of pseudopotentials files.
-    """
-
-    list_tags = ["PP_INFO", "PP_HEADER", "PP_MESH", "PP_NLCC", "PP_LOCAL", "PP_NONLOCAL", "PP_PSWFC", "PP_RHOATOM"]
-
-    lines = []
-    with open(filename, "r") as temp:
-        for line in temp:
-            lines.append(line)
-
-    pseudo = read_tags(lines, list_tags)
-    ### convert strings to float numpy arrays
-    rloc = np.array([float(x) for x in pseudo["PP_LOCAL"].split()])
-    pseudo["PP_LOCAL"] = rloc
-    #### Read subfields
-    list_tags_PP_MESH = ["PP_R", "PP_RAB"]
-    pseudo["PP_MESH"] = read_tags(pseudo["PP_MESH"].splitlines(), list_tags_PP_MESH)
-    rr = np.array([float(x) for x in pseudo["PP_MESH"]["PP_R"].split()])
-    rrab = np.array([float(x) for x in pseudo["PP_MESH"]["PP_RAB"].split()])
-    tempdict = dict(PP_R=rr, PP_RAB=rrab)
-    pseudo["PP_MESH"] = tempdict
-
-    rhoat = np.array([float(x) for x in pseudo["PP_RHOATOM"].split()])
-    pseudo["PP_RHOATOM"] = rhoat
-
-    list_tags_PP_NONLOCAL = ["PP_BETA", "PP_DIJ"]
-    pseudo["PP_NONLOCAL"] = read_tags(pseudo["PP_NONLOCAL"].splitlines(), list_tags_PP_NONLOCAL)
-
-    return pseudo
-
-
 ################################################################################
 # Other readers, writers, auxiliary functions.
 ################################################################################
 def write_charge(filename, charge, header):
     """
-    Write the charge or another quantity calculated by postqe into a file name.
+    Write the charge or another quantity calculated by postqe into a text file *filename*.
     """
     
     fout = open(filename, "w")
@@ -391,7 +355,8 @@ def write_charge(filename, charge, header):
     
 def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
     """
-    Creates the header lines for the output file. The format is:
+    Creates the header lines for the output charge (or potential) text file and is called by *write_charge*.
+     The format is:
 
     system_prefix
     fft_grid (nr1,nr2,nr3)  fft_smooth (nr1,nr2,nr3)  nat  ntyp
@@ -457,3 +422,23 @@ def read_postqe_output_file(filename):
                 count += 1
 
     return charge
+
+
+def read_EtotV(fname):
+    """
+    Read cell volumes and the corresponding energies from input file *fname*
+    (1st col, volumes, 2nd col energies). Units must be :math:`a.u.^3` and
+    :math:`Ryd/cell`
+    """
+    Vx = []
+    Ex = []
+
+    with open(fname, "r") as lines:
+        for line in lines:
+            linesplit = line.split()
+            V = float(linesplit[0])
+            E = float(linesplit[1])
+            Vx.append(V)
+            Ex.append(E)
+
+    return np.array(Vx), np.array(Ex)
