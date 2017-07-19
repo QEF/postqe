@@ -204,17 +204,17 @@ Description
 \hline
 1
  & 
-Plot a 1D section of the charge density
+Plotting a 1D section of the charge density
 \\
 \hline
 2
  & 
-Plot a 1D section of the charge density
+Plotting a 2D section of the charge density
 \\
 \hline
 3
  & 
-Fit \(E_{tot}(V)\) for a cubic (isotropic) system using Murnaghan EOS
+Fitting \(E_{tot}(V)\) for a cubic (isotropic) system using Murnaghan EOS
 \\
 \hline\end{tabulary}
 
@@ -223,29 +223,92 @@ Several simplified plotting functions are available in \code{postqe} and are use
 Note however that all plotting functions need the matplotlib library, which must be available on your system and can be used to further taylor your plot.
 
 
-\section{Fitting the total energy (examples 3)}
-\label{tutorial:fitting-the-total-energy-examples-3}
+\section{Plotting a 1D section of the charge density  (examples 1)}
+\label{tutorial:plotting-a-1d-section-of-the-charge-density-examples-1}
+The most common task you can do with \code{postqe} is probably to plot the electronic charge density along one direction. The charge is read from the HSF5
+output file create by the Quantum Espresso calculation in \emph{outdir}.
+The code to do this is shown below:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{plot\PYGZus{}charge1D}
+
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				\PYG{c+c1}{\PYGZsh{} file xml produce by QE}
+\PYG{n}{plot\PYGZus{}charge1D}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    			\PYG{c+c1}{\PYGZsh{} plot a 1D section of the charge }
+                                	    
+\PYG{c+c1}{\PYGZsh{}fig1 = plot\PYGZus{}EV(V,E,a)                  	\PYGZsh{} plot the E(V) data and the fitting line}
+\PYG{c+c1}{\PYGZsh{}fig1.savefig(\PYGZdq{}figure\PYGZus{}1.png\PYGZdq{})}
+
+\end{Verbatim}
+
+and it is essentially a call to the function \code{plot\_charge1D()}, which needs in input the xml file create by Quantum Espresso.
+All other values are optional and taken either from the xml file or from
+\begin{quote}
+
+default values. By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).
+\end{quote}
+
+\includegraphics{{../examples/example2/figure_1}.png}
+
+
+\section{Plotting a 2D section of the charge density  (examples 2)}
+\label{tutorial:plotting-a-2d-section-of-the-charge-density-examples-2}
+This example is similar to the previous one except for producing a 2D plot of a planar section of the electronic charge density. The plane is defined
+by an initial point and two 3D vectors which define the plane.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{plot\PYGZus{}charge2D}
+
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				\PYG{c+c1}{\PYGZsh{} file xml produce by QE}
+\PYG{n}{plot\PYGZus{}charge2D}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    			\PYG{c+c1}{\PYGZsh{} plot a 1D section of the charge }
+                                	    
+\PYG{c+c1}{\PYGZsh{}fig1 = plot\PYGZus{}EV(V,E,a)                  	\PYGZsh{} plot the E(V) data and the fitting line}
+\PYG{c+c1}{\PYGZsh{}fig1.savefig(\PYGZdq{}figure\PYGZus{}1.png\PYGZdq{})}
+
+\end{Verbatim}
+
+As in the previous example, it is essentially a call to a single function, which is in this case \code{plot\_charge1D()}.
+The output figure is:
+
+\includegraphics{{../examples/example2/figure_1}.png}
+
+
+\section{Fitting the total energy using Murnaghan EOS (examples 3)}
+\label{tutorial:fitting-the-total-energy-using-murnaghan-eos-examples-3}
 The simplest task you can do with \code{postqe} is to fit the total energy as a function of volume \(E_{tot}(V)\) (example3). You can use
 an equation of state (EOS) such as Murnaghan's or similar.  Currently the Murnaghan EOS and quadratic and quartic polynomials are implemented in \code{postqe}.
 
 Let's see how to fit \(E_{tot}(V)\). This is the case of isotropic cubic systems (simple cubic, body centered cubic, face centered cubic) or systems which can be approximated as isotropic (for example an hexagonal system with nearly constant \(c/a\) ratio).
 
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{fitEtotV}\PYG{p}{,} \PYG{n}{plot\PYGZus{}EV}
+
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./EtotV.dat}\PYG{l+s+s2}{\PYGZdq{}}  		\PYG{c+c1}{\PYGZsh{} file with the total energy data E(V)}
+\PYG{n}{V}\PYG{p}{,} \PYG{n}{E}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{chi2} \PYG{o}{=} \PYG{n}{fitEtotV}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    	\PYG{c+c1}{\PYGZsh{} fits the E(V) data, returns the coefficients a and}
+                                	\PYG{c+c1}{\PYGZsh{} the chi squared chi2}
+
+\PYG{n}{fig1} \PYG{o}{=} \PYG{n}{plot\PYGZus{}EV}\PYG{p}{(}\PYG{n}{V}\PYG{p}{,}\PYG{n}{E}\PYG{p}{,}\PYG{n}{a}\PYG{p}{)}                  	\PYG{c+c1}{\PYGZsh{} plot the E(V) data and the fitting line}
+\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}1.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\end{Verbatim}
+
 The \code{fitEtotV()} needs in input a file with two columns: the first with the volumes (in \(a.u.^3\)), the second with energies (in \(Ryd/cell\)). It returns the volumes \emph{V} and energies \emph{E} from the input file plus the fitting coefficients \emph{a} and the \(\chi^2\) \emph{chi}. The fitting results are also written in details on the \emph{stdout}:
 
 \begin{Verbatim}[commandchars=\\\{\}]
-\PYG{c+c1}{\PYGZsh{} Murnaghan EOS 		 chi squared= 6.3052568895e\PYGZhy{}09}
-\PYG{c+c1}{\PYGZsh{} Etotmin= \PYGZhy{}1.6668753460e+03 Ry	 Vmin= 1.9256061524e+02 a.u.\PYGZca{}3	 B0= 3.9507615923e+03 kbar	 dB0/dV= 4.7879823925e+00}
-\PYG{c+c1}{\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZsh{} V *a.u.\PYGZca{}3)}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{Etot}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{ (Ry)}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{Etotfit}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{ (Ry)}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{Etot\PYGZhy{}Etotfit (Ry)}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{P (kbar)}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1.7119697047e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668351807e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668351587e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}2.2057946126e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 6.2382144794e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1.7637989181e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668536038e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668536431e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 3.9279193061e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 4.3100002530e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1.8166637877e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668660570e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668660710e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 1.4066826679e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 2.6537032641e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1.8705745588e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668731355e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668731118e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}2.3774691499e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 1.2288570223e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1.9255414767e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668753764e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668753460e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}3.0400133255e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 1.3270797876e\PYGZhy{}01}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{1.9815747866e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668732871e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668732783e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}8.8363487976e\PYGZhy{}06}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.0577273936e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2.0386847338e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668673220e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668673472e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 2.5137771445e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.9727140701e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2.0968815635e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668579007e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668579345e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ 3.3763105193e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}2.7643217490e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
-\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{2.1561755211e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{\PYGZhy{}1.6668454001e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}1.6668453730e+03}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}2.7177809670e\PYGZhy{}05}\PYG{l+s+se}{\PYGZbs{}t}\PYG{l+s+s1}{ \PYGZhy{}3.4501143525e+02}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYGZsh{} Murnaghan EOS 		 chi squared= 6.3052908120e\PYGZhy{}09
+\PYGZsh{} Etotmin= \PYGZhy{}1.6668753461e+03 Ry	 Vmin= 1.9256068649e+02 a.u.\PYGZca{}3	 B0= 3.9507640525e+03 kbar	 dB0/dV= 4.7877558697e+00
+\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}
+\PYGZsh{} V *a.u.\PYGZca{}3) 		 Etot  (Ry)		 Etotfit  (Ry)		 Etot\PYGZhy{}Etotfit (Ry)	P (kbar)
+1.7119697047e+02 	 \PYGZhy{}1.6668351807e+03	 \PYGZhy{}1.6668351587e+03	 \PYGZhy{}2.1971172146e\PYGZhy{}05	 6.2381531911e+02
+1.7637989181e+02 	 \PYGZhy{}1.6668536038e+03	 \PYGZhy{}1.6668536431e+03	 3.9227047637e\PYGZhy{}05	 4.3099793531e+02
+1.8166637877e+02 	 \PYGZhy{}1.6668660570e+03	 \PYGZhy{}1.6668660709e+03	 1.3986418708e\PYGZhy{}05	 2.6537059196e+02
+1.8705745588e+02 	 \PYGZhy{}1.6668731355e+03	 \PYGZhy{}1.6668731117e+03	 \PYGZhy{}2.3822185085e\PYGZhy{}05	 1.2288704542e+02
+1.9255414767e+02 	 \PYGZhy{}1.6668753764e+03	 \PYGZhy{}1.6668753461e+03	 \PYGZhy{}3.0392647432e\PYGZhy{}05	 1.3417016197e\PYGZhy{}01
+1.9815747866e+02 	 \PYGZhy{}1.6668732871e+03	 \PYGZhy{}1.6668732784e+03	 \PYGZhy{}8.7825126229e\PYGZhy{}06	 \PYGZhy{}1.0577186614e+02
+2.0386847338e+02 	 \PYGZhy{}1.6668673220e+03	 \PYGZhy{}1.6668673472e+03	 2.5205460133e\PYGZhy{}05	 \PYGZhy{}1.9727163448e+02
+2.0968815635e+02 	 \PYGZhy{}1.6668579007e+03	 \PYGZhy{}1.6668579345e+03	 3.3793803595e\PYGZhy{}05	 \PYGZhy{}2.7643386187e+02
+2.1561755211e+02 	 \PYGZhy{}1.6668454001e+03	 \PYGZhy{}1.6668453729e+03	 \PYGZhy{}2.7248831202e\PYGZhy{}05	 \PYGZhy{}3.4501482193e+02
 \end{Verbatim}
 
 Optionally, you can plot the results with the \code{plot\_EV()}. The original data are represented as points. If \emph{a!=None}, a line with the fitting EOS will also be plotted. The output plot looks like the following:

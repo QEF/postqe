@@ -213,7 +213,7 @@ def multiple_plot_xy(x, y, xlabel="", ylabel="", labels=""):
     return fig
 
 
-def plot_EV(V, E, a=[0., 0., 0., 0.], labely="Etot"):
+def plot_EV(V, E, a=(0., 0., 0., 0.), labely="Etot"):
     """
     This function plots with matplotlib E(V) data and if a is given it also plot
     the fitted results

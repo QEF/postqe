@@ -10,19 +10,57 @@ The tutorial is based on the following examples:
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
 | Example n.    | Description                                                                                                                              |
 +===============+==========================================================================================================================================+
-| 1             | Plot a 1D section of the charge density                                                                                                  |
+| 1             | Plotting a 1D section of the charge density                                                                                              |
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| 2             | Plot a 1D section of the charge density                                                                                                  |
+| 2             | Plotting a 2D section of the charge density                                                                                              |
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| 3             | Fit :math:`E_{tot}(V)` for a cubic (isotropic) system using Murnaghan EOS                                                                |
+| 3             | Fitting :math:`E_{tot}(V)` for a cubic (isotropic) system using Murnaghan EOS                                                            |
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
 
 Several simplified plotting functions are available in :py:mod:`postqe` and are used in the following tutorial to show what you can plot.
 Note however that all plotting functions need the matplotlib library, which must be available on your system and can be used to further taylor your plot. 
 
-==================================================
-Fitting the total energy (examples 3)
-==================================================
+===========================================================
+Plotting a 1D section of the charge density  (examples 1)
+===========================================================
+
+The most common task you can do with :py:mod:`postqe` is probably to plot the electronic charge density along one direction. The charge is read from the HSF5 
+output file create by the Quantum Espresso calculation in *outdir*. 
+The code to do this is shown below:
+
+.. literalinclude:: ../examples/example1/example1.py
+   :language: python
+   :dedent: 4
+   :lines: 10-
+ 
+and it is essentially a call to the function :py:func:`plot_charge1D`, which needs in input the xml file create by Quantum Espresso. 
+All other values are optional and taken either from the xml file or from 
+ default values. By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).
+
+.. image:: ../examples/example2/figure_1.png
+   :width: 500
+
+===========================================================
+Plotting a 2D section of the charge density  (examples 2)
+===========================================================
+
+This example is similar to the previous one except for producing a 2D plot of a planar section of the electronic charge density. The plane is defined 
+by an initial point and two 3D vectors which define the plane. 
+
+.. literalinclude:: ../examples/example2/example2.py
+   :language: python
+   :dedent: 4
+   :lines: 10-
+   
+As in the previous example, it is essentially a call to a single function, which is in this case :py:func:`plot_charge1D`.
+The output figure is:
+
+.. image:: ../examples/example2/figure_1.png
+   :width: 500
+
+===========================================================
+Fitting the total energy using Murnaghan EOS (examples 3)
+===========================================================
 
 The simplest task you can do with :py:mod:`postqe` is to fit the total energy as a function of volume :math:`E_{tot}(V)` (example3). You can use
 an equation of state (EOS) such as Murnaghan's or similar.  Currently the Murnaghan EOS and quadratic and quartic polynomials are implemented in :py:mod:`postqe`. 
