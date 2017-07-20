@@ -1,6 +1,6 @@
 
-QE_DIR = /home/brunato/Downloads/QE_Forge/QE/q-e-master
-#QE_DIR = /home/mauropalumbo/q-e
+#QE_DIR = /home/brunato/Downloads/QE_Forge/QE/q-e-master
+QE_DIR = /home/mauropalumbo/q-e
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90

@@ -1,7 +1,6 @@
 *.pyc
 *.pyo
 *.so
-*.a
 *.o
 *~
 *.swp

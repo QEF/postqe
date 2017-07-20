@@ -2,8 +2,7 @@
 #encoding: UTF-8
 
 """
-This is a simple example of fitting the total energy E as a function of the volume
-with the Murnaghan EOS.
+This is a simple example of plotting a 1D section of the electronic charge density.
 """
     
 if __name__ == "__main__":
