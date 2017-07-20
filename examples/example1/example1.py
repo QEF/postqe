@@ -8,11 +8,17 @@ with the Murnaghan EOS.
     
 if __name__ == "__main__":
 
-    from postqe import plot_charge1D
+    from postqe import get_charge, get_cell_data, compute_G, plot1D_FFTinterp
 
-    fin = "./Ni.xml"  				# file xml produce by QE
-    plot_charge1D(fin)    			# plot a 1D section of the charge 
-                                    	    
-    #fig1 = plot_EV(V,E,a)                  	# plot the E(V) data and the fitting line
-    #fig1.savefig("figure_1.png")
+    fin = "./Ni.xml"  				            # file xml produce by QE
+    ibrav, alat, a, b = get_cell_data(fin)  # get some data on the unit cell
+    charge, chargediff = get_charge(fin)    	# get the charge (and charge diff)
+
+    G = compute_G(b, charge.shape)
+    fig1 = plot1D_FFTinterp(charge, G, a, plot_file='plotfile')
+    fig1.show()
+    fig1.savefig("figure_1.png")
+
+
+
 
