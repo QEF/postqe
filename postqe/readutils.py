@@ -47,6 +47,7 @@ def read_charge_file_hdf5(filename, nr):
     return rhotot_r.real, rhodiff_r.real
 
 
+# TODO update to the new format
 def read_wavefunction_file_hdf5(filename):
     """
     Reads an hdf5 wavefunction file written with QE. Returns a dictionary with
@@ -74,26 +75,6 @@ def read_wavefunction_file_hdf5(filename):
         
     return wavefunctions
     
-    
-################################################################################
-# Reader of pseudopotential files and auxiliary functions.
-################################################################################
-# Warning: limited functionalities for now
-#
-def get_tag(line):
-    """
-    Check if the input string is an xml tag, i.e. it contains between "<" and ">" the "/" and any alphanumeric character.
-    If so, returns the string between  "<" and ">". If "/" is present, it is in [0] position in the returned string.
-    If not a tag, returns None
-    """
-
-    import re
-
-    line = line.strip(" \n\t")         # first strip spaces, endline chars, tabs
-    pat = re.compile(r'<\/?[\w\ =\+\-\.\"]+\/?>')    # a tag may contain between "<" and ">" the "/" and any alphanumeric character
-    if pat.match(line):
-        return line.strip(" <>")     # returns the tag without "<" and ">"
-
 
 def read_pseudo_file(filename):
 
