@@ -18,8 +18,8 @@ def get_from_xml(filename):
 
     ##########################################################
     # TODO for whatever reason this is not working now
-    #schemaLoc = xmlschema.fetch_schema(filename)
-    #xs = xmlschema.XMLSchema(schemaLoc)
+    # schemaLoc = xmlschema.fetch_schema(filename)
+    # xs = xmlschema.XMLSchema(schemaLoc)
     #
     # temporary local solution
     xs = xmlschema.XMLSchema('schemas/qes.xsd')
