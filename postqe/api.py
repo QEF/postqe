@@ -10,21 +10,11 @@ import numpy as np
 from .pp import get_from_xml
 from .readutils import read_charge_file_hdf5, write_charge, create_header
 from .plot import plot1D_FFTinterp, plot2D_FFTinterp
-from .compute_vs import compute_G
-from .pyqe import pyqe_getcelldms, compute_v_bare, compute_v_h, compute_v_xc
+from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
+from .pyqe import pyqe_getcelldms
 
 
-def get_cell_data(xmlfile):
-    """
-    Gets some data about the unit cell from the xmlfile.
 
-    :param xmlfile:
-    :return ibrav, alat, a, b:
-    """
-    prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml(xmlfile)
-
-    return ibrav, alat, a, b
 
 
 def get_charge(xmlfile, outfile='postqe.out'):
