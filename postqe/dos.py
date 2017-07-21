@@ -5,7 +5,7 @@
 Functions to calculate the electronic density of states (DOS).
 """
 
-from postqe.xmlfile import get_cell_data, get_band_strucure_data
+from postqe.xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
 from postqe.pyqe import py_w0gauss
 
 
@@ -28,7 +28,7 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
 
     # TODO non collinear case to be implemented
     nk = nks
-    if lsda:
+    if lsda == 'true':
         nk = nks // 2
 
     dos_up = 0.
@@ -38,10 +38,9 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
         for j in range(0,nbnd):
             weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
             eigenvalue = ks_energies[i]['eigenvalues'][j]  * nat           # eigenvalue at k-point i, band j
-            #print(i,j, weight, eigenvalue)
             dos_up += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
 
-    if lsda:
+    if lsda == 'true':
         for i in range(nk,nks):
             for j in range(0,nbnd):
                 weight = ks_energies[i]['k_point']['@weight']              # weight at k-point i
@@ -54,10 +53,14 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
     return dos_up, dos_down
 
 
-def compute_dos(xmlfile,filedos='filedos',E_min='',E_max='',E_step=0.01):
+def compute_dos(xmlfile,filedos='filedos',E_min='',E_max='',E_step=0.01, degauss=0.02, ngauss=0):
 
     ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
+    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
+        get_calculation_data(xmlfile)
     nks, nbnd, ks_energies = get_band_strucure_data(xmlfile)
+
+    # TODO determine E_min, E_max automatically from ks_energies if not set in input parameters
 
     # Convert to rydberg
     ev_to_ry = 0.073498618
@@ -69,7 +72,7 @@ def compute_dos(xmlfile,filedos='filedos',E_min='',E_max='',E_step=0.01):
     fout = open(filedos, "w")
     E = E_min
     while E < E_max:
-        dos_up, dos_down = dos_gaussian(E, nat, ks_energies, False, nbnd, nks, 0.02, ngauss=0)
+        dos_up, dos_down = dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss)
         fout.write( "{:.9E}".format(E / ev_to_ry)+"  {:.9E}\n".format(dos_up * ev_to_ry) )
         E += E_step
 

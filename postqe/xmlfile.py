@@ -101,4 +101,4 @@ def get_calculation_data(xmlfile):
     pseudodir = d["input"]["control_variables"]["pseudo_dir"]
 
 
-    return (prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth)
+    return prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth
