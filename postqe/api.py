@@ -7,24 +7,11 @@ A tentative collection of functions to be part of postqe API and exposed to the 
 """
 
 import numpy as np
-from .pp import get_from_xml
+from .xmlfile import get_cell_data, get_calculation_data
 from .readutils import read_charge_file_hdf5, write_charge, create_header
 from .plot import plot1D_FFTinterp, plot2D_FFTinterp
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 from .pyqe import pyqe_getcelldms
-
-
-def get_cell_data(xmlfile):
-    """
-    Gets some data about the unit cell from the xmlfile.
-
-    :param xmlfile:
-    :return ibrav, alat, a, b:
-    """
-    prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml(xmlfile)
-
-    return ibrav, alat, a, b
 
 
 def get_charge(xmlfile, outfile='postqe.out'):
@@ -38,10 +25,11 @@ def get_charge(xmlfile, outfile='postqe.out'):
     :return charge, chargediff : the electronic charge density and the difference between charge density spin up -
       charge density spin down
     """
-    prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml(xmlfile)
-    celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
 
+    ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
+    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
+        get_calculation_data(xmlfile)
+    celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
     charge_file = outdir+prefix+".save/charge-density.hdf5"
 
     charge, chargediff = read_charge_file_hdf5(charge_file, nr)
@@ -66,8 +54,9 @@ def get_potential(xmlfile, outfile='postqe.out', pot_type='vtot'):
     :return charge, chargediff : the electronic charge density and the difference between charge density spin up -
       charge density spin down
     """
-    prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml(xmlfile)
+    ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
+    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
+        get_calculation_data(xmlfile)
     celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
 
     charge_file = outdir + prefix + ".save/charge-density.hdf5"
@@ -104,8 +93,9 @@ def plot_charge1D(xmlfile, plot_file='plotout', x0 = (0., 0., 0.), e1 = (1., 0.,
     :param nx: number of points in the line
     :return:
     """
-    prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml(xmlfile)
+    ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
+    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
+        get_calculation_data(xmlfile)
     celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
 
     charge_file = outdir+prefix+".save/charge-density.hdf5"
@@ -148,8 +138,9 @@ def plot_charge2D(xmlfile, plot_file='plotout', x0 = (0., 0., 0.), e1 = (1., 0.,
     :param nx: number of points along the e1, e2 directions of the plotting plane
     :return:
     """
-    prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml(xmlfile)
+    ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
+    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
+        get_calculation_data(xmlfile)
     celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
 
     charge_file = outdir+"charge-density.hdf5"

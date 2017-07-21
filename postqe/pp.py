@@ -9,7 +9,7 @@ from .readutils import ( read_charge_file_hdf5,
 from .compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from .pyqe import pyqe_getcelldms
 
-
+# TODO this function must be revised or deleted (see xmlfile.py and possibly use it)
 def get_from_xml(filename):
     """
     Get some useful values from xml file
@@ -39,7 +39,7 @@ def get_from_xml(filename):
     alat = (dout["atomic_structure"]["@alat"])
     a1 = np.array(dout["atomic_structure"]["cell"]["a1"])
     a2 = np.array(dout["atomic_structure"]["cell"]["a2"])
-    a3 = np.array(dout["atomic_structure"]["cell"]["a3"])   
+    a3 = np.array(dout["atomic_structure"]["cell"]["a3"])
     ibrav = (dout["atomic_structure"]["@bravais_index"])
     b1 = np.array(dout["basis_set"]["reciprocal_lattice"]["b1"])
     b2 = np.array(dout["basis_set"]["reciprocal_lattice"]["b2"])
@@ -53,7 +53,9 @@ def get_from_xml(filename):
     noncolin = (dout["magnetization"]["noncolin"])
     nr = np.array([dout["basis_set"]["fft_grid"]["@nr1"],dout["basis_set"]["fft_grid"]["@nr2"],dout["basis_set"]["fft_grid"]["@nr3"]])
     nr_smooth = np.array([dout["basis_set"]["fft_smooth"]["@nr1"],dout["basis_set"]["fft_smooth"]["@nr2"],dout["basis_set"]["fft_smooth"]["@nr3"]])
-
+    nks = (dout["band_structure"]["nks"])
+    nbnd = (dout["band_structure"]["nbnd"])
+    ks_energies = (dout["band_structure"]["ks_energies"])
 
     # for subsequent loops it is important to have always lists for atomic_positions
     # and atomic_species. If this is not, convert
@@ -66,10 +68,10 @@ def get_from_xml(filename):
         atomic_positions = a_p
     else:
         atomic_positions = [a_p]
-    
+
     a = np.array([a1,a2,a3])
     b = np.array([b1,b2,b3])
-    
+
     return (prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions,
             atomic_species, nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth)
 
