@@ -7,4 +7,5 @@
 *.egg-info
 dist/
 build/
+my_tests/
 .idea/

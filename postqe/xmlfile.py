@@ -17,7 +17,10 @@ def get_dict(xmlfile):
     # xs = xmlschema.XMLSchema(schemaLoc)
     #
     # temporary local solution
-    xs = xmlschema.XMLSchema('schemas/qes.xsd')
+    try:
+        xs = xmlschema.XMLSchema('schemas/qes.xsd')
+    except:
+        xs = xmlschema.XMLSchema('../../postqe/schemas/qes.xsd')
     ##########################################################
 
     d = xs.to_dict(xmlfile)

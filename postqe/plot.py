@@ -55,6 +55,10 @@ def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='char
     toplot = np.zeros(nx,dtype=complex)
     xv = np.zeros(nx)
 
+    if plot_file != '':
+        f = open(plot_file, 'w')
+        f.write('X'+16*' '+'Y\n')
+
     for i in range(0, nx):
         xi = x0[0] + i * deltax * e1[0]
         yi = x0[1] + i * deltax * e1[1]
@@ -69,20 +73,19 @@ def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='char
                    
         xv[i] = i*deltax 
         toplot[i] = toplot[i]/(nr[0]*nr[1]*nr[2])
-        #print (xv[i],toplot[i].real)
-        
+        print (xv[i],toplot[i].real)
+        try:
+            f.write("{:.9E}  ".format(xv[i]) + "{:.9E}\n".format(toplot[i].real))
+        except:
+            pass
+
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
     fig = plt.figure()
     plt.xlabel(xlab)
     plt.ylabel(ylab)
     plt.plot(xv, np.real(toplot), 'r')
-
-    if plot_file != '':
-        f = open(plot_file, 'w')
-        for i in range(0, nx):
-            f.write("  {:.9E}".format(xv[i], toplot[i].real))
-        f.close()
+    plt.show()
 
     return fig
     
@@ -156,12 +159,20 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
                         
     Z = temp.real / (nr[0]*nr[1]*nr[2])
 
-    # loop again over nx,ny to normalize and print
+    if plot_file != '':
+        f = open(plot_file,'w')
+        f.write('X'+16*' '+'Y'+16*' '+'Z\n')
+
+    # loop again over nx,ny to normalize, print on screen and write on file
     for i in range(0,nx):
         for j in range(0,ny): 
             X[i,j] = i * deltax
             Y[i,j] = j * deltay
             print (X[i,j], Y[i,j], Z[i,j])
+            try:
+                f.write("{:.9E}  ".format(X[i, j]) + "{:.9E}  ".format(Y[i, j]) + "{:.9E}\n".format(Z[i, j]))
+            except:
+                pass
     
 
     fig = plt.figure()
@@ -181,12 +192,7 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     ax.set_ylim(Y.min(), Y.max())
     ax.set_zlabel(zlab)
     ax.set_zlim(Z.min(), Z.max())
-
-    if plot_file != '':
-        f = open(plot_file,'w')
-        for i in range(0, nx):
-            f.write("  {:.9E}".format(X[i,j], Y[i,j], Z[i,j]))
-        f.close()
+    plt.show()
 
     return fig
 

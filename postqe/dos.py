@@ -5,6 +5,7 @@
 Functions to calculate the electronic density of states (DOS).
 """
 
+import numpy as np
 from postqe.xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
 from postqe.pyqe import py_w0gauss
 
@@ -27,25 +28,26 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
     """
 
     # TODO non collinear case to be implemented
-    nk = nks
-    if lsda == 'true':
-        nk = nks // 2
-
     dos_up = 0.
     dos_down = 0.
 
-    for i in range(0,nk):
-        for j in range(0,nbnd):
-            weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
-            eigenvalue = ks_energies[i]['eigenvalues'][j]  * nat           # eigenvalue at k-point i, band j
-            dos_up += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
-
-    if lsda == 'true':
-        for i in range(nk,nks):
-            for j in range(0,nbnd):
+    if lsda:   # if magnetic
+        for i in range(0, nks):
+            for j in range(0, nbnd // 2):
+                weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
+                eigenvalue = ks_energies[i]['eigenvalues'][j] * 2 * nat           # eigenvalue at k-point i, band j
+                dos_up += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
+            for j in range(nbnd // 2, nbnd):
                 weight = ks_energies[i]['k_point']['@weight']              # weight at k-point i
-                eigenvalue = ks_energies[i]['eigenvalues'][j] * nat        # eigenvalue at k-point i, band j
+                eigenvalue = ks_energies[i]['eigenvalues'][j] * 2 * nat        # eigenvalue at k-point i, band j
                 dos_down += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
+
+    else:       # non magnetic
+        for i in range(0, nks):
+            for j in range(0, nbnd):
+                weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
+                eigenvalue = ks_energies[i]['eigenvalues'][j] * nat           # eigenvalue at k-point i, band j
+                dos_up += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
 
     dos_up /= degauss
     dos_down /= degauss
@@ -53,7 +55,7 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
     return dos_up, dos_down
 
 
-def compute_dos(xmlfile,filedos='filedos',E_min='',E_max='',E_step=0.01, degauss=0.02, ngauss=0):
+def compute_dos(xmlfile, filedos='filedos', e_min='', e_max='', e_step=0.01, degauss=0.02, ngauss=0):
 
     ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
     prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
@@ -64,19 +66,23 @@ def compute_dos(xmlfile,filedos='filedos',E_min='',E_max='',E_step=0.01, degauss
 
     # Convert to rydberg
     ev_to_ry = 0.073498618
-    E_min = E_min * ev_to_ry
-    E_max = E_max * ev_to_ry
-    E_step = E_step * ev_to_ry
-
+    e_min = e_min * ev_to_ry
+    e_max = e_max * ev_to_ry
+    e_step = e_step * ev_to_ry
 
     fout = open(filedos, "w")
-    E = E_min
-    while E < E_max:
-        dos_up, dos_down = dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss)
-        fout.write( "{:.9E}".format(E / ev_to_ry)+"  {:.9E}\n".format(dos_up * ev_to_ry) )
-        E += E_step
+    fout.write(" E (eV)"+16*' '+" dos up (states/eV/cell)"+6*' '+" dos up (states/eV/cell)"+6*' ')
+    te = e_min
+    e = []
+    dos_up = []
+    dos_down = []
+    while te < e_max:
+        tdos_up, tdos_down = dos_gaussian(te, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss)
+        fout.write( "{:.9E}".format(te / ev_to_ry)+"  {:.9E}".format(tdos_up * ev_to_ry) +
+                    "  {:.9E}\n".format(tdos_down * ev_to_ry) )
+        e.append(te / ev_to_ry)
+        dos_up.append(tdos_up * ev_to_ry)
+        dos_down.append(tdos_down * ev_to_ry)
+        te += e_step
 
-
-
-
-compute_dos('silicon.xml','testdos.dat',-10,20,0.01)
+    return np.array(e), np.array(dos_up), np.array(dos_down)

@@ -1,6 +1,0 @@
- &inputpp
-   plot_num=11,
-   prefix='Ni',
-   outdir='./tmp/'
-   filplot='ppout11',
-/
