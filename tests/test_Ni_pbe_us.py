@@ -3,13 +3,11 @@
 import os
 import sys
 
-# Adds the parent oth the test directory to sys.path,
-# in order to make the development module loadable.
-os.chdir(os.path.dirname(__file__) or '.')
-pkg_search_path = os.path.abspath('..')
+# Adds the the package directory to sys.path, in order to make
+# the development module loadable also without set PYTHONPATH.
+pkg_search_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if sys.path[0] != pkg_search_path:
     sys.path.insert(0, pkg_search_path)
-
 
 import numpy as np
 from postqe.readutils import read_charge_file_hdf5, write_charge, create_header

@@ -76,59 +76,77 @@ def read_wavefunction_file_hdf5(filename):
     return wavefunctions
     
 
-def read_pseudo_file(filename):
-
+def read_pseudo_file(xmlfile):
     """
-    This function reads a pseudopotential file in the QE UPF format (text), returning
-        the content of each tag in a dictionary. 
-    WARNING: does not handle multiple tags with the same name yet and has limited 
-    functionalities for now. It is meant to be used only for postqe, not as a general
-    reader of pseudopotentials files.
+    This function reads a pseudopotential XML-like file in the QE UPF format (text),
+    returning the content of each tag in a dictionary. The file is read in strings
+    and completed with a root UPF tag when it lacks, to avoids an XML syntax error.
     """
+    def iter_upf_file():
+        """
+        Creates an iterator over the lines of an UPF file,
+        inserting the root <UPF> tag when missing.
+        """
+        with open(xmlfile, 'r') as f:
+            fake_root = None
+            for line in f:
+                if fake_root is not None:
+                    yield line.replace('&input','&amp;input')
+                else:
+                    line = line.strip()
+                    if line.startswith("<UPF") and line[4] in ('>', ' '):
+                        yield line
+                        fake_root = False
+                    elif line:
+                        yield "<UPF>"
+                        yield line
+                        fake_root = True
+        if fake_root is True:
+            yield "</UPF>"
 
     pseudo = {}
-
-    with open (filename, 'r') as temp:
-        pslines = [ line.replace('&input','&amp;input') for line in temp ]
-    try:
-        psroot = ET.fromstringlist(pslines)
-    except ET.ParseError:
-        return pseudo
+    psroot = ET.fromstringlist(iter_upf_file())
 
     # PP_INFO
-    pp_info = psroot.find('./PP_INFO').text
     try:
-        pp_input = psroot.find('./PP_INFO/PP_INPUTFILE').text
-    except:
+        pp_info = psroot.find('PP_INFO').text
+    except AttributeError:
+        pp_info = ""
+    try:
+        pp_input = psroot.find('PP_INFO/PP_INPUTFILE').text
+    except AttributeError:
         pp_input = ""
     pseudo.update(dict(PP_INFO=dict(INFO=pp_info, PP_INPUT=pp_input)))
 
-    #PP_HEADER
-    pp_header = dict(psroot.find('./PP_HEADER').items())
+    # PP_HEADER
+    pp_header = dict(psroot.find('PP_HEADER').items())
     pseudo.update(dict(PP_HEADER=pp_header))
-    #PP_MESH
-    pp_mesh = dict(psroot.find('./PP_MESH').items())
-    pp_r   = np.array([float(x) for x in psroot.find('./PP_MESH/PP_R').text.split()])
-    pp_rab = np.array([float(x) for x in psroot.find('./PP_MESH/PP_RAB').text.split()])
+
+    # PP_MESH
+    pp_mesh = dict(psroot.find('PP_MESH').items())
+    pp_r = np.array([float(x) for x in psroot.find('PP_MESH/PP_R').text.split()])
+    pp_rab = np.array([float(x) for x in psroot.find('PP_MESH/PP_RAB').text.split()])
     pp_mesh.update(dict(PP_R=pp_r, PP_RAB = pp_rab))
     pseudo.update(dict(PP_MESH = pp_mesh))
-    #PP_LOCAL
-    pp_local = None
-    node = psroot.find('./PP_LOCAL')
-    if not node is None:
-        pp_local = np.array([x for x in map(float, node.text.split() )])
 
-    pseudo.update(dict(PP_LOCAL = pp_local))
-    #
-    node = psroot.find('./PP_RHOATOM')
+    # PP_LOCAL
+    node = psroot.find('PP_LOCAL')
     if not node is None:
-        pp_rhoatom = np.array([v for v in map(float,node.text.split()) ])
+        pp_local = np.array([x for x in map(float, node.text.split())])
+    else:
+        pp_local = None
+    pseudo.update(dict(PP_LOCAL = pp_local))
+
+    # PP_RHOATOM
+    node = psroot.find('PP_RHOATOM')
+    if not node is None:
+        pp_rhoatom = np.array([v for v in map(float, node.text.split())])
     else:
         pp_rhoatom = None
-
     pseudo.update(dict(PP_RHOATOM=pp_rhoatom))
-    #
-    node = psroot.find('./PP_NONLOCAL')
+
+    # PP_NONLOCAL
+    node = psroot.find('PP_NONLOCAL')
     if not node is None:
         betas = list()
         dij = None
@@ -136,12 +154,13 @@ def read_pseudo_file(filename):
         pp_q = None
         for el in node:
             if 'PP_BETA' in el.tag:
-                beta = dict( el.items() )
-                val  = np.array([x for x in map(float,el.text.split() )])
-                beta.update(dict(beta = val))
+                beta = dict(el.items())
+                val = np.array([x for x in map(float, el.text.split())])
+                beta.update(dict(beta=val))
                 betas.append(beta)
             elif 'PP_DIJ' in el.tag:
-                dij = np.array([ x for x in map(float,el.text.split() )])
+                text = '\n'.join(el.text.strip().split('\n')[1:])
+                dij = np.array([x for x in map(float, text.split())])
             elif 'PP_AUGMENTATION' in el.tag:
                 pp_aug = dict(el.items () )
                 pp_qijl = list()
@@ -149,12 +168,12 @@ def read_pseudo_file(filename):
                 for q in el:
                     if 'PP_QIJL' in q.tag:
                         qijl = dict( q.items() )
-                        val = np.array( [ x for x in map(float, q.text.split() )])
+                        val = np.array( [ x for x in map(float, q.text.split())])
                         qijl.update(dict(qijl = val))
                         pp_qijl.append(qijl)
                     elif 'PP_QIJ' in q.tag:
                         qij = dict(q.items() )
-                        val = np.array( [x for x in map(float,q.text.split() )])
+                        val = np.array( [x for x in map(float,q.text.split())])
                         qij.update(dict(qij = val))
                         pp_qij.append(qij)
                     elif q.tag =='PP_Q':
