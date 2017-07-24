@@ -2,6 +2,7 @@
 *.pyo
 *.so
 *.o
+*.png
 *~
 *.swp
 *.egg-info
@@ -9,3 +10,6 @@ dist/
 build/
 my_tests/
 .idea/
+doc/_*
+postqe/__pycache__/
+tests/__pycache__/

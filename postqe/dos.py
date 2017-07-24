@@ -6,8 +6,8 @@ Functions to calculate the electronic density of states (DOS).
 """
 
 import numpy as np
-from postqe.xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
-from postqe.pyqe import py_w0gauss
+from .xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
+from .pyqe import py_w0gauss
 
 
 def dos_gaussian(e, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
