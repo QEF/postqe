@@ -128,11 +128,9 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, 
     This function computes the bare potential. It calls the wrapper function
     wrap_setlocal from the setlocal python module which is an interface to
     call the proper fortran functions.
-    """    
-    
-    v_F = wrap_setlocal(alat, at1, at2, at3, nr[0], nr[1], nr[2], atomic_positions,\
-    species, 2.0*ecutrho, pseudodir)
-
+    """
+    v_F = wrap_setlocal(alat, at1, at2, at3, nr[0], nr[1], nr[2], atomic_positions,
+                        species, 2.0*ecutrho, pseudodir)
     return v_F
 
 

@@ -1,0 +1,6 @@
+ &inputpp
+   plot_num=2,
+   prefix='Si',
+   outdir='./tmp/'
+   filplot='ppout2',
+/
