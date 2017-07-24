@@ -12,9 +12,12 @@ It is meant to be imported in your own Python code or used from the command line
 
 Current features of the package include: 
 
-* Plot 1D or 2D sections of the charge density 
-* Plot 1D or 2D sections of the bare, Hartree or total potential
 * Fit the total energy :math:`E_{tot}(V)` with Murnaghan's equation of state
+* Calculate and plot the electronic band structure
+* Calculate and plot the electronic density of states (DOS)
+* Plot 1D or 2D sections of the charge density 
+* Plot 1D or 2D sections of different potentials (Hartree, exchange-correlation, etc.)
+
 
 .. [#QE] http://www.quantum-espresso.org/
 .. [#F2PY]  https://docs.scipy.org/doc/numpy-dev/f2py/
@@ -49,4 +52,4 @@ General notes
 Plotting
 ----------------------------
 
-:py:mod:`postqe` uses the *matplotlib* library for Plotting. Some functions in the package are simply useful wrappers of *matplotlib* functions for common uses. They return a *matplotlib* object which can be further adapted to specific needs and personal taste.
+:py:mod:`postqe` uses the *matplotlib* library for Plotting. Some functions in the package are simply useful wrappers for *matplotlib* functionalities of common uses. They return a *matplotlib* object which can be further adapted to specific needs and personal taste.

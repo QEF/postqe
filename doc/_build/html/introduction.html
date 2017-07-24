@@ -56,9 +56,11 @@
 <p>It is meant to be imported in your own Python code or used from the command line (see the Tutorial part of this documentation). It is also meant for people who want to tinker with the code and adapt it to their own needs. The package is based on numpy, scipy and matplotlib libraries.</p>
 <p>Current features of the package include:</p>
 <ul class="simple">
-<li>Plot 1D or 2D sections of the charge density</li>
-<li>Plot 1D or 2D sections of the bare, Hartree or total potential</li>
 <li>Fit the total energy <span class="math">\(E_{tot}(V)\)</span> with Murnaghan&#8217;s equation of state</li>
+<li>Calculate and plot the electronic band structure</li>
+<li>Calculate and plot the electronic density of states (DOS)</li>
+<li>Plot 1D or 2D sections of the charge density</li>
+<li>Plot 1D or 2D sections of different potentials (Hartree, exchange-correlation, etc.)</li>
 </ul>
 <table class="docutils footnote" frame="void" id="qe" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -89,7 +91,7 @@
 <h2>General notes<a class="headerlink" href="#general-notes" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="plotting">
 <h3>Plotting<a class="headerlink" href="#plotting" title="Permalink to this headline">¶</a></h3>
-<p><code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> uses the <em>matplotlib</em> library for Plotting. Some functions in the package are simply useful wrappers of <em>matplotlib</em> functions for common uses. They return a <em>matplotlib</em> object which can be further adapted to specific needs and personal taste.</p>
+<p><code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> uses the <em>matplotlib</em> library for Plotting. Some functions in the package are simply useful wrappers for <em>matplotlib</em> functionalities of common uses. They return a <em>matplotlib</em> object which can be further adapted to specific needs and personal taste.</p>
 </div>
 </div>
 </div>

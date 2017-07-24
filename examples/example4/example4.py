@@ -2,39 +2,19 @@
 #encoding: UTF-8
 
 """
-This is an example showing how to compute the electronic density of states (DOS or edos).
+This is a simple example of plotting a 1D section of the electronic charge density.
 """
     
 if __name__ == "__main__":
 
-    from postqe import compute_dos, simple_plot_xy, multiple_plot_xy
+    from postqe import get_charge, get_cell_data, compute_G, plot1D_FFTinterp
 
-    e, dos_up, dos_down = compute_dos('Si.xml', filedos='filedosSi', e_min=-10, e_max=20,
-                                      e_step=0.01, degauss=0.02, ngauss=0)
+    fin = "./Ni.xml"  				            # file xml produce by QE
+    ibrav, alat, a, b, nat, ntyp,\
+    atomic_positions, atomic_species = get_cell_data(fin)  # get some data on the unit cell
 
-    # plot the DOS
-    fig1 = simple_plot_xy(e,dos_up,xlabel="E (eV/cell)",ylabel="DOS (states/eV/cell)")
-    fig1.savefig("figure_Sidos.png")
+    charge, chargediff = get_charge(fin)    	# get the charge (and charge diff)
 
-    e2, dos_up2, dos_down2 = compute_dos('Ni.xml', filedos='filedosNi', e_min=0, e_max=50,
-                                      e_step=0.01, degauss=0.02, ngauss=0)
-
-    # plot the DOS
-    fig2 = simple_plot_xy(e2,dos_up2,xlabel="E (eV/cell)",ylabel="DOS (states/eV/cell)")
-    fig2.savefig("figure_Nidosup.png")
-    fig3 = simple_plot_xy(e2,dos_down2,xlabel="E (eV/cell)",ylabel="DOS (states/eV/cell)")
-    fig3.savefig("figure_Nidosdown.png")
-
-    import numpy as np
-    doss = np.zeros((len(e2),2))
-    doss[:,0] = dos_up2
-    doss[:,1] = -dos_down2
-    fig4 = multiple_plot_xy(e2,doss,xlabel="E (eV/cell)",ylabel="DOS (states/eV/cell)")
-    fig4.savefig("figure_Nidos.png")
-
-
-
-
-
-
-
+    G = compute_G(b, charge.shape)
+    fig1 = plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=50, plot_file='plotfile')
+    fig1.savefig("figure_1.png")

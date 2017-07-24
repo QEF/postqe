@@ -10,21 +10,21 @@ from postqe.xmlfile import get_cell_data, get_calculation_data, get_band_strucur
 from postqe.pyqe import py_w0gauss
 
 
-def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
+def dos_gaussian(e, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
     """
     Calculated the electronic density of states with Gaussian broadening.
 
-    :param E energy values (for which calculate the dos)
+    :param e energy values (for which calculate the dos)
     :param ks_energies: eigenvalues with weights and k-points
     :param lsda: if true = magnetic calculation
     :param nbnd: number of bands
     :param nks: number of k-points
-    :param degauss: value for the Gaussian smearing
+    :param degauss: value for the Gaussian broadening
     :param ngauss:  0   -> Simple Gaussian (default)
                     1   -> Methfessel-Paxton of order 1
                     -1  -> Marzari-Vanderbilt "cold smearing"
                     -99 -> Fermi-Dirac function
-    :return: dos_up, dos_down
+    :return: dos_up, dos_down (for the given value of energy)
     """
 
     # TODO non collinear case to be implemented
@@ -36,18 +36,18 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
             for j in range(0, nbnd // 2):
                 weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
                 eigenvalue = ks_energies[i]['eigenvalues'][j] * 2 * nat           # eigenvalue at k-point i, band j
-                dos_up += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
+                dos_up += weight * py_w0gauss((e - eigenvalue) / degauss, ngauss)
             for j in range(nbnd // 2, nbnd):
                 weight = ks_energies[i]['k_point']['@weight']              # weight at k-point i
                 eigenvalue = ks_energies[i]['eigenvalues'][j] * 2 * nat        # eigenvalue at k-point i, band j
-                dos_down += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
+                dos_down += weight * py_w0gauss((e - eigenvalue) / degauss, ngauss)
 
     else:       # non magnetic
         for i in range(0, nks):
             for j in range(0, nbnd):
                 weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
                 eigenvalue = ks_energies[i]['eigenvalues'][j] * nat           # eigenvalue at k-point i, band j
-                dos_up += weight * py_w0gauss( (E-eigenvalue)/degauss, ngauss )
+                dos_up += weight * py_w0gauss((e - eigenvalue) / degauss, ngauss)
 
     dos_up /= degauss
     dos_down /= degauss
@@ -56,6 +56,20 @@ def dos_gaussian(E, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
 
 
 def compute_dos(xmlfile, filedos='filedos', e_min='', e_max='', e_step=0.01, degauss=0.02, ngauss=0):
+    """
+    Compute the electronic density of states between *e_min* and *e_max*, with step *e_step*, using
+    Gaussian broadening type *ngauss* and value *degauss*.
+
+    :param xmlfile: xml output file from QE
+    :param filedos: output dos file containing the DOS values
+    :param e_min, e_max, e_step: calculate the DOS in the range (*e_min*,*e_max*) with step *e_step*
+    :param degauss: value for the Gaussian broadening
+    :param ngauss:  0   -> Simple Gaussian (default)
+                    1   -> Methfessel-Paxton of order 1
+                    -1  -> Marzari-Vanderbilt "cold smearing"
+                    -99 -> Fermi-Dirac function
+    :return:
+    """
 
     ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
     prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
@@ -71,15 +85,16 @@ def compute_dos(xmlfile, filedos='filedos', e_min='', e_max='', e_step=0.01, deg
     e_step = e_step * ev_to_ry
 
     fout = open(filedos, "w")
-    fout.write(" E (eV)"+16*' '+" dos up (states/eV/cell)"+6*' '+" dos up (states/eV/cell)"+6*' ')
+    fout.write("#  E"+18*' '+" dos up "+13*' '+" dos down \n")
+    fout.write("#  (eV)"+16*' '+"(states/eV/cell)"+4*' '+" (states/eV/cell)\n")
     te = e_min
     e = []
     dos_up = []
     dos_down = []
     while te < e_max:
         tdos_up, tdos_down = dos_gaussian(te, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss)
-        fout.write( "{:.9E}".format(te / ev_to_ry)+"  {:.9E}".format(tdos_up * ev_to_ry) +
-                    "  {:.9E}\n".format(tdos_down * ev_to_ry) )
+        fout.write( "  {:.9E}".format(te / ev_to_ry)+4*' '+" {:.9E}".format(tdos_up * ev_to_ry) +
+                    4*' '+"  {:.9E}\n".format(tdos_down * ev_to_ry) )
         e.append(te / ev_to_ry)
         dos_up.append(tdos_up * ev_to_ry)
         dos_down.append(tdos_down * ev_to_ry)

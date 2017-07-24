@@ -22,7 +22,7 @@
 
 
 \title{postqe Documentation}
-\date{July 19, 2017}
+\date{July 23, 2017}
 \release{0.1}
 \author{M. Palumbo, D. Brunato, P. D. Delugas}
 \newcommand{\sphinxlogo}{}
@@ -204,17 +204,32 @@ Description
 \hline
 1
  & 
-Plotting a 1D section of the charge density
+Fitting \(E_{tot}(V)\) for a cubic (isotropic) system using Murnaghan EOS
 \\
 \hline
 2
  & 
-Plotting a 2D section of the charge density
+Calculate and plot the band structure of silicon
 \\
 \hline
 3
  & 
-Fitting \(E_{tot}(V)\) for a cubic (isotropic) system using Murnaghan EOS
+Calculate and plot the density of states (DOS) of silicon and nickel
+\\
+\hline
+4
+ & 
+Plotting a 1D section of the charge density
+\\
+\hline
+5
+ & 
+Plotting a 2D section of the charge density
+\\
+\hline
+6
+ & 
+Plotting 1D sections of different potentials
 \\
 \hline\end{tabulary}
 
@@ -223,58 +238,8 @@ Several simplified plotting functions are available in \code{postqe} and are use
 Note however that all plotting functions need the matplotlib library, which must be available on your system and can be used to further taylor your plot.
 
 
-\section{Plotting a 1D section of the charge density  (examples 1)}
-\label{tutorial:plotting-a-1d-section-of-the-charge-density-examples-1}
-The most common task you can do with \code{postqe} is probably to plot the electronic charge density along one direction. The charge is read from the HSF5
-output file create by the Quantum Espresso calculation in \emph{outdir}.
-The code to do this is shown below:
-
-\begin{Verbatim}[commandchars=\\\{\}]
-
-\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{plot\PYGZus{}charge1D}
-
-\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				\PYG{c+c1}{\PYGZsh{} file xml produce by QE}
-\PYG{n}{plot\PYGZus{}charge1D}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    			\PYG{c+c1}{\PYGZsh{} plot a 1D section of the charge }
-                                	    
-\PYG{c+c1}{\PYGZsh{}fig1 = plot\PYGZus{}EV(V,E,a)                  	\PYGZsh{} plot the E(V) data and the fitting line}
-\PYG{c+c1}{\PYGZsh{}fig1.savefig(\PYGZdq{}figure\PYGZus{}1.png\PYGZdq{})}
-
-\end{Verbatim}
-
-and it is essentially a call to the function \code{plot\_charge1D()}, which needs in input the xml file create by Quantum Espresso.
-All other values are optional and taken either from the xml file or from
-\begin{quote}
-
-default values. By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).
-\end{quote}
-
-\includegraphics{{../examples/example2/figure_1}.png}
-
-
-\section{Plotting a 2D section of the charge density  (examples 2)}
-\label{tutorial:plotting-a-2d-section-of-the-charge-density-examples-2}
-This example is similar to the previous one except for producing a 2D plot of a planar section of the electronic charge density. The plane is defined
-by an initial point and two 3D vectors which define the plane.
-
-\begin{Verbatim}[commandchars=\\\{\}]
-\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{plot\PYGZus{}charge2D}
-
-\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				\PYG{c+c1}{\PYGZsh{} file xml produce by QE}
-\PYG{n}{plot\PYGZus{}charge2D}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    			\PYG{c+c1}{\PYGZsh{} plot a 1D section of the charge }
-                                	    
-\PYG{c+c1}{\PYGZsh{}fig1 = plot\PYGZus{}EV(V,E,a)                  	\PYGZsh{} plot the E(V) data and the fitting line}
-\PYG{c+c1}{\PYGZsh{}fig1.savefig(\PYGZdq{}figure\PYGZus{}1.png\PYGZdq{})}
-
-\end{Verbatim}
-
-As in the previous example, it is essentially a call to a single function, which is in this case \code{plot\_charge1D()}.
-The output figure is:
-
-\includegraphics{{../examples/example2/figure_1}.png}
-
-
-\section{Fitting the total energy using Murnaghan EOS (examples 3)}
-\label{tutorial:fitting-the-total-energy-using-murnaghan-eos-examples-3}
+\section{Fitting the total energy using Murnaghan EOS (examples 1)}
+\label{tutorial:fitting-the-total-energy-using-murnaghan-eos-examples-1}
 The simplest task you can do with \code{postqe} is to fit the total energy as a function of volume \(E_{tot}(V)\) (example3). You can use
 an equation of state (EOS) such as Murnaghan's or similar.  Currently the Murnaghan EOS and quadratic and quartic polynomials are implemented in \code{postqe}.
 
@@ -284,12 +249,12 @@ Let's see how to fit \(E_{tot}(V)\). This is the case of isotropic cubic systems
 
 \PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{fitEtotV}\PYG{p}{,} \PYG{n}{plot\PYGZus{}EV}
 
-\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./EtotV.dat}\PYG{l+s+s2}{\PYGZdq{}}  		\PYG{c+c1}{\PYGZsh{} file with the total energy data E(V)}
-\PYG{n}{V}\PYG{p}{,} \PYG{n}{E}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{chi2} \PYG{o}{=} \PYG{n}{fitEtotV}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    	\PYG{c+c1}{\PYGZsh{} fits the E(V) data, returns the coefficients a and}
-                                	\PYG{c+c1}{\PYGZsh{} the chi squared chi2}
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./EtotV.dat}\PYG{l+s+s2}{\PYGZdq{}}  		            \PYG{c+c1}{\PYGZsh{} file with the total energy data E(V)}
+\PYG{n}{V}\PYG{p}{,} \PYG{n}{E}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{chi2} \PYG{o}{=} \PYG{n}{fitEtotV}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    	    \PYG{c+c1}{\PYGZsh{} fits the E(V) data, returns the coefficients a and}
+                                	    \PYG{c+c1}{\PYGZsh{} the chi squared chi2}
 
 \PYG{n}{fig1} \PYG{o}{=} \PYG{n}{plot\PYGZus{}EV}\PYG{p}{(}\PYG{n}{V}\PYG{p}{,}\PYG{n}{E}\PYG{p}{,}\PYG{n}{a}\PYG{p}{)}                  	\PYG{c+c1}{\PYGZsh{} plot the E(V) data and the fitting line}
-\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}1.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}1.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}            \PYG{c+c1}{\PYGZsh{} save the matplotlib figure}
 
 \end{Verbatim}
 
@@ -314,6 +279,121 @@ The \code{fitEtotV()} needs in input a file with two columns: the first with the
 Optionally, you can plot the results with the \code{plot\_EV()}. The original data are represented as points. If \emph{a!=None}, a line with the fitting EOS will also be plotted. The output plot looks like the following:
 
 \includegraphics{{figure_1}.png}
+
+
+\section{Calculate and plot the band structure of silicon (examples 2)}
+\label{tutorial:calculate-and-plot-the-band-structure-of-silicon-examples-2}
+TODO
+
+
+\section{Calculate and plot the density of states (DOS) of silicon and nickel (examples 3)}
+\label{tutorial:calculate-and-plot-the-density-of-states-dos-of-silicon-and-nickel-examples-3}
+This example shows how to calculate the electronic density of states (DOS) with \code{postqe}. All necessary information is extracted from the standard xml output file. The following code shows how to do it for silicon (xml output file: Si.xml)
+
+\begin{Verbatim}[commandchars=\\\{\}]
+
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{compute\PYGZus{}dos}\PYG{p}{,} \PYG{n}{simple\PYGZus{}plot\PYGZus{}xy}\PYG{p}{,} \PYG{n}{multiple\PYGZus{}plot\PYGZus{}xy}
+
+\PYG{n}{e}\PYG{p}{,} \PYG{n}{dos\PYGZus{}up}\PYG{p}{,} \PYG{n}{dos\PYGZus{}down} \PYG{o}{=} \PYG{n}{compute\PYGZus{}dos}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{Si.xml}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{filedos}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{filedosSi}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{e\PYGZus{}min}\PYG{o}{=}\PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{10}\PYG{p}{,} \PYG{n}{e\PYGZus{}max}\PYG{o}{=}\PYG{l+m+mi}{20}\PYG{p}{,}
+                                  \PYG{n}{e\PYGZus{}step}\PYG{o}{=}\PYG{l+m+mf}{0.01}\PYG{p}{,} \PYG{n}{degauss}\PYG{o}{=}\PYG{l+m+mf}{0.02}\PYG{p}{,} \PYG{n}{ngauss}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} plot the DOS}
+\PYG{n}{fig1} \PYG{o}{=} \PYG{n}{simple\PYGZus{}plot\PYGZus{}xy}\PYG{p}{(}\PYG{n}{e}\PYG{p}{,}\PYG{n}{dos\PYGZus{}up}\PYG{p}{,}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{E (eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}\PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{DOS (states/eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}Sidos.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{n}{e2}\PYG{p}{,} \PYG{n}{dos\PYGZus{}up2}\PYG{p}{,} \PYG{n}{dos\PYGZus{}down2} \PYG{o}{=} \PYG{n}{compute\PYGZus{}dos}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{Ni.xml}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{filedos}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{filedosNi}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{e\PYGZus{}min}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{e\PYGZus{}max}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,}
+                                  \PYG{n}{e\PYGZus{}step}\PYG{o}{=}\PYG{l+m+mf}{0.01}\PYG{p}{,} \PYG{n}{degauss}\PYG{o}{=}\PYG{l+m+mf}{0.02}\PYG{p}{,} \PYG{n}{ngauss}\PYG{o}{=}\PYG{l+m+mi}{0}\PYG{p}{)}
+
+\end{Verbatim}
+
+The \code{compute\_dos()} needs in input the xml file produced by pw.x. You must also specify the range of energies (and step) for which the DOS will be calculate (\emph{e\_min}, \emph{e\_max}, \emph{e\_step}), plus the type of Gaussian broadening (\emph{ngauss}) and the value (\emph{degauss}). The DOS values (and corrsponding energies) are returned by the function in \emph{e, dos\_up, dos\_down}. If you want to write the DOS values on a file, you must give it in the parameter \emph{filedos} and the file will be like:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYGZsh{}  E                   dos up               dos down 
+\PYGZsh{}  (eV)                (states/eV/cell)     (states/eV/cell)
+  \PYGZhy{}1.000000000E+01     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.990000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.980000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.970000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.960000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.950000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.940000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+  \PYGZhy{}9.930000000E+00     4.590900107E\PYGZhy{}86      0.000000000E+00
+\end{Verbatim}
+
+The first column contains the energy values, the second one contains the DOS values. Since silicon is non magnetic, the third column contains zero values.
+Optionally, you can plot the results with the \code{simple\_plot\_xy()}, which is simply a wrapper to matplotlib. The output plot looks like the following:
+
+\includegraphics{{figure_11}.png}
+
+You can of course continue to calculate other quantities in your script. For example, the following lines show how to calculate the DOS for nickel.
+
+
+\section{Plotting a 1D section of the charge density  (examples 4)}
+\label{tutorial:plotting-a-1d-section-of-the-charge-density-examples-4}
+A common task you can do with \code{postqe} is to plot the electronic charge density along one direction. The charge is read from the HDF5
+output file create by the Quantum Espresso calculation in \emph{outdir}. Additional information are extracted from the standard xml output file.
+The code to do this is shown below:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{get\PYGZus{}charge}\PYG{p}{,} \PYG{n}{get\PYGZus{}cell\PYGZus{}data}\PYG{p}{,} \PYG{n}{compute\PYGZus{}G}\PYG{p}{,} \PYG{n}{plot1D\PYGZus{}FFTinterp}
+
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				            \PYG{c+c1}{\PYGZsh{} file xml produce by QE}
+\PYG{n}{ibrav}\PYG{p}{,} \PYG{n}{alat}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{b}\PYG{p}{,} \PYG{n}{nat}\PYG{p}{,} \PYG{n}{ntyp}\PYG{p}{,}\PYGZbs{}
+\PYG{n}{atomic\PYGZus{}positions}\PYG{p}{,} \PYG{n}{atomic\PYGZus{}species} \PYG{o}{=} \PYG{n}{get\PYGZus{}cell\PYGZus{}data}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} get some data on the unit cell}
+
+\PYG{n}{charge}\PYG{p}{,} \PYG{n}{chargediff} \PYG{o}{=} \PYG{n}{get\PYGZus{}charge}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    	\PYG{c+c1}{\PYGZsh{} get the charge (and charge diff)}
+
+\PYG{n}{G} \PYG{o}{=} \PYG{n}{compute\PYGZus{}G}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{charge}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}
+\PYG{n}{fig1} \PYG{o}{=} \PYG{n}{plot1D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{charge}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plotfile}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}1.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+
+
+\end{Verbatim}
+
+and it is essentially a call to the function \code{plot\_charge1D()}, which needs in input the xml file create by Quantum Espresso.
+All other values are optional and taken either from the xml file or from default values.
+By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).
+
+\includegraphics{{figure_12}.png}
+
+
+\section{Plotting a 2D section of the charge density  (examples 5)}
+\label{tutorial:plotting-a-2d-section-of-the-charge-density-examples-5}
+This example is similar to the previous one except for producing a 2D plot of a planar section of the electronic charge density. The plane is defined
+by an initial point and two 3D vectors which define the plane.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{get\PYGZus{}charge}\PYG{p}{,} \PYG{n}{get\PYGZus{}cell\PYGZus{}data}\PYG{p}{,} \PYG{n}{compute\PYGZus{}G}\PYG{p}{,} \PYG{n}{plot2D\PYGZus{}FFTinterp}
+
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				            \PYG{c+c1}{\PYGZsh{} file xml produce by QE}
+\PYG{n}{ibrav}\PYG{p}{,} \PYG{n}{alat}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{b}\PYG{p}{,} \PYG{n}{nat}\PYG{p}{,} \PYG{n}{ntyp}\PYG{p}{,}\PYGZbs{}
+\PYG{n}{atomic\PYGZus{}positions}\PYG{p}{,} \PYG{n}{atomic\PYGZus{}species} \PYG{o}{=} \PYG{n}{get\PYGZus{}cell\PYGZus{}data}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} get some data on the unit cell}
+\PYG{n}{charge}\PYG{p}{,} \PYG{n}{chargediff} \PYG{o}{=} \PYG{n}{get\PYGZus{}charge}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    	\PYG{c+c1}{\PYGZsh{} get the charge (and charge diff)}
+
+\PYG{n}{G} \PYG{o}{=} \PYG{n}{compute\PYGZus{}G}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{charge}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}
+\PYG{n}{fig1} \PYG{o}{=} \PYG{n}{plot2D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{charge}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e2}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,}
+                        \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{20}\PYG{p}{,} \PYG{n}{ny}\PYG{o}{=}\PYG{l+m+mi}{20}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plotfile}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}1.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{Verbatim}
+
+As in the previous example, it is essentially a call to a single function, which is in this case \code{plot\_charge1D()}.
+The output figure is:
+
+\includegraphics{{figure_13}.png}
+
+
+\section{Plotting 1D sections of different potentials  (examples 6)}
+\label{tutorial:plotting-1d-sections-of-different-potentials-examples-6}
+This example is similar to the previous one except for producing a 2D plot of a planar section of the different potentials such as the bare potential
+\(V_{bare}\), the Hartree potential \(V_{H}\), the exchange-correlation potential \(V_{xc}\) and the total potential
+\(V_{tot}=V_{bare}+V_{H}+V_{xc}\).
+
+As in the previous example, it is essentially a call to a single function, which is in this case \code{plot\_charge1D()}.
+The output figure is:
+
+\includegraphics{{../examples/example6/figure_1}.png}
 
 
 \chapter{postqe package}
