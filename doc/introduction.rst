@@ -34,7 +34,7 @@ You can download all package files from GitHub  and then install it with the com
    sudo python setup.py install
 
 
-The most useful functions for the common user are directly accessible from the :py:mod:`postqe`. You can import all of them as:
+The most useful functions for the user are directly accessible. You can import all of them as:
 
 .. code-block:: python 
 

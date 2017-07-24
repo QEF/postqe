@@ -20,11 +20,11 @@ if __name__ == "__main__":
     charge, chargediff = get_charge(fin)    	# get the charge (and charge diff) from the HDF5 file
 
     # Compute the bare potential (v_bare), the Hartree potential (v_h) and the exhange-correlation potential (v_xc)
-    # Add them up to get the total potential
     v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], nr, atomic_positions, atomic_species, pseudodir)
     v_h = compute_v_h(charge, ecutrho, alat, b)
     charge_core = np.zeros(charge.shape)
     v_xc = compute_v_xc(charge, charge_core, str(functional))
+    # Add them up to get the total potential
     v_tot = v_bare + v_h + v_xc
 
     G = compute_G(b, charge.shape)      # calculate the G vectors for plotting

@@ -3,11 +3,14 @@
 
 """
 Functions to calculate the electronic density of states (DOS).
+
+TODO: Tetrahedra methods (linear and optimized).
 """
 
 import numpy as np
-from postqe.xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
-from postqe.pyqe import py_w0gauss
+from .constants import ev_to_ry
+from .xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
+from .pyqe import py_w0gauss
 
 
 def dos_gaussian(e, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
@@ -33,19 +36,18 @@ def dos_gaussian(e, nat, ks_energies, lsda, nbnd, nks, degauss, ngauss=0):
 
     if lsda:   # if magnetic
         for i in range(0, nks):
+            weight = ks_energies[i]['k_point']['@weight']  # weight at k-point i
             for j in range(0, nbnd // 2):
-                weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
                 eigenvalue = ks_energies[i]['eigenvalues'][j] * 2 * nat           # eigenvalue at k-point i, band j
                 dos_up += weight * py_w0gauss((e - eigenvalue) / degauss, ngauss)
             for j in range(nbnd // 2, nbnd):
-                weight = ks_energies[i]['k_point']['@weight']              # weight at k-point i
                 eigenvalue = ks_energies[i]['eigenvalues'][j] * 2 * nat        # eigenvalue at k-point i, band j
                 dos_down += weight * py_w0gauss((e - eigenvalue) / degauss, ngauss)
 
     else:       # non magnetic
         for i in range(0, nks):
+            weight = ks_energies[i]['k_point']['@weight']  # weight at k-point i
             for j in range(0, nbnd):
-                weight = ks_energies[i]['k_point']['@weight']                  # weight at k-point i
                 eigenvalue = ks_energies[i]['eigenvalues'][j] * nat           # eigenvalue at k-point i, band j
                 dos_up += weight * py_w0gauss((e - eigenvalue) / degauss, ngauss)
 
@@ -68,7 +70,7 @@ def compute_dos(xmlfile, filedos='filedos', e_min='', e_max='', e_step=0.01, deg
                     1   -> Methfessel-Paxton of order 1
                     -1  -> Marzari-Vanderbilt "cold smearing"
                     -99 -> Fermi-Dirac function
-    :return:
+    :return: np.array(e), np.array(dos_up), np.array(dos_down)
     """
 
     ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
@@ -79,7 +81,6 @@ def compute_dos(xmlfile, filedos='filedos', e_min='', e_max='', e_step=0.01, deg
     # TODO determine E_min, E_max automatically from ks_energies if not set in input parameters
 
     # Convert to rydberg
-    ev_to_ry = 0.073498618
     e_min = e_min * ev_to_ry
     e_max = e_max * ev_to_ry
     e_step = e_step * ev_to_ry

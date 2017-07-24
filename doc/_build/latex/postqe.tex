@@ -22,7 +22,7 @@
 
 
 \title{postqe Documentation}
-\date{July 23, 2017}
+\date{July 24, 2017}
 \release{0.1}
 \author{M. Palumbo, D. Brunato, P. D. Delugas}
 \newcommand{\sphinxlogo}{}
@@ -151,13 +151,19 @@ It is meant to be imported in your own Python code or used from the command line
 Current features of the package include:
 \begin{itemize}
 \item {} 
+Fit the total energy \(E_{tot}(V)\) with Murnaghan's equation of state
+
+\item {} 
+Calculate and plot the electronic band structure
+
+\item {} 
+Calculate and plot the electronic density of states (DOS)
+
+\item {} 
 Plot 1D or 2D sections of the charge density
 
 \item {} 
-Plot 1D or 2D sections of the bare, Hartree or total potential
-
-\item {} 
-Fit the total energy \(E_{tot}(V)\) with Murnaghan's equation of state
+Plot 1D or 2D sections of different potentials (Hartree, exchange-correlation, etc.)
 
 \end{itemize}
 
@@ -186,7 +192,7 @@ More functions are available as submodules. See the related documentation for mo
 
 \subsection{Plotting}
 \label{introduction:plotting}
-\code{postqe} uses the \emph{matplotlib} library for Plotting. Some functions in the package are simply useful wrappers of \emph{matplotlib} functions for common uses. They return a \emph{matplotlib} object which can be further adapted to specific needs and personal taste.
+\code{postqe} uses the \emph{matplotlib} library for Plotting. Some functions in the package are simply useful wrappers for \emph{matplotlib} functionalities of common uses. They return a \emph{matplotlib} object which can be further adapted to specific needs and personal taste.
 
 
 \chapter{Tutorial}
@@ -306,7 +312,7 @@ This example shows how to calculate the electronic density of states (DOS) with 
 
 \end{Verbatim}
 
-The \code{compute\_dos()} needs in input the xml file produced by pw.x. You must also specify the range of energies (and step) for which the DOS will be calculate (\emph{e\_min}, \emph{e\_max}, \emph{e\_step}), plus the type of Gaussian broadening (\emph{ngauss}) and the value (\emph{degauss}). The DOS values (and corrsponding energies) are returned by the function in \emph{e, dos\_up, dos\_down}. If you want to write the DOS values on a file, you must give it in the parameter \emph{filedos} and the file will be like:
+The \code{compute\_dos()} needs in input the xml file produced by pw.x. You must also specify the range of energies (and step) for which the DOS will be calculate (\emph{e\_min}, \emph{e\_max}, \emph{e\_step}), plus the type of Gaussian broadening (\emph{ngauss}) and the value (\emph{degauss}). The DOS values (and corresponding energies) are returned by the function in \emph{e, dos\_up, dos\_down}. If you want to write the DOS values on a file, you must give it in the parameter \emph{filedos} and the file will be like:
 
 \begin{Verbatim}[commandchars=\\\{\}]
 \PYGZsh{}  E                   dos up               dos down 
@@ -324,9 +330,34 @@ The \code{compute\_dos()} needs in input the xml file produced by pw.x. You must
 The first column contains the energy values, the second one contains the DOS values. Since silicon is non magnetic, the third column contains zero values.
 Optionally, you can plot the results with the \code{simple\_plot\_xy()}, which is simply a wrapper to matplotlib. The output plot looks like the following:
 
-\includegraphics{{figure_11}.png}
+\includegraphics{{figure_Sidos}.png}
 
-You can of course continue to calculate other quantities in your script. For example, the following lines show how to calculate the DOS for nickel.
+You can of course continue to calculate other quantities in your script. For example, the following lines show how to calculate the DOS for (magnetic) nickel.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} plot the DOS}
+\PYG{n}{fig2} \PYG{o}{=} \PYG{n}{simple\PYGZus{}plot\PYGZus{}xy}\PYG{p}{(}\PYG{n}{e2}\PYG{p}{,}\PYG{n}{dos\PYGZus{}up2}\PYG{p}{,}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{E (eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}\PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{DOS (states/eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{fig2}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}Nidosup.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{fig3} \PYG{o}{=} \PYG{n}{simple\PYGZus{}plot\PYGZus{}xy}\PYG{p}{(}\PYG{n}{e2}\PYG{p}{,}\PYG{n}{dos\PYGZus{}down2}\PYG{p}{,}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{E (eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}\PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{DOS (states/eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{fig3}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}Nidosdown.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} create a numpy matrix *doss* for plotting both spin up and down on the same plot}
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k+kn}{as} \PYG{n+nn}{np}
+\PYG{n}{doss} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{p}{(}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{e2}\PYG{p}{)}\PYG{p}{,}\PYG{l+m+mi}{2}\PYG{p}{)}\PYG{p}{)}
+\PYG{n}{doss}\PYG{p}{[}\PYG{p}{:}\PYG{p}{,}\PYG{l+m+mi}{0}\PYG{p}{]} \PYG{o}{=} \PYG{n}{dos\PYGZus{}up2}
+\PYG{n}{doss}\PYG{p}{[}\PYG{p}{:}\PYG{p}{,}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{=} \PYG{o}{\PYGZhy{}}\PYG{n}{dos\PYGZus{}down2}
+\PYG{n}{fig4} \PYG{o}{=} \PYG{n}{multiple\PYGZus{}plot\PYGZus{}xy}\PYG{p}{(}\PYG{n}{e2}\PYG{p}{,}\PYG{n}{doss}\PYG{p}{,}\PYG{n}{xlabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{E (eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{,}\PYG{n}{ylabel}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{DOS (states/eV/cell)}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{fig4}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}Nidosupanddown.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{Verbatim}
+
+The above lines compute the electronic DOS for nickel with spin up and down and are rather selfexplaining. The last lines put together in a numpy matrix the dos for spin up and down to show it in the same plot using the \emph{matplotlib} wrapper \code{multiple\_plot\_xy()}.
+The output plots look like the following:
+
+\includegraphics{{figure_Nidosup}.png}
+
+\includegraphics{{figure_Nidosdown}.png}
+
+\includegraphics{{figure_Nidosupanddown}.png}
 
 
 \section{Plotting a 1D section of the charge density  (examples 4)}
@@ -347,16 +378,13 @@ The code to do this is shown below:
 \PYG{n}{G} \PYG{o}{=} \PYG{n}{compute\PYGZus{}G}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{charge}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}
 \PYG{n}{fig1} \PYG{o}{=} \PYG{n}{plot1D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{charge}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plotfile}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
 \PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}1.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
-
-
-
 \end{Verbatim}
 
 and it is essentially a call to the function \code{plot\_charge1D()}, which needs in input the xml file create by Quantum Espresso.
 All other values are optional and taken either from the xml file or from default values.
 By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).
 
-\includegraphics{{figure_12}.png}
+\includegraphics{{figure_11}.png}
 
 
 \section{Plotting a 2D section of the charge density  (examples 5)}
@@ -381,19 +409,60 @@ by an initial point and two 3D vectors which define the plane.
 As in the previous example, it is essentially a call to a single function, which is in this case \code{plot\_charge1D()}.
 The output figure is:
 
-\includegraphics{{figure_13}.png}
+\includegraphics{{figure_12}.png}
 
 
 \section{Plotting 1D sections of different potentials  (examples 6)}
 \label{tutorial:plotting-1d-sections-of-different-potentials-examples-6}
-This example is similar to the previous one except for producing a 2D plot of a planar section of the different potentials such as the bare potential
-\(V_{bare}\), the Hartree potential \(V_{H}\), the exchange-correlation potential \(V_{xc}\) and the total potential
-\(V_{tot}=V_{bare}+V_{H}+V_{xc}\).
+This example computes all the different potentials available, i.e. the bare potential \(V_{bare}\), the Hartree potential \(V_{H}\), the exchange-correlation potential \(V_{xc}\) and the total potential \(V_{tot}=V_{bare}+V_{H}+V_{xc}\). All necessary information is taken from the xml output file of QE and the HDF5 charge file. The pseudopotential file is also necessary to compute \(V_{bare}\).
 
-As in the previous example, it is essentially a call to a single function, which is in this case \code{plot\_charge1D()}.
-The output figure is:
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{numpy} \PYG{k+kn}{as} \PYG{n+nn}{np}
+\PYG{k+kn}{from} \PYG{n+nn}{postqe} \PYG{k+kn}{import} \PYG{n}{get\PYGZus{}charge}\PYG{p}{,} \PYG{n}{get\PYGZus{}cell\PYGZus{}data}\PYG{p}{,} \PYG{n}{get\PYGZus{}calculation\PYGZus{}data}\PYG{p}{,} \PYGZbs{}
+    \PYG{n}{compute\PYGZus{}v\PYGZus{}bare}\PYG{p}{,} \PYG{n}{compute\PYGZus{}v\PYGZus{}h}\PYG{p}{,} \PYG{n}{compute\PYGZus{}v\PYGZus{}xc}\PYG{p}{,} \PYG{n}{compute\PYGZus{}G}\PYG{p}{,} \PYG{n}{plot1D\PYGZus{}FFTinterp}
 
-\includegraphics{{../examples/example6/figure_1}.png}
+\PYG{n}{fin} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{./Ni.xml}\PYG{l+s+s2}{\PYGZdq{}}  				            \PYG{c+c1}{\PYGZsh{} file xml produce by QE}
+\PYG{n}{ibrav}\PYG{p}{,} \PYG{n}{alat}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{b}\PYG{p}{,} \PYG{n}{nat}\PYG{p}{,} \PYG{n}{ntyp}\PYG{p}{,}\PYGZbs{}
+\PYG{n}{atomic\PYGZus{}positions}\PYG{p}{,} \PYG{n}{atomic\PYGZus{}species} \PYG{o}{=} \PYG{n}{get\PYGZus{}cell\PYGZus{}data}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}  \PYG{c+c1}{\PYGZsh{} get some data on the unit cell}
+\PYG{n}{prefix}\PYG{p}{,} \PYG{n}{outdir}\PYG{p}{,} \PYG{n}{ecutwfc}\PYG{p}{,} \PYG{n}{ecutrho}\PYG{p}{,} \PYG{n}{functional}\PYG{p}{,} \PYG{n}{lsda}\PYG{p}{,} \PYG{n}{noncolin}\PYG{p}{,} \PYG{n}{pseudodir}\PYG{p}{,} \PYG{n}{nr}\PYG{p}{,} \PYG{n}{nr\PYGZus{}smooth} \PYG{o}{=}\PYGZbs{}
+    \PYG{n}{get\PYGZus{}calculation\PYGZus{}data}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}               \PYG{c+c1}{\PYGZsh{} get some data on the QE calculation}
+
+\PYG{n}{charge}\PYG{p}{,} \PYG{n}{chargediff} \PYG{o}{=} \PYG{n}{get\PYGZus{}charge}\PYG{p}{(}\PYG{n}{fin}\PYG{p}{)}    	\PYG{c+c1}{\PYGZsh{} get the charge (and charge diff) from the HDF5 file}
+
+\PYG{c+c1}{\PYGZsh{} Compute the bare potential (v\PYGZus{}bare), the Hartree potential (v\PYGZus{}h) and the exhange\PYGZhy{}correlation potential (v\PYGZus{}xc)}
+\PYG{n}{v\PYGZus{}bare} \PYG{o}{=} \PYG{n}{compute\PYGZus{}v\PYGZus{}bare}\PYG{p}{(}\PYG{n}{ecutrho}\PYG{p}{,} \PYG{n}{alat}\PYG{p}{,} \PYG{n}{a}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{p}{,} \PYG{n}{a}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{p}{,} \PYG{n}{a}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{]}\PYG{p}{,} \PYG{n}{nr}\PYG{p}{,} \PYG{n}{atomic\PYGZus{}positions}\PYG{p}{,} \PYG{n}{atomic\PYGZus{}species}\PYG{p}{,} \PYG{n}{pseudodir}\PYG{p}{)}
+\PYG{n}{v\PYGZus{}h} \PYG{o}{=} \PYG{n}{compute\PYGZus{}v\PYGZus{}h}\PYG{p}{(}\PYG{n}{charge}\PYG{p}{,} \PYG{n}{ecutrho}\PYG{p}{,} \PYG{n}{alat}\PYG{p}{,} \PYG{n}{b}\PYG{p}{)}
+\PYG{n}{charge\PYGZus{}core} \PYG{o}{=} \PYG{n}{np}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{charge}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}
+\PYG{n}{v\PYGZus{}xc} \PYG{o}{=} \PYG{n}{compute\PYGZus{}v\PYGZus{}xc}\PYG{p}{(}\PYG{n}{charge}\PYG{p}{,} \PYG{n}{charge\PYGZus{}core}\PYG{p}{,} \PYG{n+nb}{str}\PYG{p}{(}\PYG{n}{functional}\PYG{p}{)}\PYG{p}{)}
+\PYG{c+c1}{\PYGZsh{} Add them up to get the total potential}
+\PYG{n}{v\PYGZus{}tot} \PYG{o}{=} \PYG{n}{v\PYGZus{}bare} \PYG{o}{+} \PYG{n}{v\PYGZus{}h} \PYG{o}{+} \PYG{n}{v\PYGZus{}xc}
+
+\PYG{n}{G} \PYG{o}{=} \PYG{n}{compute\PYGZus{}G}\PYG{p}{(}\PYG{n}{b}\PYG{p}{,} \PYG{n}{charge}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}      \PYG{c+c1}{\PYGZsh{} calculate the G vectors for plotting}
+\PYG{c+c1}{\PYGZsh{} Plot the potentials as 1D sections from (0,0,0) along (1,0,0)}
+\PYG{n}{fig1} \PYG{o}{=} \PYG{n}{plot1D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{v\PYGZus{}bare}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{ylab}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{v\PYGZus{}bare}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plot\PYGZus{}v\PYGZus{}bare}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{fig1}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}v\PYGZus{}bare.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{n}{fig2} \PYG{o}{=} \PYG{n}{plot1D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{v\PYGZus{}h}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{ylab}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{v\PYGZus{}h}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plot\PYGZus{}v\PYGZus{}h}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{fig2}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}v\PYGZus{}h.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{n}{fig3} \PYG{o}{=} \PYG{n}{plot1D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{v\PYGZus{}xc}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{ylab}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{v\PYGZus{}xc}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plot\PYGZus{}v\PYGZus{}xc}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{fig3}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}v\PYGZus{}xc.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{n}{fig4} \PYG{o}{=} \PYG{n}{plot1D\PYGZus{}FFTinterp}\PYG{p}{(}\PYG{n}{v\PYGZus{}tot}\PYG{p}{,} \PYG{n}{G}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{x0}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{e1}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{0}\PYG{p}{)}\PYG{p}{,} \PYG{n}{nx}\PYG{o}{=}\PYG{l+m+mi}{50}\PYG{p}{,} \PYG{n}{ylab}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{v\PYGZus{}tot}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{,} \PYG{n}{plot\PYGZus{}file}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{plot\PYGZus{}v\PYGZus{}tot}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{fig4}\PYG{o}{.}\PYG{n}{savefig}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+s2}{figure\PYGZus{}v\PYGZus{}tot.png}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{Verbatim}
+
+The first lines are calls to functions to extract some necessary information from the xml output file of QE. Then we need to read the charge from the HDF5 file as in example 4. We call the proper \code{postqe} function to compute each potential and add them up to get the total potential.
+
+As in example 4, plotting is essentially a call to a single function, \code{plot\_charge1D()}, passing the proper potential to be plot and changing the label on the y axis. The output figures are as follows:
+
+\includegraphics{{figure_v_bare}.png}
+
+\includegraphics{{figure_v_h}.png}
+
+\includegraphics{{figure_v_xc}.png}
+
+\includegraphics{{figure_v_tot}.png}
 
 
 \chapter{postqe package}
