@@ -70,20 +70,29 @@ def run_test_case(pseudo_dir):
     write_charge(os.path.join(pseudo_dir, 'postqeout1'), v_tot, header)
 
 
-def compare_data(datafile1, datafile2, header=0):
+def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
     """Compare two data files, discarding the first 'header' lines."""
+    lr = 1 - tolerance
+    hr = 1 + tolerance
+    if lr < hr:
+        compare_values = lambda x, y: lr < x / y < hr
+    else:
+        compare_values = lambda x, y: x == y
+
     with open(datafile1) as f1, open(datafile2) as f2:
         for line1, line2 in zip(f1, f2):
             if header > 0:
                 header -= 1
             else:
-                values1 = line1.split()
-                values2 = line2.split()
+                values1 = [float(v) for v in line1.split()]
+                values2 = [float(v) for v in line2.split()]
                 if len(values1) != len(values2):
                     return False
-                if any([float(v1) != float(v2) for v1, v2 in zip(values1, values2)]):
-                    print(values1)
-                    print(values2)
+                if not all([compare_values(v1, v2) for v1, v2 in zip(values1, values2)]):
+                    for v1, v2 in zip(values1, values2):
+                        if not compare_values(v1, v2):
+                            print("\nValues %s and %s differs (tolerance=%s)." % (v1, v2, tolerance))
+                            break
                     return False
     return True
 
