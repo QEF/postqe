@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from .readutils import read_pseudo_file
 
 # f2py module
@@ -61,7 +62,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
                 at3[0] * at2[1] * at1[2] - at3[1] * at2[2] * at1[0] - at3[2] * at2[0] * at3[1])
 
     g, gg, mill, igtongl, gl = generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho)
-    #
+
     strct_facs = []
 
     for typ in species:
@@ -79,7 +80,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
     vlocs = []
     for typ in species:
         filename = typ["pseudo_file"]
-        pseudo = read_pseudo_file(pseudodir+filename)
+        pseudo = read_pseudo_file(os.path.join(pseudodir, filename))
         vloc_r = pseudo["PP_LOCAL"]
         r = pseudo["PP_MESH"]["PP_R"]
         rab = pseudo["PP_MESH"]["PP_RAB"]
@@ -95,11 +96,11 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
             with open (filename, 'r') as f:
                 my_line = [ l for l in f.readlines() if 'z_valence=' in l][0]
                 zp = float(my_line.split('"')[1])
-        #
+
         vloc_g = vloc_of_g(rab, r, vloc_r, zp, alat, omega,  gl)
 
         vlocs.append(vloc_g)
-        #
+
     vltot = shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl)
     prova = np.real(vltot)  
     return prova
