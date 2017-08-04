@@ -11,8 +11,6 @@ A collection of wrappers for the *matplotlib* functions.
 ################################################################################
 
 import numpy as np
-from math import sin, cos
-import cmath
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -20,6 +18,102 @@ from mpl_toolkits.mplot3d import axes3d
 from .eos import calculate_fitted_points
 from .bands import set_high_symmetry_points, compute_kx
 from .constants import pi
+
+
+def FFTinterp1D(charge, G, a, x0, e1, nx):
+
+        # normalize e1
+        m1 = np.linalg.norm(e1)
+        if abs(m1) < 1.0E-6:  # if the module is less than 1.0E-6
+            e1 = a[1]
+            m1 = np.linalg.norm(e1)
+        e1 = e1 / m1
+
+        # Computes the FFT of the charge
+        fft_charge = np.fft.fftn(charge)
+        nr = charge.shape
+
+        # Steps along the e1 direction...
+        deltax = m1 / (nx - 1)
+        X = np.zeros(nx)
+        Y = np.zeros(nx, dtype=complex)
+
+        for i in range(0, nx):
+            xi = x0[0] + i * deltax * e1[0]
+            yi = x0[1] + i * deltax * e1[1]
+            zi = x0[2] + i * deltax * e1[2]
+
+            # For each point, evaluate the charge by Fourier interpolation
+            for x in range(0, nr[0]):
+                for y in range(0, nr[1]):
+                    for z in range(0, nr[2]):
+                        arg = 2.0 * pi * (xi * G[x, y, z, 0] + yi * G[x, y, z, 1] + zi * G[x, y, z, 2])
+                        Y[i] += fft_charge[x, y, z] * complex(np.cos(arg), np.sin(arg))
+
+            X[i] = i * deltax
+            Y[i] = Y[i] / (nr[0] * nr[1] * nr[2])
+            print(X[i], Y[i].real)
+
+        return X, Y
+
+
+
+def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
+    # normalize e1
+    m1 = np.linalg.norm(e1)
+    if (abs(m1) < 1.0E-6):  # if the module is less than 1.0E-6
+        e1 = a[1]
+        m1 = np.linalg.norm(e1)
+    e1 = e1 / m1
+
+    # normalize e2
+    m2 = np.linalg.norm(e2)
+    if abs(m2) < 1.0E-6:  # if the module is less than 1.0E-6
+        e2 = a[2]
+        m2 = np.linalg.norm(e2)
+    e2 = e2 / m2
+
+    # Computes the FFT of the charge
+    fft_charge = np.fft.fftn(charge)
+    nr = charge.shape
+
+    # Steps along the e1 and e2 directions...
+    deltax = m1 / (nx - 1)
+    deltay = m2 / (ny - 1)
+
+    temp = np.zeros((nx, ny), dtype=complex)
+    X = np.zeros((nx, ny))
+    Y = np.zeros((nx, ny))
+    Z = np.zeros((nx, ny))
+
+    # loop(s) over the G points
+    for x in range(0, nr[0]):
+        for y in range(0, nr[1]):
+            for z in range(0, nr[2]):
+
+                # eigx=exp(iG*e1+iGx0), eigy=(iG*e2)
+                # compute these factors to save CPU time
+                eigx = np.zeros(nx, dtype=complex)
+                for i in range(0, nx):
+                    eigx[i] = np.exp(2.0 * pi * complex(0.0, 1.0) * (i * deltax *
+                                                                        (e1[0] * G[x, y, z, 0] + e1[1] * G[x, y, z, 1] +
+                                                                         e1[2] * G[x, y, z, 2]) +
+                                                                        (x0[0] * G[x, y, z, 0] + x0[1] * G[x, y, z, 1] +
+                                                                         x0[2] * G[x, y, z, 2])))
+
+                eigy = np.zeros(ny, dtype=complex)
+                for j in range(0, ny):
+                    eigy[j] = np.exp(2.0 * pi * complex(0.0, 1.0) * (j * deltax *
+                                                                        (e2[0] * G[x, y, z, 0] + e2[1] * G[x, y, z, 1] +
+                                                                         e2[2] * G[x, y, z, 2])))
+
+                for i in range(0, nx):
+                    for j in range(0, ny):
+                        temp[i, j] += fft_charge[x, y, z] * eigx[i] * eigy[j]
+
+    Z = temp.real / (nr[0] * nr[1] * nr[2])
+
+    return X, Y, Z
 
 
 def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge', plot_file=''):
@@ -40,52 +134,24 @@ def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='char
     :return: the matplotlib figure object
     """
 
-    # normalize e1
-    m1 = np.linalg.norm(e1)
-    if abs(m1) < 1.0E-6:    # if the module is less than 1.0E-6
-        e1 = a[1]
-        m1 = np.linalg.norm(e1)        
-    e1 = e1 / m1  
-    
-    # Computes the FFT of the charge
-    fft_charge = np.fft.fftn(charge)
-    nr = charge.shape
-  
-    # Steps along the e1 direction...
-    deltax = m1 / (nx-1)
-    toplot = np.zeros(nx,dtype=complex)
-    xv = np.zeros(nx)
+    try:
+        from cythonfn import FFTinterp2D_Cython
+        X, Y = FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)
+    except ImportError:
+        X, Y = FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)
 
     if plot_file != '':
         f = open(plot_file, 'w')
-        f.write('X'+16*' '+'Y\n')
-
-    for i in range(0, nx):
-        xi = x0[0] + i * deltax * e1[0]
-        yi = x0[1] + i * deltax * e1[1]
-        zi = x0[2] + i * deltax * e1[2]
-    
-        # For each point, evaluate the charge by Fourier interpolation
-        for x in range(0, nr[0]):
-            for y in range(0, nr[1]):
-                for z in range(0, nr[2]):
-                    arg = 2.0 * pi * (xi*G[x, y, z, 0] + yi*G[x, y, z, 1]  + zi*G[x, y, z, 2])
-                    toplot[i] += fft_charge[x, y, z] * complex(cos(arg),sin(arg))
-                   
-        xv[i] = i*deltax 
-        toplot[i] = toplot[i]/(nr[0]*nr[1]*nr[2])
-        print (xv[i],toplot[i].real)
-        try:
-            f.write("{:.9E}  ".format(xv[i]) + "{:.9E}\n".format(toplot[i].real))
-        except:
-            pass
+        f.write('X' + 16 * ' ' + 'Y\n')
+        for i in range(0, nx):
+            f.write("{:.9E}  ".format(X[i]) + "{:.9E}\n".format(Y[i].real))
 
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
     fig = plt.figure()
     plt.xlabel(xlab)
     plt.ylabel(ylab)
-    plt.plot(xv, np.real(toplot), 'r')
+    plt.plot(X, np.real(Y), 'r')
     plt.show()
 
     return fig
@@ -108,13 +174,17 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     :param zlab: y axix label in the plot
     :return: the matplotlib figure object
     """
-    
-    # normalize e1
-    m1 = np.linalg.norm(e1)
-    if (abs(m1)<1.0E-6):    # if the module is less than 1.0E-6
-        e1 = a[1]
-        m1 = np.linalg.norm(e1)        
-    e1 = e1 / m1  
+
+    try:
+        from cythonfn import plot2D_FFTinterp_Cython
+        X, Y, Z = plot2D_FFTinterp_Cython(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file='')
+    except ImportError:
+        # normalize e1
+        m1 = np.linalg.norm(e1)
+        if (abs(m1)<1.0E-6):    # if the module is less than 1.0E-6
+            e1 = a[1]
+            m1 = np.linalg.norm(e1)
+        e1 = e1 / m1
     
     # normalize e2
     m2 = np.linalg.norm(e2)
@@ -159,6 +229,7 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
                         temp[i,j] += fft_charge[x,y,z] * eigx[i] * eigy[j]
                         
     Z = temp.real / (nr[0]*nr[1]*nr[2])
+
 
     if plot_file != '':
         f = open(plot_file,'w')
