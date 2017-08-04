@@ -196,7 +196,9 @@ if __name__ == "__main__":
 
     x0 = (0,0,0)
     e1 = (1,0,0)
+    e2 = (0,1,0)
     nx = 500
+    ny = 500
 
     # Test conformance
 #    X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
@@ -207,11 +209,20 @@ if __name__ == "__main__":
     # Running performance tests
     print("##### 'FFTinterp1D' versions performance timing #####\n")
 
-    setup = ("from __main__ import a, charge, G, x0, e1, nx, FFTinterp1D, FFTinterp1D_Cython")
+    setup = ("from __main__ import a, charge, G, x0, e1, nx, FFTinterp1D, FFTinterp1D_Cython,"
+             "FFTinterp2D, FFTinterp2D_Cython")
 
     if FFTinterp1D_Cython is not None:
         print("FFTinterp1D_Cython:",
               timeit.repeat('FFTinterp1D_Cython(charge, G, a, x0, e1, nx)', setup=setup, number=1, repeat=3))
     print("FFTinterp1D:",
           timeit.repeat('FFTinterp1D(charge, G, a, x0, e1, nx)', setup=setup, number=1, repeat=3))
+
+    print("##### 'FFTinterp2D' versions performance timing #####\n")
+
+    if FFTinterp2D_Cython is not None:
+        print("FFTinterp2D_Cython:",
+              timeit.repeat('FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)', setup=setup, number=1, repeat=3))
+    print("FFTinterp1D:",
+          timeit.repeat('FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)', setup=setup, number=1, repeat=3))
 

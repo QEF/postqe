@@ -135,10 +135,10 @@ def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='char
     """
 
     try:
-        from cythonfn import FFTinterp2D_Cython
-        X, Y = FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)
+        from cythonfn import FFTinterp1D_Cython
+        X, Y = FFTinterp1D_Cython(charge, G, a, x0, e1, nx)
     except ImportError:
-        X, Y = FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)
+        X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
 
     if plot_file != '':
         f = open(plot_file, 'w')
@@ -177,59 +177,9 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
 
     try:
         from cythonfn import plot2D_FFTinterp_Cython
-        X, Y, Z = plot2D_FFTinterp_Cython(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file='')
+        X, Y, Z = plot2D_FFTinterp_Cython(charge, G, a, x0, e1, e2, nx, ny, zlab='charge', plot_file='')
     except ImportError:
-        # normalize e1
-        m1 = np.linalg.norm(e1)
-        if (abs(m1)<1.0E-6):    # if the module is less than 1.0E-6
-            e1 = a[1]
-            m1 = np.linalg.norm(e1)
-        e1 = e1 / m1
-    
-    # normalize e2
-    m2 = np.linalg.norm(e2)
-    if abs(m2) < 1.0E-6:    # if the module is less than 1.0E-6
-        e2 = a[2]
-        m2 = np.linalg.norm(e2)        
-    e2 = e2 / m2  
-    
-    # Computes the FFT of the charge
-    fft_charge = np.fft.fftn(charge)
-    nr = charge.shape
-  
-    # Steps along the e1 and e2 directions...
-    deltax = m1 / (nx-1)
-    deltay = m2 / (ny-1)
-    
-    temp = np.zeros((nx, ny), dtype=complex)
-    X = np.zeros((nx, ny))
-    Y = np.zeros((nx, ny))
-    Z = np.zeros((nx, ny))
-    
-    # loop(s) over the G points
-    for x in range(0, nr[0]):
-        for y in range(0, nr[1]):
-            for z in range(0, nr[2]):
-   
-                # eigx=exp(iG*e1+iGx0), eigy=(iG*e2)
-                # compute these factors to save CPU time
-                eigx = np.zeros(nx, dtype=complex)
-                for i in range(0,nx):
-                    eigx[i] = cmath.exp( 2.0 * pi * complex(0.0,1.0) * ( i * deltax *\
-                    (e1[0] * G[x,y,z,0] + e1[1] * G[x,y,z,1] + e1[2] * G[x,y,z,2]) +\
-                    (x0[0] * G[x,y,z,0] + x0[1] * G[x,y,z,1] + x0[2] * G[x,y,z,2]))) 
-
-                eigy = np.zeros(ny, dtype=complex)
-                for j in range(0, ny):
-                    eigy[j] = cmath.exp( 2.0 * pi * complex(0.0,1.0) * ( j * deltax *\
-                    (e2[0] * G[x,y,z,0] + e2[1] * G[x,y,z,1] + e2[2] * G[x,y,z,2]))) 
-                   
-                for i in range(0, nx):
-                    for j in range(0, ny):
-                        temp[i,j] += fft_charge[x,y,z] * eigx[i] * eigy[j]
-                        
-    Z = temp.real / (nr[0]*nr[1]*nr[2])
-
+        X, Y, Z = plot2D_FFTinterp(charge, G, a, x0, e1, e2, nx, ny, zlab='charge', plot_file='')
 
     if plot_file != '':
         f = open(plot_file,'w')
@@ -246,7 +196,6 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
             except:
                 pass
     
-
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3)
