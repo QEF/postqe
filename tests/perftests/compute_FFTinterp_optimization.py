@@ -4,7 +4,7 @@ import timeit
 import numpy as np
 import xmlschema
 try:
-    from cythonplot import FFTinterp1D_Cython, FFTinterp2D_Cython
+    from cythonfn import FFTinterp1D_Cython, FFTinterp2D_Cython
 except ImportError:
     FFTinterp1D_Cython = FFTinterp2D_Cython = None
 
@@ -142,6 +142,11 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
     Y = np.zeros((nx, ny))
     Z = np.zeros((nx, ny))
 
+    for i in range(0, nx):
+        for j in range(0, ny):
+            X[i, j] = i * deltax
+            Y[i, j] = j * deltay
+
     # loop(s) over the G points
     for x in range(0, nr[0]):
         for y in range(0, nr[1]):
@@ -167,7 +172,7 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
                     for j in range(0, ny):
                         temp[i, j] += fft_charge[x, y, z] * eigx[i] * eigy[j]
 
-    Z = temp.real / (nr[0] * nr[1] * nr[2])
+    Z = temp / (nr[0] * nr[1] * nr[2])
 
     return X, Y, Z
 
@@ -197,19 +202,27 @@ if __name__ == "__main__":
     x0 = (0,0,0)
     e1 = (1,0,0)
     e2 = (0,1,0)
-    nx = 500
-    ny = 500
+    nx = 4
+    ny = 4
+
 
     # Test conformance
-#    X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
-#    _X, _Y = FFTinterp1D_Cython(charge, G, a, x0, e1, nx)
-#    if not np.array_equal(X, _X) or not np.array_equal(Y, _Y) :
-#        raise ValueError("FFTinterp1D_Cython() result is different!")
+    X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
+    _X, _Y = FFTinterp1D_Cython(charge, G, a, x0, e1, nx)
+    if not np.isclose(X, _X, rtol=1e-05).all() or not np.isclose(Y,_Y,rtol=1e-5).all() :
+        raise ValueError("FFTinterp1D_Cython() result is different!")
+
+    X, Y, Z = FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)
+    _X, _Y, _Z = FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)
+    if not np.isclose(X, _X, rtol=1e-05).all() or not np.isclose(Y, _Y, rtol=1e-05).all() \
+            or not np.isclose(Z, _Z, rtol=1e-05).all():
+        raise ValueError("FFTinterp2D_Cython() result is different!")
+
 
     # Running performance tests
     print("##### 'FFTinterp1D' versions performance timing #####\n")
 
-    setup = ("from __main__ import a, charge, G, x0, e1, nx, FFTinterp1D, FFTinterp1D_Cython,"
+    setup = ("from __main__ import a, charge, G, x0, e1, e2, nx, ny, FFTinterp1D, FFTinterp1D_Cython,"
              "FFTinterp2D, FFTinterp2D_Cython")
 
     if FFTinterp1D_Cython is not None:
@@ -223,6 +236,6 @@ if __name__ == "__main__":
     if FFTinterp2D_Cython is not None:
         print("FFTinterp2D_Cython:",
               timeit.repeat('FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)', setup=setup, number=1, repeat=3))
-    print("FFTinterp1D:",
+    print("FFTinterp2D:",
           timeit.repeat('FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)', setup=setup, number=1, repeat=3))
 

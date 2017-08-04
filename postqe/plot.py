@@ -86,6 +86,11 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
     Y = np.zeros((nx, ny))
     Z = np.zeros((nx, ny))
 
+    for i in range(0, nx):
+        for j in range(0, ny):
+            X[i, j] = i * deltax
+            Y[i, j] = j * deltay
+
     # loop(s) over the G points
     for x in range(0, nr[0]):
         for y in range(0, nr[1]):
@@ -188,14 +193,12 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     # loop again over nx,ny to normalize, print on screen and write on file
     for i in range(0,nx):
         for j in range(0,ny): 
-            X[i,j] = i * deltax
-            Y[i,j] = j * deltay
             print (X[i,j], Y[i,j], Z[i,j])
             try:
                 f.write("{:.9E}  ".format(X[i, j]) + "{:.9E}  ".format(Y[i, j]) + "{:.9E}\n".format(Z[i, j]))
             except:
                 pass
-    
+
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3)
