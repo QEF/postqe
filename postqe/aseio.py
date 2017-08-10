@@ -21,7 +21,6 @@ def split_atomic_symbol(x):
 
 def read_espresso_xml(filename):
 
-    from ase import units
     import xmlschema
 
     ##########################################################
@@ -66,11 +65,11 @@ if __name__ == "__main__":
     from ase.build import bulk
     from ase.visualize import view
 
-
     FeO = read_espresso_xml('feo_af.xml')
     print (FeO.get_atomic_numbers())
     print (FeO.get_cell(True))
     print (FeO.get_positions())
+    print (FeO.get_scaled_positions())
     view(FeO)
 
 
@@ -86,4 +85,5 @@ if __name__ == "__main__":
     print (Ni2.get_atomic_numbers())
     print (Ni2.get_cell(True))
     print (Ni2.get_positions())
+    print (Ni2.get_volume())
     view(Ni2)
