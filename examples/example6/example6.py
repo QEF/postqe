@@ -12,6 +12,8 @@ if __name__ == "__main__":
         compute_v_bare, compute_v_h, compute_v_xc, compute_G, plot1D_FFTinterp
 
     fin = "./Ni.xml"  				            # file xml produce by QE
+
+    pwdata = PWOut("./Ni.xml")
     ibrav, alat, a, b, nat, ntyp,\
     atomic_positions, atomic_species = get_cell_data(fin)  # get some data on the unit cell
     prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth =\

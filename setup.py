@@ -35,7 +35,7 @@ setup(
     packages=['postqe'],
     package_data={'postqe': ['schemas/*.xsd']},
     install_requires=[
-        'xmlschema', 'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib'
+        'xmlschema', 'numpy', 'ase', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib'
     ],
     author='Mauro Palumbo',
     author_email='mpalumbo@sissa.it',

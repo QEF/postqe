@@ -158,10 +158,14 @@ def compute_G_ver5(b, nr):
     A version of compute_G that calculates coefficients on three 1-D arrays
     and after uses only vector operations.
     """
-    gx = np.fromiter((x - nr[0] if x >= nr[0] // 2 else x for x in range(nr[0])), dtype=int)
-    gy = np.fromiter((y - nr[1] if y >= nr[1] // 2 else y for y in range(nr[1])), dtype=int)
-    gz = np.fromiter((z - nr[2] if z >= nr[2] // 2 else z for z in range(nr[2])), dtype=int)
-    g = np.fromfunction(function=lambda x, y, z: np.array((gx[x], gy[y], gz[z])), shape=nr, dtype=int)
+    gx, gy, gz = [
+        np.fromiter((i - nr[k] if i >= nr[k] // 2 else i for i in range(nr[k])), dtype=np.int64)
+        for k in range(3)
+    ]
+    g = np.fromfunction(
+        function=lambda x, y, z: np.array((gx[x], gy[y], gz[z]), dtype=np.float64),
+        shape=nr, dtype=np.int32
+    )
     G = np.dot(np.rollaxis(g, 0, 4), b)  # compute the G vector
     return G
 
