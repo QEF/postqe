@@ -56,6 +56,7 @@ if __name__ == "__main__":
     print (FeO.get_atomic_numbers())
     print (FeO.get_cell(True))
     print (FeO.get_positions())
+    print (FeO.get_scaled_positions())
     view(FeO)
 
     print (100*'#')
@@ -70,4 +71,5 @@ if __name__ == "__main__":
     print (Ni2.get_atomic_numbers())
     print (Ni2.get_cell(True))
     print (Ni2.get_positions())
+    print (Ni2.get_volume())
     view(Ni2)

@@ -2,7 +2,7 @@
 #encoding: UTF-8
 
 """
-This submodule groups for fitting the energy using the Murnaghan EOS.
+This submodule groups for fitting the energy using the Murnaghan EOS. It will be substituted by ASE EOS class.
 """
 
 from math import pow

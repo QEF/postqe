@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
-from .eos import calculate_fitted_points
+from .eos_postqe import calculate_fitted_points
 from .bands import set_high_symmetry_points, compute_kx
 from .constants import pi
 
