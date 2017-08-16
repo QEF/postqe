@@ -1,8 +1,8 @@
 #!/bin/bash
 
-HDF5_VERSION="1.8"
-HDF5_RELEASE="1.8.19"
-HDF5_MD5SUM="7f568e2464d4ab0a74d16b23956d900b"
+HDF5_VERSION="1.10"
+HDF5_RELEASE="1.10.1"
+HDF5_MD5SUM="43a2f9466702fb1db31df98ae6677f15"
 
 if [ -e hdf5.tar.gz ]
 then
@@ -51,7 +51,11 @@ echo "Extract source files from archive ..."
 mkdir build/hdf5 && tar -xz -C build/hdf5 -f hdf5.tar.gz --strip-components 1
 cd build/hdf5
 
-echo "Build HDF5 library ..."
-./configure --enable-fortran --enable-fortran2003
-make all
 
+echo "Build HDF5 library ..."
+export CC=mpicc
+export FC=mpif90
+export FCFLAGS=-I/usr/lib64/gfortran/modules/mpich/
+./configure --enable-fortran --enable-parallel
+#./configure --enable-fortran --enable-fortran2003
+make all

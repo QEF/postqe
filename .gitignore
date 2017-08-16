@@ -4,6 +4,7 @@
 *.o
 *.png
 *.tar.gz
+*.zip
 *~
 *.swp
 *.egg-info
@@ -14,4 +15,3 @@ my_tests/
 doc/_*
 postqe/__pycache__/
 tests/__pycache__/
-postqe/fortran/build/
