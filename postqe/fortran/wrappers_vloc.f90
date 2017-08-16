@@ -15,8 +15,7 @@ subroutine pyqe_vloc_of_g(mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, gl, omega
   !    This is the "alpha" in the so-called "alpha Z" term of the energy.
   !    Atomic Ry units everywhere.
   !
-
-implicit none
+  implicit none
   integer, intent(in) :: ngl, mesh, msh
   ! ngl : the number of shells of G vectors
   ! mesh: number of grid points in the radial gridlibQ
@@ -39,7 +38,7 @@ implicit none
 end subroutine pyqe_vloc_of_g
 
 subroutine pyqe_struct_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
-implicit none
+  implicit none
   !
   !   calculate the structure factors for each type of atoms in the unit
   !   cell
@@ -53,14 +52,14 @@ implicit none
   ! input: fft dimension along y
   ! input: fft dimension along z
   
-  real(8),intent ( in)  :: tau (nat, 3 ), g (ngm, 3 )
+  real(8),intent (in)  :: tau (nat, 3 ), g (ngm, 3 )
   ! input: reciprocal crystal basis vectors
   ! input: the positions of the atoms in the c
   ! input: the coordinates of the g vectors
 
   complex(8),intent(out)  :: strf (ngm ) 
-  real(8), intent ( out)  :: check_gg(ngm) 
-  real(8), intent ( out)  :: check_tau(3*nat) 
+  real(8), intent (out)  :: check_gg(ngm) 
+  real(8), intent (out)  :: check_tau(3*nat) 
   ! output: the structure factor
-  call struc_fact( nat, tau, ngm, g, strf ,check_gg, check_tau)
+  call struc_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
 end subroutine pyqe_struct_fact

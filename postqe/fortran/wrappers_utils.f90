@@ -3,14 +3,14 @@
 !
 
 subroutine pyqe_getcelldms(alat, at1, at2, at3, ibrav, celldm) 
-! Returns the celldms parameters from ibrav, alat and the lattice vectors
-implicit  none
-real(8), intent (in)  :: at1(3), at2(3), at3(3), alat
-integer , intent (in)  :: ibrav
-real(8), intent (out) :: celldm(6)
-!
-real(8)     :: at(3,3) 
-!
+  ! Returns the celldms parameters from ibrav, alat and the lattice vectors
+  implicit  none
+  real(8), intent (in)  :: at1(3), at2(3), at3(3), alat
+  integer , intent (in)  :: ibrav
+  real(8), intent (out) :: celldm(6)
+  !
+  real(8)     :: at(3,3) 
+  !
     celldm = 0.d0
     at(:,1) = at1
     at(:,2) = at2
@@ -93,23 +93,23 @@ end subroutine pyqe_getcelldms
 
 
 subroutine pyqe_recips ( a1,a2,a3,b1,b2,b3 )
-! Returns the vectors of the reciprocal cell given those of the direct one
-implicit none 
-real(8), intent(in)  :: a1(3),a2(3),a3(3)
-real(8), intent(out) :: b1(3),b2(3),b3(3) 
-call recips(a1,a2,a3,b1,b2,b3) 
+  ! Returns the vectors of the reciprocal cell given those of the direct one
+  implicit none 
+  real(8), intent(in)  :: a1(3),a2(3),a3(3)
+  real(8), intent(out) :: b1(3),b2(3),b3(3) 
+  call recips(a1,a2,a3,b1,b2,b3) 
 end subroutine pyqe_recips 
 
 
 subroutine pyqe_latgen(ibrav, celldm, at)
-! Returns the lattice vectors given ibrav and the celldms parameters
-implicit none
-integer, intent(in)   :: ibrav
-real(8),intent(in)    :: celldm(6) 
-real(8),intent(out)   :: at(3,3) 
-! 
-real(8)               :: volume
-call latgen (ibrav,celldm, at(:,1), at(:,2), at(:,3), volume) 
+  ! Returns the lattice vectors given ibrav and the celldms parameters
+  implicit none
+  integer, intent(in)   :: ibrav
+  real(8),intent(in)    :: celldm(6) 
+  real(8),intent(out)   :: at(3,3) 
+  ! 
+  real(8)               :: volume
+  call latgen (ibrav,celldm, at(:,1), at(:,2), at(:,3), volume) 
 end subroutine pyqe_latgen
 
 
