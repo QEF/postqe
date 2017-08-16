@@ -2,6 +2,19 @@
 
 QE_SOURCE_MD5SUM="c8c403fd9a9e6b3049683a94a68dc7d9"
 
+# Move into build/ directory
+if [ -d build ]
+then
+    echo "Directory build/ exists ..."
+else
+    mkdir build
+    if [ $? -eq 1 ]
+    then
+       exit 1
+    fi
+fi
+cd build
+
 if [ -e q-e.zip ]
 then
    echo "QE source code already downloaded ..."
@@ -20,36 +33,25 @@ else
    exit 1
 fi
 
-if [ -d build ]
-then
-    echo "Directory build/ exists ..."
-else
-    mkdir build
-    if [ $? -eq 1 ] 
-    then 
-       exit 1
-    fi
-fi
-
-if [ -e build/q-e ] && [ -d build/q-e ]
+if [ -e q-e ] && [ -d q-e ]
 then
     read -p "Remove existing QE source files? " -n 1 -r
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
         echo "Remove existing source files ..."
-        rm -Rf build/q-e
+        rm -Rf q-e
     else
         exit
     fi
 fi
 
 echo "Extract source files from archive ..."
-unzip q-e.zip -d build/
-mv build/q-e-master/ build/q-e/
+unzip q-e.zip
+mv q-e-master/ q-e/
 
 echo "Build Quantum Espresso modules ..."
-cd build/q-e
+cd q-e
 TOPDIR=`pwd`
 # HDF5_LIB="-L\$(TOPDIR)/../hdf5/fortran/src/.libs -L\$(TOPDIR)/../hdf5/hl/fortran/src/.libs -lhdf5_fortran -lhdf5hl_fortran"
 # HDF5_LIB="-L/usr/lib64/openmpi/lib/ -lhdf5_fortran -lhdf5hl_fortran"
@@ -60,7 +62,8 @@ TOPDIR=`pwd`
 #./configure DFLAGS="-D__FFTW -D__MPI -D__HDF5" --with-hdf5=/usr/lib64/openmpi/lib/
 #    IFLAGS="-I\$(TOPDIR)/include -I\$(TOPDIR)/FoX/finclude -I../include/ -I/usr/lib64/openmpi/lib/"
 
-./configure DFLAGS="-D__FFTW -D__MPI" MPIF90=mpif90 CFLAGS=-fPIC FFLAGS="-g -fPIC"
+./configure DFLAGS="-D__FFTW -D__MPI" MPIF90=mpif90 CFLAGS=-fPIC FFLAGS="-g -fPIC" \
+    IFLAGS="-I\$(TOPDIR)/include -I\$(TOPDIR)/FoX/finclude -I../include/"
 
 #sed -i "s,HDF5_LIB =,HDF5_LIB = $HDF5_LIB," make.inc
 

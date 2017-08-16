@@ -7,3 +7,6 @@ from .eos_postqe import fitEtotV
 #from .xmlfile import get_cell_data, get_calculation_data, get_band_strucure_data
 #from .plot import plot1D_FFTinterp, plot2D_FFTinterp, simple_plot_xy, multiple_plot_xy, plot_EV, plot_bands
 #from .pyqe import pyqe_getcelldms
+
+# DB: F2PY import test
+from . import pyqe, pyqe2
