@@ -54,14 +54,13 @@ echo "Build Quantum Espresso modules ..."
 cd q-e
 TOPDIR=`pwd`
 
-#./configure DFLAGS="-D__FFTW -D__MPI -D__HDF5" MPIF90=mpif90 CFLAGS=-fPIC FFLAGS="-g -fPIC" \
-#    IFLAGS="-I\$(TOPDIR)/include -I\$(TOPDIR)/FoX/finclude -I../include/ -I/usr/include/mpich-x86_64/ -I/usr/lib64/gfortran/modules/mpich/"
-
-./configure DFLAGS="-D__FFTW -D__MPI -D__HDF5" CFLAGS=-fPIC FFLAGS="-g -fPIC" \
-    IFLAGS="-I\$(TOPDIR)/include -I\$(TOPDIR)/FoX/finclude -I../include/ -I/usr/lib64/gfortran/modules/openmpi/"
+#./configure DFLAGS="-D__FFTW -D__MPI -D__HDF5" CFLAGS=-fPIC FFLAGS="-g -fPIC" \
+#    IFLAGS="-I\$(TOPDIR)/include -I\$(TOPDIR)/FoX/finclude -I../include/ -I/usr/lib64/gfortran/modules/openmpi/"
 
 # Manually modify HDF5_LIB parameter into generated make.inc
-HDF5_LIB="-L/usr/lib64/openmpi/lib/ -lhdf5_fortran -lhdf5hl_fortran"
-sed -i "s,HDF5_LIB =,HDF5_LIB = $HDF5_LIB," make.inc
+#HDF5_LIB="-L/usr/lib64/openmpi/lib/ -lhdf5_fortran -lhdf5hl_fortran"
+#sed -i "s,HDF5_LIB =,HDF5_LIB = $HDF5_LIB," make.inc
+
+./configure CFLAGS=-fPIC FFLAGS="-g -fPIC"
 
 make all

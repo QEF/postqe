@@ -9,4 +9,5 @@ from .eos_postqe import fitEtotV
 #from .pyqe import pyqe_getcelldms
 
 # DB: F2PY import test
-from . import pyqe, pyqe2
+from . import pyqe
+from . import pyqe2
