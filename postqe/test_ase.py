@@ -7,12 +7,11 @@ from ase import Atoms
 from postqe.ase.io import read_espresso_xml
 
 if __name__ == "__main__":
-    from postqe.ase.calculator import Espresso
+    from postqe.ase.calculator import Postqe_calc
     from ase.visualize import view
 
     Ni2 = read_espresso_xml('Ni.xml')
-    #Ni2 = Atoms()
-    Ni2.set_calculator(Espresso(label = 'Ni'))
+    Ni2.set_calculator(Postqe_calc(label = 'Ni'))
     print (Ni2.get_atomic_numbers())
     print (Ni2.get_cell(True))
     print (Ni2.get_positions())

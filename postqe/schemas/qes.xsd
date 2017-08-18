@@ -725,13 +725,13 @@ Authors: Antonio Zambon, Paolo Giannozzi, Pietro Delugas
   </complexType>
   <complexType name="scf_convType">
     <sequence>
-      <element type="positiveInteger" name="n_scf_steps"/>
+      <element type="nonNegativeInteger" name="n_scf_steps"/>
       <element type="double" name="scf_error"/>
     </sequence>
   </complexType>
   <complexType name="opt_convType">
     <sequence>
-      <element type="positiveInteger" name="n_opt_steps"/>
+      <element type="nonNegativeInteger" name="n_opt_steps"/>
       <element type="double" name="grad_norm"/>
     </sequence>
   </complexType>

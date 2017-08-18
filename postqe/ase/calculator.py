@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os, subprocess
 import numpy as np
 from postqe.ase.io import xml_to_dict
 from ase.data import chemical_symbols, atomic_numbers, atomic_masses
-from ase.calculators.calculator import FileIOCalculator, Calculator, ReadError
+from ase.calculators.calculator import FileIOCalculator, Calculator
 import ase.units as units
 
 
@@ -19,7 +20,7 @@ except NameError:
     basestring = (str,bytes)
 
 
-class Espresso(Calculator):
+class Postqe_calc(Calculator):
     """
     This is a limited implementation of an ASE calculator for postqe.
 
@@ -197,7 +198,7 @@ def write_type(f, key, value):
         f.write("    %s = '%s',\n" % (key, value))
 
 
-class Espresso_full(Calculator):
+class Postqe_calc_full(Postqe_calc):
     """
     This is a full calculator for Quantum Espresso, including generating input file and running the code.
     The input file is the old text format which will be substituted by a new xml format in the future.
@@ -206,7 +207,7 @@ class Espresso_full(Calculator):
     """
 
     from ase.calculators.calculator import all_changes
-    #implemented_properties = ['energy', 'forces']
+    implemented_properties = ['energy', 'forces']
     command = '/home/mauropalumbo/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
 
     # These are reasonable default values for the REQUIRED parameters in pw.x input.
@@ -239,11 +240,17 @@ class Espresso_full(Calculator):
 
         """
 
-        self.species = None
+        #self.species = None
         self.pp_dict = pp_dict
 
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
+        Postqe_calc.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
+
+        if command is not None:
+            self.command = command
+        else:
+            name = 'ASE_' + self.name.upper() + '_COMMAND'
+            self.command = os.environ.get(name, self.command)
 
     def check_state(self, atoms, tol=1e-15):
         system_changes = FileIOCalculator.check_state(self, atoms)
@@ -314,7 +321,8 @@ class Espresso_full(Calculator):
             pass
 
         # Write the ATOMIC_POSITIONS section
-        finput.write('ATOMIC_POSITIONS {Ang}\n')
+        # TODO check positions are in Bohr or Ang or else
+        finput.write('ATOMIC_POSITIONS {Bohr}\n')
         for i, pos in zip(atoms.numbers, atoms.positions):
             finput.write('%s ' % chemical_symbols[i])
             finput.write('%.14f %.14f %.14f\n' % tuple(pos))
@@ -347,4 +355,26 @@ class Espresso_full(Calculator):
                   system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
+
+        if self.command is None:
+            raise RuntimeError('Please set $%s environment variable ' %
+                               ('ASE_' + self.name.upper() + '_COMMAND') +
+                               'or supply the command keyword')
+        command = self.command.replace('PREFIX', self.prefix)
+        olddir = os.getcwd()
+        try:
+            os.chdir(self.directory)
+            print (command)
+            errorcode = subprocess.call(command, shell=True)
+        finally:
+            os.chdir(olddir)
+
+        if errorcode:
+            raise RuntimeError('%s in %s returned an error: %d' %
+                               (self.name, self.directory, errorcode))
+
+        filename = self.directory + '/temp/pwscf.xml'
+        print (filename)
+        self.dout = xml_to_dict(filename)   # import the whole output dictionary
+        self.read_results()
 
