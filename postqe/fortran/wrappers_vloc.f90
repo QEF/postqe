@@ -61,5 +61,5 @@ subroutine pyqe_struct_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
   real(8), intent (out)  :: check_gg(ngm) 
   real(8), intent (out)  :: check_tau(3*nat) 
   ! output: the structure factor
-  call struc_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
+  call struc_fact2(nat, tau, ngm, g, strf ,check_gg, check_tau)
 end subroutine pyqe_struct_fact

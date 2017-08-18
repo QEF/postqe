@@ -15,6 +15,8 @@ else
 fi
 cd build
 
+# https://github.com/QEF/q-e/archive/1b1c427c1bc604d9746de2eefd6e2a96849e56fe.zip
+
 if [ -e q-e.zip ]
 then
    echo "QE source code already downloaded ..."
@@ -61,6 +63,5 @@ TOPDIR=`pwd`
 #HDF5_LIB="-L/usr/lib64/openmpi/lib/ -lhdf5_fortran -lhdf5hl_fortran"
 #sed -i "s,HDF5_LIB =,HDF5_LIB = $HDF5_LIB," make.inc
 
-./configure CFLAGS=-fPIC FFLAGS="-g -fPIC"
-
-make all
+./configure DFLAGS="-D__FFTW" MPIF90=gfortran CFLAGS=-fPIC FFLAGS="-g -fPIC"
+make pw
