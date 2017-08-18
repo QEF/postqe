@@ -9,7 +9,7 @@ QE_DIR = /home/brunato/Downloads/QE_Forge/QE/q-e
 .f90.o:
 	gfortran -c -fPIC $<
 
-pyqe:  wrappers_utils.f90 wrappers_funct.f90 
+pyqe:   wrappers_utils.f90 wrappers_funct.f90 
 	f2py3 -c wrappers_utils.f90 wrappers_funct.f90 -m pyqe -I$(QE_DIR)/Modules/ -I$(QE_DIR)/clib/ \
 	-llapack -lblas libqemod.a clib.a libqefft.a libpw.a
 

@@ -4,10 +4,10 @@
 ################################################################################
 
 from ase import Atoms
-from postqe.aseio import read_espresso_xml
+from postqe.ase.io import read_espresso_xml
 
 if __name__ == "__main__":
-    from postqe.asecalc import Espresso
+    from postqe.ase.calculator import Espresso
     from ase.visualize import view
 
     Ni2 = read_espresso_xml('Ni.xml')

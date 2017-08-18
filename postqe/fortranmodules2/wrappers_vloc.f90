@@ -38,6 +38,7 @@ implicit none
      gl, omega, vloc) 
 end subroutine pyqe_vloc_of_g
 
+
 subroutine pyqe_struct_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
 implicit none
   !
@@ -64,3 +65,4 @@ implicit none
   ! output: the structure factor
   call struc_fact( nat, tau, ngm, g, strf ,check_gg, check_tau)
 end subroutine pyqe_struct_fact
+
