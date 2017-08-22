@@ -69,9 +69,11 @@ class Postqe_calc(Calculator):
         if changed_parameters:
             self.reset()
 
+
     def get_number_of_bands(self):
         """Return the number of bands."""
         return int(self.dout["band_structure"]["nbnd"])
+
 
     def get_xc_functional(self):
         """Return the XC-functional identifier.
@@ -79,33 +81,111 @@ class Postqe_calc(Calculator):
         'LDA', 'PBE', ..."""
         return self.dout["dft"]["functional"]
 
+
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.
 
         The coordinates are relative to reciprocal latice vectors."""
-        return np.zeros((1, 3))
+
+        nks = int(self.dout["band_structure"]["nks"])  # get the number of k-points
+        kpoints = np.zeros((nks, 3))
+        ks_energies = (self.dout["band_structure"]["ks_energies"])
+
+        for i in range(0, nks):
+            for j in range (0,3):
+                kpoints[i,j] = float(ks_energies[i]['k_point']['$'][j])
+
+        return kpoints
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
 
         Spin-paired calculations: 1, spin-polarized calculation: 2."""
+
+        if (self.dout["magnetization"]["lsda"]):
+            return 2
         return 1
 
     def get_spin_polarized(self):
         """Is it a spin-polarized calculation?"""
+        if (self.dout["magnetization"]["lsda"]):
+            return True
         return False
 
-    def get_ibz_k_points(self):
-        """Return k-points in the irreducible part of the Brillouin zone.
-
-        The coordinates are relative to reciprocal latice vectors."""
-        return np.zeros((1, 3))
 
     def get_k_point_weights(self):
         """Weights of the k-points.
 
         The sum of all weights is one."""
-        return np.ones(1)
+        nks = int(self.dout["band_structure"]["nks"])  # get the number of k-points
+        weights = np.zeros(nks)
+        ks_energies = (self.dout["band_structure"]["ks_energies"])
+
+        for i in range(0, nks):
+            weights[i] = float(ks_energies[i]['k_point']['@weight'])
+
+        return weights
+
+
+    def get_fermi_level(self):
+        """Return the Fermi level."""
+        return float(self.dout["band_structure"]["fermi_energy"]) * units.Ry
+
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        """Return eigenvalue array."""
+
+        nat = (self.dout["atomic_structure"]["@nat"])
+        nbnd = int(self.dout["band_structure"]["nbnd"])
+        ks_energies = (self.dout["band_structure"]["ks_energies"])
+
+        if self.get_spin_polarized():  # magnetic
+            eigenvalues = np.zeros((nbnd//2))
+            if (spin == 0):  # get bands for spin up
+                for j in range(0, nbnd // 2):
+                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry  # eigenvalue at k-point kpt, band j, spin up
+            else:  # get bands for spin down
+                for j in range(nbnd // 2, nbnd):
+                    eigenvalues[j - nbnd // 2] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry  # eigenvalue at k-point kpt, band j, spin down
+        else:  # non magnetic
+            eigenvalues = np.zeros((nbnd))
+            for j in range(0, nbnd):
+                eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry   # eigenvalue at k-point kpt, band j
+
+        return eigenvalues
+
+
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        """Return occupation number array."""
+
+        nbnd = int(self.dout["band_structure"]["nbnd"])
+        ks_energies = (self.dout["band_structure"]["ks_energies"])
+
+        if self.get_spin_polarized():  # magnetic
+            occupations = np.zeros((nbnd // 2))
+            if (spin == 0):  # get bands for spin up
+                for j in range(0, nbnd // 2):
+                    occupations[j] = float(ks_energies[kpt]['occupations'][j])  # eigenvalue at k-point kpt, band j, spin up
+            else:  # get bands for spin down
+                for j in range(nbnd // 2, nbnd):
+                    occupations[j - nbnd // 2] = float(ks_energies[kpt]['occupations'][j])  # eigenvalue at k-point kpt, band j, spin down
+        else:  # non magnetic
+            occupations = np.zeros((nbnd))
+            for j in range(0, nbnd):
+                occupations[j] = float(ks_energies[kpt]['occupations'][j]) # eigenvalue at k-point kpt, band j
+
+        return occupations
+
+
+    def read_results(self):
+        self.results['energy'] = float(self.dout["total_energy"]["etot"]) * units.Ry
+
+    # TODO: methods below are not implemented yet (do it if necessary)
+    def get_ibz_k_points(self):
+        """Return k-points in the irreducible part of the Brillouin zone.
+
+        The coordinates are relative to reciprocal latice vectors."""
+        return np.zeros((1, 3))
 
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.
@@ -124,23 +204,8 @@ class Postqe_calc(Calculator):
         """Return pseudo-wave-function array."""
         return np.zeros((40, 40, 40))
 
-    def get_eigenvalues(self, kpt=0, spin=0):
-        """Return eigenvalue array."""
-        return np.arange(42, float)
 
-    def get_occupation_numbers(self, kpt=0, spin=0):
-        """Return occupation number array."""
-        return np.ones(42)
-
-
-    def get_fermi_level(self):
-        """Return the Fermi level."""
-        return float(self.dout["band_structure"]["fermi_energy"]) * units.Ry
-
-    def read_results(self):
-        self.results['energy'] = float(self.dout["total_energy"]["etot"]) * units.Ry
-
-
+###############################################################################
 ###############################################################################
 #
 # In the following another calculator is implemented (as derived class),
