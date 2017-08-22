@@ -85,7 +85,7 @@ class Postqe_calc(Calculator):
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.
 
-        The coordinates are relative to reciprocal latice vectors."""
+        The coordinates are relative to reciprocal lattice vectors."""
 
         nks = int(self.dout["band_structure"]["nks"])  # get the number of k-points
         kpoints = np.zeros((nks, 3))
@@ -97,10 +97,13 @@ class Postqe_calc(Calculator):
 
         return kpoints
 
+
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone.
 
-        The coordinates are relative to reciprocal latice vectors."""
+        The coordinates are relative to reciprocal lattice vectors."""
+
+        #TODO: check if this is ok
         return self.get_bz_k_points()
 
     def get_number_of_spins(self):

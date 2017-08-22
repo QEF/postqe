@@ -6,9 +6,6 @@ This is an example showing how to compute the the band structure of silicon.
 """
     
 if __name__ == "__main__":
-
-    from ase import Atoms
-    import numpy as np
     from postqe.ase.io import read_espresso_xml
     from postqe.ase.calculator import Postqe_calc_full
 
