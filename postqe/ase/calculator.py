@@ -5,7 +5,7 @@ import os, subprocess
 import numpy as np
 from postqe.ase.io import xml_to_dict
 from ase.data import chemical_symbols, atomic_numbers, atomic_masses
-from ase.calculators.calculator import FileIOCalculator, Calculator
+from ase.calculators.calculator import FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
 
 
@@ -97,6 +97,12 @@ class Postqe_calc(Calculator):
 
         return kpoints
 
+    def get_ibz_k_points(self):
+        """Return k-points in the irreducible part of the Brillouin zone.
+
+        The coordinates are relative to reciprocal latice vectors."""
+        return self.get_bz_k_points()
+
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
 
@@ -181,12 +187,6 @@ class Postqe_calc(Calculator):
         self.results['energy'] = float(self.dout["total_energy"]["etot"]) * units.Ry
 
     # TODO: methods below are not implemented yet (do it if necessary)
-    def get_ibz_k_points(self):
-        """Return k-points in the irreducible part of the Brillouin zone.
-
-        The coordinates are relative to reciprocal latice vectors."""
-        return np.zeros((1, 3))
-
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.
 
@@ -398,9 +398,17 @@ class Postqe_calc_full(Postqe_calc):
         for v in atoms.cell:
             finput.write('%.14f %.14f %.14f\n' % tuple(v))
 
-        # Write the K_POINT section (assume AUTOMATIC grid)
-        finput.write('K_POINTS AUTOMATIC\n')
-        finput.write('%d %d %d %d %d %d\n' % tuple(param['kpoints']))
+        # Write the K_POINT section, always as a list of k-points
+        # For Monkhorst meshes, the method "calculate" has already generated a list of k-points in
+        # self.kpts using ASE function kpts2ndarray
+        finput.write('K_POINTS tpiba\n')
+        finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
+        for i in range(0,len(self.kpts)):
+            finput.write('%f %f %f' % tuple(self.kpts[i])+' 1.0\n')   # assume unary weight for all
+
+        # TODO: check if it makes sense in some cases to let QE generate the Monkhorst mesh
+        # finput.write('K_POINTS AUTOMATIC\n')
+        # finput.write('%d %d %d %d %d %d\n' % tuple(param['kpoints']))
 
         finput.close()
 
@@ -413,12 +421,12 @@ class Postqe_calc_full(Postqe_calc):
             if Z not in self.species:
                 self.species.append(Z)
         self.parameters['ntyp']=len(self.species)
-
         self.spinpol = atoms.get_initial_magnetic_moments().any()
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
+        self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
         self.write_input(self.atoms, properties, system_changes)
 
         if self.command is None:
