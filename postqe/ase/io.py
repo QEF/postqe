@@ -34,7 +34,7 @@ def xml_to_dict(filename):
     # xs = xmlschema.XMLSchema(schemaLoc)
     #
     # temporary local solution
-    xs = xmlschema.XMLSchema('schemas/qes.xsd')
+    xs = xmlschema.XMLSchema('/home/mauropalumbo/pythonprojects/postqe/postqe/schemas/qes.xsd')
     ##########################################################
 
     print("Reading xml file: ", filename)
