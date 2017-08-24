@@ -5,6 +5,7 @@ import os, subprocess
 import numpy as np
 import xmlschema
 from ase.data import chemical_symbols, atomic_masses
+from ase.dft.band_structure import BandStructure
 from ase.calculators.calculator import all_changes, FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
 from .io import get_atoms_from_xml_output
@@ -19,6 +20,31 @@ except NameError:
     unicode = str
     bytes = bytes
     basestring = (str, bytes)
+
+
+def get_band_structure(atoms=None, calc=None, ref=0):
+    """
+    Create band structure object from Atoms or calculator.
+
+    This functions is rewritten here to allow the user to set the reference energy level.
+    (The method calc.get_fermi_level() can fail in some cases as for insulators or for non-scf calculations)
+    """
+
+    atoms = atoms if atoms is not None else calc.atoms
+    calc = calc if calc is not None else atoms.calc
+
+    kpts = calc.get_bz_k_points()
+
+    energies = []
+    for s in range(calc.get_number_of_spins()):
+        energies.append([calc.get_eigenvalues(kpt=k, spin=s)
+                         for k in range(len(kpts))])
+    energies = np.array(energies)
+
+    return BandStructure(cell=atoms.cell,
+                         kpts=kpts,
+                         energies=energies,
+                         reference=ref)
 
 
 class PostqeCalculator(Calculator):
@@ -76,6 +102,12 @@ class PostqeCalculator(Calculator):
         self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 
+    def band_structure(self, reference=0):
+        """Create band-structure object for plotting.
+        This method is redefined here to allow the user to set the reference energy (relying on the method get_fermi_level() is not safe.
+        """
+        return get_band_structure(calc=self, ref=reference)
+
     def get_number_of_bands(self):
         """Return the number of bands."""
         return int(self.output["band_structure"]["nbnd"])
@@ -130,8 +162,14 @@ class PostqeCalculator(Calculator):
         return weights
 
     def get_fermi_level(self):
-        """Return the Fermi level."""
-        return float(self.output["band_structure"]["fermi_energy"]) * units.Ry
+        """Return the Fermi level.
+        Warning:
+        """
+        try:
+            ef = float(self.output["band_structure"]["fermi_energy"]) * units.Ry
+            return ef
+        except:
+            raise Warning("Fermi energy not defined or not in output file")
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalues array."""
@@ -194,7 +232,8 @@ class PostqeCalculator(Calculator):
         """Return k-points in the irreducible part of the Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
-        raise NotImplementedError
+        #raise NotImplementedError
+        return self.get_bz_k_points()
 
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.

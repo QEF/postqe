@@ -6,26 +6,22 @@ This is an example showing how to compute the the band structure of silicon.
 """
     
 if __name__ == "__main__":
-    from postqe.ase.io import read_espresso_output
-    from postqe.ase.calculator import EspressoCalculator
+    from postqe.ase.io import get_atoms_from_xml_output
+    from postqe.ase.calculator import PostqeCalculator
 
-    # Set the calculator and parameters for Quantum Espresso
-    QEparameters = {'outdir': 'temp', 'smearing': 'mp', 'occupations': 'smearing', 'degauss': 0.02,
-                    'pp_dict': { 'Ni': 'Ni.pz-n-rrkjus_psl.1.0.0.UPF', 'Ag': 'Ag.pz-n-rrkjus_psl.1.0.0.UPF'},
-                    }
+    # define the Atoms structure reading the xml file
+    Si = get_atoms_from_xml_output('Si.xml', schema='../../schemas/qes.xsd')
+    # set a simple calculator, only to read the xml file results
+    calcul = PostqeCalculator(atoms=None, label='./Si', schema='../../schemas/qes.xsd')
+    Si.set_calculator(calcul)
+    # read the results
+    Si.calc.read_results()
+    # TODO: can the above lines be moved into a function?
 
-    calcul = EspressoCalculator(atoms=None, label='./Ni', restart=None, ibrav=0, ecutwfc=50,
-                                kpts={'path': 'GXWLGK', 'npoints': 200}, tstress=True, tprnfor=True,
-                                command='/home/mauropalumbo/q-e/bin/pw.x < PREFIX.in > PREFIX.out',
-                                pseudo_dir='../PSEUDOPOTENTIALS', **QEparameters)
-
-    Ni = read_espresso_output('Ni.xml')
-    Ni.set_calculator(calcul)
-
-    Ni.get_potential_energy()
-    bs = Ni.calc.band_structure()
-    print(bs.energies)
-    bs.plot(emax=10, filename='ni.png')
+    print(Si.calc.get_bz_k_points())
+    bs = Si.calc.band_structure(0)
+    #print(bs.energies)
+    bs.plot(emin=-20, emax=50, filename='si.png')
 
 
 
