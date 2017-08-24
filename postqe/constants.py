@@ -21,3 +21,4 @@ RY_TO_CMM1 = 1.0E+10 * RY_TO_THZ / C_SI
 RY_KBAR = 10.0 * AU_GPA / 2.0
 
 kb1 = 1.0 / K_BOLTZMANN_RY / RY_TO_CMM1  # inverse Boltzmann constant in cm^{-1}/K
+ev_to_ry = 0.073498618

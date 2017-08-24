@@ -176,7 +176,7 @@
       </scf_conv>
       <opt_conv>
         <n_opt_steps>
-           0
+           1
         </n_opt_steps>
         <grad_norm>
   0.6059389019002210E-31

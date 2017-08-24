@@ -113,34 +113,6 @@ call latgen (ibrav,celldm, at(:,1), at(:,2), at(:,3), volume)
 end subroutine pyqe_latgen
 
 
-subroutine pyqe_struct_fact(nat, tau, ngm, g, strf ,check_gg, check_tau)
-implicit none
-  !
-  !   calculate the structure factors for each type of atoms in the unit
-  !   cell
-  !
-  !   Here the dummy variables
-  !
-  integer, intent(in) :: nat, ngm 
-  ! input: the number of identical atom in the unit cell
-  ! input: the number of G vectors
-  ! input: fft dimension along x
-  ! input: fft dimension along y
-  ! input: fft dimension along z
-  
-  real(8),intent ( in)  :: tau (nat, 3 ), g (ngm, 3 )
-  ! input: reciprocal crystal basis vectors
-  ! input: the positions of the atoms in the c
-  ! input: the coordinates of the g vectors
-
-  complex(8),intent(out)  :: strf (ngm ) 
-  real(8), intent ( out)  :: check_gg(ngm) 
-  real(8), intent ( out)  :: check_tau(3*nat) 
-  ! output: the structure factor
-  call struc_fact( nat, tau, ngm, g, strf ,check_gg, check_tau)
-end subroutine pyqe_struct_fact
-
-
 subroutine pyqe_get_igtongl(ngm, gg, igtongl, ngl) 
 implicit none
 real(8), parameter :: eps8 = 1.d-8
@@ -218,4 +190,83 @@ do ii = 0, nr1 -1
    end do
 end do  
 !
-end subroutine 	pyqe_get_gg_list
+end subroutine pyqe_get_gg_list
+
+!
+!-----------------------------------------------------------------------
+subroutine py_w0gauss (x, n, w0gauss)
+  !-----------------------------------------------------------------------
+  !
+  !     the derivative of wgauss:  an approximation to the delta function
+  !
+  ! --> (n>=0) : derivative of the corresponding Methfessel-Paxton wgauss
+  !
+  ! --> (n=-1 ): derivative of cold smearing:
+  !              1/sqrt(pi)*exp(-(x-1/sqrt(2))**2)*(2-sqrt(2)*x)
+  !
+  ! --> (n=-99): derivative of Fermi-Dirac function: 0.5/(1.0+cosh(x))
+  !
+  implicit none
+  INTEGER, PARAMETER :: DP = selected_real_kind(14,200)
+  REAL(DP), PARAMETER :: sqrtpi = 1.77245385090551602729_DP 
+  REAL(DP), PARAMETER :: sqrtpm1= 1.0_DP / sqrtpi
+  real(DP), intent(out) :: w0gauss
+  real(DP), intent(in) :: x
+  ! output: the value of the function
+  ! input: the point where to compute the function
+
+  integer, intent(in) :: n
+  ! input: the order of the smearing function
+  !
+  !    here the local variables
+  !
+  real(DP) :: a, arg, hp, hd
+  ! the coefficients a_n
+  ! the argument of the exponential
+  ! the hermite function
+  ! the hermite function
+
+  integer :: i, ni
+  ! counter on n values
+  ! counter on 2n values
+
+  ! Fermi-Dirac smearing
+
+  if (n.eq. - 99) then
+     if (abs (x) .le.36.0) then
+        w0gauss = 1.0d0 / (2.0d0 + exp ( - x) + exp ( + x) )
+        ! in order to avoid problems for large values of x in the e
+     else
+        w0gauss = 0.d0
+     endif
+     return
+
+  endif
+  ! cold smearing  (Marzari-Vanderbilt)
+  if (n.eq. - 1) then
+     arg = min (200.d0, (x - 1.0d0 / sqrt (2.0d0) ) **2)
+     w0gauss = sqrtpm1 * exp ( - arg) * (2.0d0 - sqrt ( 2.0d0) * x)
+     return
+
+  endif
+
+  !if (n.gt.10 .or. n.lt.0) call errore('py_w0gauss','higher order smearing is untested and unstable',abs(n))
+
+  ! Methfessel-Paxton
+  arg = min (200.d0, x**2)
+  w0gauss = exp ( - arg) * sqrtpm1
+  if (n.eq.0) return
+  hd = 0.0d0
+  hp = exp ( - arg)
+  ni = 0
+  a = sqrtpm1
+  do i = 1, n
+     hd = 2.0d0 * x * hp - 2.0d0 * DBLE (ni) * hd
+     ni = ni + 1
+     a = - a / (DBLE (i) * 4.0d0)
+     hp = 2.0d0 * x * hd-2.0d0 * DBLE (ni) * hp
+     ni = ni + 1
+     w0gauss = w0gauss + a * hp
+  enddo
+end subroutine  py_w0gauss
+

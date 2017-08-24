@@ -3,14 +3,13 @@
 
 import numpy as np
 import os.path
-from readutils import (
-    read_line, read_n_real_numbers, read_charge_file_iotk, read_charge_file_hdf5,
+from .readutils import ( read_charge_file_hdf5,
     read_wavefunction_file_hdf5, write_charge, create_header
 )
-from compute_vs import compute_v_bare, compute_v_h, compute_v_xc
-from qeutils import py_getcelldms
+from .compute_vs import compute_v_bare, compute_v_h, compute_v_xc
+# from .pyqe import pyqe_getcelldms
 
-
+# TODO this function must be revised or deleted (see xmlfile.py and possibly use it)
 def get_from_xml(filename):
     """
     Get some useful values from xml file
@@ -19,8 +18,8 @@ def get_from_xml(filename):
 
     ##########################################################
     # TODO for whatever reason this is not working now
-    #schemaLoc = xmlschema.fetch_schema(filename)
-    #xs = xmlschema.XMLSchema(schemaLoc)
+    # schemaLoc = xmlschema.fetch_schema(filename)
+    # xs = xmlschema.XMLSchema(schemaLoc)
     #
     # temporary local solution
     xs = xmlschema.XMLSchema('schemas/qes.xsd')
@@ -33,12 +32,14 @@ def get_from_xml(filename):
     except KeyError:
         pseudodir = './'   # DB: ['./', os.path.dirname(filename)] ... alternatives?
     dout = d["output"]
+    prefix = (d["input"]["control_variables"]["prefix"])
+    outdir = (d["input"]["control_variables"]["outdir"])
     ecutwfc = (dout["basis_set"]["ecutwfc"])
     ecutrho = (dout["basis_set"]["ecutrho"])
     alat = (dout["atomic_structure"]["@alat"])
     a1 = np.array(dout["atomic_structure"]["cell"]["a1"])
     a2 = np.array(dout["atomic_structure"]["cell"]["a2"])
-    a3 = np.array(dout["atomic_structure"]["cell"]["a3"])   
+    a3 = np.array(dout["atomic_structure"]["cell"]["a3"])
     ibrav = (dout["atomic_structure"]["@bravais_index"])
     b1 = np.array(dout["basis_set"]["reciprocal_lattice"]["b1"])
     b2 = np.array(dout["basis_set"]["reciprocal_lattice"]["b2"])
@@ -48,10 +49,13 @@ def get_from_xml(filename):
     a_s = (dout["atomic_species"]["species"])
     nat = (dout["atomic_structure"]["@nat"])
     ntyp = (dout["atomic_species"]["@ntyp"])
-    nspin = (dout["magnetization"]["do_magnetization"])
+    lsda = (dout["magnetization"]["lsda"])
     noncolin = (dout["magnetization"]["noncolin"])
     nr = np.array([dout["basis_set"]["fft_grid"]["@nr1"],dout["basis_set"]["fft_grid"]["@nr2"],dout["basis_set"]["fft_grid"]["@nr3"]])
     nr_smooth = np.array([dout["basis_set"]["fft_smooth"]["@nr1"],dout["basis_set"]["fft_smooth"]["@nr2"],dout["basis_set"]["fft_smooth"]["@nr3"]])
+    nks = (dout["band_structure"]["nks"])
+    nbnd = (dout["band_structure"]["nbnd"])
+    ks_energies = (dout["band_structure"]["ks_energies"])
 
     # for subsequent loops it is important to have always lists for atomic_positions
     # and atomic_species. If this is not, convert
@@ -64,12 +68,12 @@ def get_from_xml(filename):
         atomic_positions = a_p
     else:
         atomic_positions = [a_p]
-    
+
     a = np.array([a1,a2,a3])
     b = np.array([b1,b2,b3])
-    
-    return (ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions,
-            atomic_species, nat, ntyp, nspin, noncolin, pseudodir, nr, nr_smooth)
+
+    return (prefix, outdir, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions,
+            atomic_species, nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth)
 
 
 def run(pars):
@@ -77,8 +81,8 @@ def run(pars):
     ### DB: creare un oggetto per i parametri??
 
     # get some needed values from the xml output
-    ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
-    nat, ntyp, nspin, noncolin, pseudodir, nr, nr_smooth = get_from_xml("Ni.xml")
+    prefix, ecutwfc, ecutrho, ibrav, alat, a, b, functional, atomic_positions, atomic_species, \
+    nat, ntyp, lsda, noncolin, pseudodir, nr, nr_smooth = get_from_xml("Ni.xml")
     celldms = py_getcelldms(alat, a[0], a[1], a[2], ibrav)
       
     charge_file = pars.outdir + "/charge-density.hdf5"

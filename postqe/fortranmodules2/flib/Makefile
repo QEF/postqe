@@ -20,6 +20,7 @@ struct_fact.o
 
 all: libQE.a
 	$(dummy-variable)
+	mv *.a ../
 
 libQE.a: $(LIBFILES)
 	ar -r $@ $?

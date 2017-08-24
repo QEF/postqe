@@ -9,24 +9,24 @@ from setuptools.command.install import install
 class MyBuildExt(build_ext):
 
     def run(self):
-        os.system('make -C postqe/fortranmodules all')
-        os.system('make -C postqe/fortranmodules move')
+        os.system('make -C postqe/fortranmodules2/flib all')
+        os.system('make -C postqe/fortranmodules2 all')
         build_ext.run(self)
 
 
 class MySDist(sdist):
 
     def run(self):
-        os.system('make -C postqe/fortranmodules all')
-        os.system('make -C postqe/fortranmodules move')
+        os.system('make -C postqe/fortranmodules2/flib all')
+        os.system('make -C postqe/fortranmodules2 all')
         sdist.run(self)
 
 
 class MyInstall(install):
 
     def run(self):
-        os.system('make -C postqe/fortranmodules all')
-        os.system('make -C postqe/fortranmodules move')
+        os.system('make -C postqe/fortranmodules2/flib all')
+        os.system('make -C postqe/fortranmodules2 all')
         install.run(self)
 
 setup(
@@ -35,7 +35,7 @@ setup(
     packages=['postqe'],
     package_data={'postqe': ['schemas/*.xsd']},
     install_requires=[
-        'xmlschema', 'numpy', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib'
+        'xmlschema', 'numpy', 'ase', 'scipy', 'h5py', 'colormath', 'natsort', 'moviepy', 'matplotlib'
     ],
     author='Mauro Palumbo',
     author_email='mpalumbo@sissa.it',
@@ -44,21 +44,20 @@ setup(
     license='MIT',
     long_description='Post processing tools for Quantum Espresso',
     data_files=[
-        ('/usr/share/doc/postqe/pseudos', glob.glob('examples/pseudos/*')),
+        #('/usr/share/doc/postqe/example1', glob.glob('examples/example1/*')),
+        #('/usr/share/doc/postqe/example2', glob.glob('examples/example2/*')),
+        #('/usr/share/doc/postqe/example3', glob.glob('examples/example3/*')),
         ('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
         ('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
         ('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
         ('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
-        ('/usr/share/doc/postqe/Si', glob.glob('examples/Si/*')),
-        ('/usr/share/doc/postqe/SiO2', glob.glob('examples/SiO2/*')),
-        ('/usr/share/doc/postqe/SrTiO3', glob.glob('examples/SrTiO3/*'))
     ],
     entry_points={
         'console_scripts': [
             'postqe=postqe.cli:main'
         ]
     },
-    requires=['python (>=2.7)'],
+    requires=['python (>=3.3)'],
     cmdclass={
         'build_ext': MyBuildExt,
         'sdist': MySDist,
@@ -72,7 +71,6 @@ setup(
         'Intended Audience :: Science/Research',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',

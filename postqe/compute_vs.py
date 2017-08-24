@@ -2,12 +2,12 @@
 #encoding: UTF-8
 
 import numpy as np
-from constants import pi
-from xcpy import xc_dict
+
+from .constants import pi
+from .setlocal import wrap_setlocal
 
 # f2py created modules
-from pyfunct import py_xc as xc
-from setlocal import wrap_setlocal
+from .pyqe import pyqe_xc as xc
 
 
 # Compute the volume from a1, a2, a3 vectors in direct space.  
@@ -128,11 +128,9 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, 
     This function computes the bare potential. It calls the wrapper function
     wrap_setlocal from the setlocal python module which is an interface to
     call the proper fortran functions.
-    """    
-    
-    v_F = wrap_setlocal(alat, at1, at2, at3, nr[0], nr[1], nr[2], atomic_positions,\
-    species, 2.0*ecutrho, pseudodir)
-
+    """
+    v_F = wrap_setlocal(alat, at1, at2, at3, nr[0], nr[1], nr[2], atomic_positions,
+                        species, 2.0*ecutrho, pseudodir)
     return v_F
 
 
@@ -203,22 +201,14 @@ def compute_v_xc(charge,charge_core,functional):
     rhoneg = 0.0
     nr = charge.shape
     v = np.zeros(nr)
-    
+
     for x in range(0,nr[0]):
         for y in range(0,nr[1]):
             for z in range(0,nr[2]):
                 rhox = charge[x,y,z] + charge_core[x,y,z]
                 arhox = abs(rhox)
                 if (arhox > vanishing_charge):
-                    ex, ec, vx, vc = xc (arhox, *xc_dict[functional])
+                    ex, ec, vx, vc = xc (arhox, functional)
                     v[x,y,z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
 
     return v
-
-
-################################################################################
-################################################################################
-#
-#if __name__ == "__main__":
-#    pass
-
