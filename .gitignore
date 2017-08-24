@@ -5,6 +5,8 @@
 *.png
 *.tar.gz
 *.zip
+*.a
+*.mod
 *~
 *.swp
 *.egg-info
