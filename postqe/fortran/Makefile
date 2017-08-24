@@ -1,5 +1,5 @@
 
-QE_DIR = /home/brunato/Development/projects/postqe/postqe/fortran/build/q-e
+QE_DIR = /home/mauropalumbo/pythonprojects/postqe/postqe/fortran/build/q-e
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90
@@ -13,7 +13,7 @@ generate_gg_list.o\
 struct_fact.o
 
 libpostqe: $(LIBFILES)
-	cp -p $(QE_DIR)/UtilXlib/lib{util.a,postqe2.a}
+	cp -p $(QE_DIR)/UtilXlib/libutil.a postqe2.a
 	ar -r $@.a $?
 
 pyqe: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90

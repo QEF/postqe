@@ -18,9 +18,9 @@ def split_atomic_symbol(x):
         return False
 
 
-def read_espresso_output(filename, schema=None, output=None):
+def get_atoms_from_xml_output(filename, schema=None, output=None):
     """
-    Read Atoms object(s) from file.
+    Returns an Atoms object constructed from an XML QE file (according to the schema).
 
     :param filename: Name of the XML file to read from or a file descriptor.
     :param schema: Optional XML Schema file to use (for default schema is \
@@ -49,7 +49,7 @@ def read_espresso_output(filename, schema=None, output=None):
 
     # Now the atoms in the unit cell
     for atomx in a_p:
-        # TODO: extent to all possible cases the symbol splitting (for now, only numbering up to 9 work). Not a very common case...
+        # TODO: extend to all possible cases the symbol splitting (for now, only numbering up to 9 work). Not a very common case...
         symbol = split_atomic_symbol(atomx['@name'])[0]
         print(atomx['@name'], symbol)
         x = float(atomx['$'][0])
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     from ase.build import bulk
     from ase.visualize import view
 
-    FeO = read_espresso_output('feo_af.xml', schema='schemas/qes.xsd')
+    FeO = get_atoms_from_xml_output('feo_af.xml', schema='schemas/qes.xsd')
     print (FeO.get_atomic_numbers())
     print (FeO.get_cell(True))
     print (FeO.get_positions())
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     print (Ni.get_positions())
     view(Ni)
 
-    Ni2 = read_espresso_output('Ni.xml', schema='schemas/qes.xsd')
+    Ni2 = get_atoms_from_xml_output('Ni.xml', schema='schemas/qes.xsd')
     print (Ni2.get_atomic_numbers())
     print (Ni2.get_cell(True))
     print (Ni2.get_positions())

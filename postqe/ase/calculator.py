@@ -7,7 +7,7 @@ import xmlschema
 from ase.data import chemical_symbols, atomic_masses
 from ase.calculators.calculator import all_changes, FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
-from .io import read_espresso_output
+from .io import get_atoms_from_xml_output
 
 
 # Fix python3 types
@@ -73,7 +73,7 @@ class PostqeCalculator(Calculator):
     def read_results(self):
         filename = self.label + '.xml'
         self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
-        self.atoms = read_espresso_output(filename, output=self.output)
+        self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 
     def get_number_of_bands(self):
@@ -90,7 +90,7 @@ class PostqeCalculator(Calculator):
         """Return all the k-points in the 1. Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
-
+        # TODO: check what units of the k-points ASE requires (2pi/a or else) and convert into reciprocal lattice? (check band structure class)
         nks = int(self.output["band_structure"]["nks"])  # get the number of k-points
         kpoints = np.zeros((nks, 3))
         ks_energies = self.output["band_structure"]["ks_energies"]
@@ -100,13 +100,6 @@ class PostqeCalculator(Calculator):
                 kpoints[i, j] = float(ks_energies[i]['k_point']['$'][j])
 
         return kpoints
-
-    def get_ibz_k_points(self):
-        """Return k-points in the irreducible part of the Brillouin zone.
-
-        The coordinates are relative to reciprocal lattice vectors."""
-        # TODO: check if this is ok
-        return self.get_bz_k_points()
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
@@ -141,7 +134,7 @@ class PostqeCalculator(Calculator):
         return float(self.output["band_structure"]["fermi_energy"]) * units.Ry
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        """Return eigenvalue array."""
+        """Return eigenvalues array."""
 
         nat = (self.output["atomic_structure"]["@nat"])
         nbnd = int(self.output["band_structure"]["nbnd"])
@@ -197,22 +190,28 @@ class PostqeCalculator(Calculator):
         return occupations
 
     # TODO: methods below are not implemented yet (do it if necessary)
+    def get_ibz_k_points(self):
+        """Return k-points in the irreducible part of the Brillouin zone.
+
+        The coordinates are relative to reciprocal lattice vectors."""
+        raise NotImplementedError
+
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.
 
         If *spin* is not given, then the total density is returned.
         Otherwise, the spin up or down density is returned (spin=0 or
         1)."""
-        return np.zeros((40, 40, 40))
+        raise NotImplementedError
 
     def get_effective_potential(self, spin=0, pad=True):
         """Return pseudo-effective-potential array."""
-        return np.zeros((40, 40, 40))
+        raise NotImplementedError
 
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, broadcast=True,
                                  pad=True):
         """Return pseudo-wave-function array."""
-        return np.zeros((40, 40, 40))
+        raise NotImplementedError
 
 
 ###############################################################################
@@ -458,5 +457,5 @@ class EspressoCalculator(PostqeCalculator):
         filename = self.directory + '/temp/pwscf.xml'
         print (filename)
         self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
-        self.atoms = read_espresso_output(filename, output=self.output)
+        self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
