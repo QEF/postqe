@@ -4,22 +4,22 @@
 ################################################################################
 
 from ase import Atoms
-from postqe.ase.io import read_espresso_xml
+from postqe.ase.io import read_espresso_output
 
 if __name__ == "__main__":
     from ase.calculators.calculator import FileIOCalculator, Calculator, kpts2ndarray
 
-    Ni = read_espresso_xml('Ni.xml')
+    Ni = read_espresso_output('Ni.xml')
     #test= kpts2ndarray({'path': 'GXG', 'npoints': 200},Ni)
     test= kpts2ndarray([2, 2, 2],Ni)
     print (test)
     exit()
-    from postqe.ase.calculator import Postqe_calc
+    from postqe.ase.calculator import PostqeCalculator
     from ase.visualize import view
 
     system = 'Ni'
-    test = read_espresso_xml(system+'.xml')
-    test.set_calculator(Postqe_calc(label = system))
+    test = read_espresso_output(system + '.xml')
+    test.set_calculator(PostqeCalculator(label = system))
     print (test.get_atomic_numbers())
     print (test.get_cell(True))
     print (test.get_positions())

@@ -18,36 +18,25 @@ def split_atomic_symbol(x):
         return False
 
 
-def xml_to_dict(filename):
+def read_espresso_output(filename, schema=None, output=None):
     """
-    This function reads the xml output using the xmlschema package and returns a dictionary with the output section.
-    :param filename:
-    :return:
+    Read Atoms object(s) from file.
+
+    :param filename: Name of the XML file to read from or a file descriptor.
+    :param schema: Optional XML Schema file to use (for default schema is \
+    found using the schemaLocation attribute of the XML root).
+    :param output: Optional dictionary containing the output tree of the XML file. \
+    If provided skips file access and builds Atoms object directly from output dictionary.
+    :return: An Atoms object.
     """
-
-    import xmlschema
-
-    ##########################################################
-    # TODO for whatever reason this is not working now
-    # schemaLoc = xmlschema.fetch_schema(filename)
-    # xs = xmlschema.XMLSchema(schemaLoc)
-    #
-    # temporary local solution
-    xs = xmlschema.XMLSchema('/home/mauropalumbo/pythonprojects/postqe/postqe/schemas/qes.xsd')
-    ##########################################################
-
-    print("Reading xml file: ", filename)
-    d = xs.to_dict(filename)
-    return d["output"]
-
-
-def read_espresso_xml(filename):
-
-    dout = xml_to_dict(filename)
-    a1 = np.array(dout["atomic_structure"]["cell"]["a1"])
-    a2 = np.array(dout["atomic_structure"]["cell"]["a2"])
-    a3 = np.array(dout["atomic_structure"]["cell"]["a3"])
-    a_p = (dout["atomic_structure"]["atomic_positions"]["atom"])
+    if output is None:
+        output = xmlschema.to_dict(
+            filename, schema=schema, path="./qes:espresso/output"
+        )
+    a1 = np.array(output["atomic_structure"]["cell"]["a1"])
+    a2 = np.array(output["atomic_structure"]["cell"]["a2"])
+    a3 = np.array(output["atomic_structure"]["cell"]["a3"])
+    a_p = (output["atomic_structure"]["atomic_positions"]["atom"])
 
     atoms = Atoms()
 
@@ -75,7 +64,7 @@ if __name__ == "__main__":
     from ase.build import bulk
     from ase.visualize import view
 
-    FeO = read_espresso_xml('feo_af.xml', schema='schemas/qes.xsd')
+    FeO = read_espresso_output('feo_af.xml', schema='schemas/qes.xsd')
     print (FeO.get_atomic_numbers())
     print (FeO.get_cell(True))
     print (FeO.get_positions())
@@ -90,7 +79,7 @@ if __name__ == "__main__":
     print (Ni.get_positions())
     view(Ni)
 
-    Ni2 = read_espresso_xml('Ni.xml', schema='schemas/qes.xsd')
+    Ni2 = read_espresso_output('Ni.xml', schema='schemas/qes.xsd')
     print (Ni2.get_atomic_numbers())
     print (Ni2.get_cell(True))
     print (Ni2.get_positions())

@@ -7,7 +7,7 @@ with the Murnaghan EOS.
 """
     
 if __name__ == "__main__":
-    from postqe.ase.calculator import Postqe_calc_full
+    from postqe.ase.calculator import EspressoCalculator
     import numpy as np
 
     from ase import Atoms
@@ -22,10 +22,10 @@ if __name__ == "__main__":
                     'pp_dict': { 'Ni': 'Ni.pz-n-rrkjus_psl.1.0.0.UPF', 'Ag': 'Ag.pz-n-rrkjus_psl.1.0.0.UPF'},
                     }
 
-    calcul = Postqe_calc_full(atoms=None, label='./Ni', restart=None, ibrav=0, ecutwfc=50,
-                              kpoints=[3, 3, 3, 0, 0, 0], tstress=True, tprnfor=True,
-                              command='/home/mauropalumbo/q-e/bin/pw.x < PREFIX.in > PREFIX.out',
-                              pseudo_dir='../PSEUDOPOTENTIALS', **QEparameters)
+    calcul = EspressoCalculator(atoms=None, label='./Ni', restart=None, ibrav=0, ecutwfc=50,
+                                kpoints=[3, 3, 3, 0, 0, 0], tstress=True, tprnfor=True,
+                                command='/home/mauropalumbo/q-e/bin/pw.x < PREFIX.in > PREFIX.out',
+                                pseudo_dir='../PSEUDOPOTENTIALS', **QEparameters)
 
     a = 6.5  # approximate lattice constant
     b = a / 2

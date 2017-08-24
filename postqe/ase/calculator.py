@@ -3,10 +3,11 @@
 
 import os, subprocess
 import numpy as np
-from postqe.ase.io import xml_to_dict
-from ase.data import chemical_symbols, atomic_numbers, atomic_masses
-from ase.calculators.calculator import FileIOCalculator, Calculator, kpts2ndarray
+import xmlschema
+from ase.data import chemical_symbols, atomic_masses
+from ase.calculators.calculator import all_changes, FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
+from .io import read_espresso_output
 
 
 # Fix python3 types
@@ -17,10 +18,10 @@ except NameError:
     str = str
     unicode = str
     bytes = bytes
-    basestring = (str,bytes)
+    basestring = (str, bytes)
 
 
-class Postqe_calc(Calculator):
+class PostqeCalculator(Calculator):
     """
     This is a limited implementation of an ASE calculator for postqe.
 
@@ -33,21 +34,26 @@ class Postqe_calc(Calculator):
     implemented_properties = ['energy', 'forces']
     command = None
 
-    def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label=None, atoms=None, command=None, **kwargs):
-        """File-IO calculator.
-
-        command: str
-            Command used to start calculation.
+    def __init__(self, restart=None, ignore_bad_restart_file=False, label=None,
+                 atoms=None, command=None, schema=None, outdir=None, **kwargs):
         """
+        File-IO calculator.
 
+        :param restart:
+        :param ignore_bad_restart_file:
+        :param label:
+        :param atoms:
+        :param command: Command used to start calculation.
+        :param schema:
+        :param kwargs:
+        """
         self.species = None
+        self.schema = schema
+        self.output = None
+        self.outdir = outdir
+        Calculator.__init__(self, restart, ignore_bad_restart_file, label, atoms, **kwargs)
 
-        Calculator.__init__(self, restart, ignore_bad_restart_file, label,
-                            atoms, **kwargs)
-
-
-    def calculate(self, atoms=None, properties=['energy'], system_changes=[]):
+    def calculate(self, atoms=None, properties=('energy',), system_changes=()):
         """
         This calculate method only reads the results from an xml output file
         in this calculator. The xml file is determined from the label field.
@@ -57,137 +63,138 @@ class Postqe_calc(Calculator):
         :param system_changes:
         :return:
         """
-        Calculator.calculate(self, atoms, properties, system_changes)
-
-        filename = self.label + '.xml'
-        self.dout = xml_to_dict(filename)   # import the whole output dictionary
-        self.read_results()
-
+        raise NotImplementedError("Only for QE results post-processing")
 
     def set(self, **kwargs):
         changed_parameters = Calculator.set(self, **kwargs)
         if changed_parameters:
             self.reset()
 
+    def read_results(self):
+        filename = self.label + '.xml'
+        self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
+        self.atoms = read_espresso_output(filename, output=self.output)
+        self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 
     def get_number_of_bands(self):
         """Return the number of bands."""
-        return int(self.dout["band_structure"]["nbnd"])
-
+        return int(self.output["band_structure"]["nbnd"])
 
     def get_xc_functional(self):
         """Return the XC-functional identifier.
 
         'LDA', 'PBE', ..."""
-        return self.dout["dft"]["functional"]
-
+        return self.output["dft"]["functional"]
 
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
 
-        nks = int(self.dout["band_structure"]["nks"])  # get the number of k-points
+        nks = int(self.output["band_structure"]["nks"])  # get the number of k-points
         kpoints = np.zeros((nks, 3))
-        ks_energies = (self.dout["band_structure"]["ks_energies"])
+        ks_energies = self.output["band_structure"]["ks_energies"]
 
         for i in range(0, nks):
-            for j in range (0,3):
-                kpoints[i,j] = float(ks_energies[i]['k_point']['$'][j])
+            for j in range(0, 3):
+                kpoints[i, j] = float(ks_energies[i]['k_point']['$'][j])
 
         return kpoints
-
 
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
-
-        #TODO: check if this is ok
+        # TODO: check if this is ok
         return self.get_bz_k_points()
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
 
-        Spin-paired calculations: 1, spin-polarized calculation: 2."""
-
-        if (self.dout["magnetization"]["lsda"]):
+        Spin-paired calculations: 1, spin-polarized calculation: 2.
+        """
+        if self.output["magnetization"]["lsda"]:
             return 2
         return 1
 
     def get_spin_polarized(self):
         """Is it a spin-polarized calculation?"""
-        if (self.dout["magnetization"]["lsda"]):
+        if self.output["magnetization"]["lsda"]:
             return True
         return False
-
 
     def get_k_point_weights(self):
         """Weights of the k-points.
 
         The sum of all weights is one."""
-        nks = int(self.dout["band_structure"]["nks"])  # get the number of k-points
+        nks = int(self.output["band_structure"]["nks"])  # get the number of k-points
         weights = np.zeros(nks)
-        ks_energies = (self.dout["band_structure"]["ks_energies"])
+        ks_energies = self.output["band_structure"]["ks_energies"]
 
         for i in range(0, nks):
             weights[i] = float(ks_energies[i]['k_point']['@weight'])
 
         return weights
 
-
     def get_fermi_level(self):
         """Return the Fermi level."""
-        return float(self.dout["band_structure"]["fermi_energy"]) * units.Ry
-
+        return float(self.output["band_structure"]["fermi_energy"]) * units.Ry
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalue array."""
 
-        nat = (self.dout["atomic_structure"]["@nat"])
-        nbnd = int(self.dout["band_structure"]["nbnd"])
-        ks_energies = (self.dout["band_structure"]["ks_energies"])
+        nat = (self.output["atomic_structure"]["@nat"])
+        nbnd = int(self.output["band_structure"]["nbnd"])
+        ks_energies = (self.output["band_structure"]["ks_energies"])
 
         if self.get_spin_polarized():  # magnetic
             eigenvalues = np.zeros((nbnd//2))
-            if (spin == 0):  # get bands for spin up
+            if spin == 0:
+                # get bands for spin up
                 for j in range(0, nbnd // 2):
-                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry  # eigenvalue at k-point kpt, band j, spin up
-            else:  # get bands for spin down
+                    # eigenvalue at k-point kpt, band j, spin up
+                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry
+            else:
+                # get bands for spin down
                 for j in range(nbnd // 2, nbnd):
-                    eigenvalues[j - nbnd // 2] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry  # eigenvalue at k-point kpt, band j, spin down
-        else:  # non magnetic
-            eigenvalues = np.zeros((nbnd))
+                    # eigenvalue at k-point kpt, band j, spin down
+                    eigenvalues[j - nbnd // 2] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry
+        else:
+            # non magnetic
+            eigenvalues = np.zeros(nbnd)
             for j in range(0, nbnd):
-                eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry   # eigenvalue at k-point kpt, band j
+                # eigenvalue at k-point kpt, band j
+                eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry
 
         return eigenvalues
-
 
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""
 
-        nbnd = int(self.dout["band_structure"]["nbnd"])
-        ks_energies = (self.dout["band_structure"]["ks_energies"])
+        nbnd = int(self.output["band_structure"]["nbnd"])
+        ks_energies = (self.output["band_structure"]["ks_energies"])
 
-        if self.get_spin_polarized():  # magnetic
+        if self.get_spin_polarized():
+            # magnetic
             occupations = np.zeros((nbnd // 2))
-            if (spin == 0):  # get bands for spin up
+            if spin == 0:
+                # get bands for spin up
                 for j in range(0, nbnd // 2):
-                    occupations[j] = float(ks_energies[kpt]['occupations'][j])  # eigenvalue at k-point kpt, band j, spin up
-            else:  # get bands for spin down
+                    # eigenvalue at k-point kpt, band j, spin up
+                    occupations[j] = float(ks_energies[kpt]['occupations'][j])
+            else:
+                # get bands for spin down
                 for j in range(nbnd // 2, nbnd):
-                    occupations[j - nbnd // 2] = float(ks_energies[kpt]['occupations'][j])  # eigenvalue at k-point kpt, band j, spin down
-        else:  # non magnetic
-            occupations = np.zeros((nbnd))
+                    # eigenvalue at k-point kpt, band j, spin down
+                    occupations[j - nbnd // 2] = float(ks_energies[kpt]['occupations'][j])
+        else:
+            # non magnetic
+            occupations = np.zeros(nbnd)
             for j in range(0, nbnd):
-                occupations[j] = float(ks_energies[kpt]['occupations'][j]) # eigenvalue at k-point kpt, band j
+                # eigenvalue at k-point kpt, band j
+                occupations[j] = float(ks_energies[kpt]['occupations'][j])
 
         return occupations
-
-
-    def read_results(self):
-        self.results['energy'] = float(self.dout["total_energy"]["etot"]) * units.Ry
 
     # TODO: methods below are not implemented yet (do it if necessary)
     def get_pseudo_density(self, spin=None, pad=True):
@@ -266,17 +273,15 @@ def write_type(f, key, value):
         f.write("    %s = '%s',\n" % (key, value))
 
 
-class Postqe_calc_full(Postqe_calc):
+class EspressoCalculator(PostqeCalculator):
     """
     This is a full calculator for Quantum Espresso, including generating input file and running the code.
     The input file is the old text format which will be substituted by a new xml format in the future.
 
     To use the full calculator, some input parameters for QE must be handled.
     """
-
-    from ase.calculators.calculator import all_changes
     implemented_properties = ['energy', 'forces']
-    command = '/home/mauropalumbo/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
+    command = '/home/brunato/Development/projects/postqe/postqe/fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
 
     # These are reasonable default values for the REQUIRED parameters in pw.x input.
     # All other default values are not set here and let to pw.x, unless the user defines them in the calculator.
@@ -302,16 +307,16 @@ class Postqe_calc_full(Postqe_calc):
         ========
         Use default values:
 
-        >>> h = Atoms('H', calculator=Espresso_full(ecut=200, toldfe=0.001))
+        >>> from ase import Atoms
+        >>> h = Atoms('H', calculator=EspressoCalculator(ecut=200, toldfe=0.001))
         >>> h.center(vacuum=3.0)
         >>> e = h.get_potential_energy()
 
         """
-
-        #self.species = None
+        # self.species = None
         self.pp_dict = pp_dict
 
-        Postqe_calc.__init__(self, restart, ignore_bad_restart_file,
+        PostqeCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
         if command is not None:
@@ -334,15 +339,13 @@ class Postqe_calc_full(Postqe_calc):
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input parameters to files-file."""
-
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
-        if ('numbers' in system_changes or 'initial_magmoms' in system_changes):
+        if 'numbers' in system_changes or 'initial_magmoms' in system_changes:
             self.initialize(atoms)
 
-        print ("Writing input file... "+self.label+".in")
+        print ("Writing input file... " + self.label + ".in")
         param = self.parameters   # copy the parameters into param
-
 
         finput = open(self.label + '.in', 'w')
 
@@ -350,35 +353,35 @@ class Postqe_calc_full(Postqe_calc):
         finput.write(' &CONTROL \n')
         for tag in param:
             if tag in control_keys:
-                write_type(finput,tag,param[tag])
+                write_type(finput, tag, param[tag])
         finput.write('/\n')
 
         # Write SYSTEM section
         finput.write(' &SYSTEM \n')
         for tag in param:
             if tag in system_keys:
-                write_type(finput,tag,param[tag])
+                write_type(finput, tag, param[tag])
         finput.write('/\n')
 
         # Write ELECTRONS section
         finput.write(' &ELECTRONS \n')
         for tag in param:
             if tag in electrons_keys:
-                write_type(finput,tag,param[tag])
+                write_type(finput, tag, param[tag])
         finput.write('/\n')
 
         # Write IONS section
         finput.write(' &IONS \n')
         for tag in param:
             if tag in ions_keys:
-                write_type(finput,tag,param[tag])
+                write_type(finput, tag, param[tag])
         finput.write('/\n')
 
         # Write CELL section
         finput.write(' &CELL \n')
         for tag in param:
             if tag in ions_keys:
-                write_type(finput,tag,param[tag])
+                write_type(finput, tag, param[tag])
         finput.write('/\n')
 
         # Write the ATOMIC_SPECIES section
@@ -395,7 +398,6 @@ class Postqe_calc_full(Postqe_calc):
             finput.write('%s ' % chemical_symbols[i])
             finput.write('%.14f %.14f %.14f\n' % tuple(pos))
 
-
         # Write the CELL_PARAMETERS section (assume they are in Angstrom)
         finput.write('CELL_PARAMETERS {Ang}\n')
         for v in atoms.cell:
@@ -406,8 +408,8 @@ class Postqe_calc_full(Postqe_calc):
         # self.kpts using ASE function kpts2ndarray
         finput.write('K_POINTS tpiba\n')
         finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
-        for i in range(0,len(self.kpts)):
-            finput.write('%f %f %f' % tuple(self.kpts[i])+' 1.0\n')   # assume unary weight for all
+        for i in range(0, len(self.kpts)):
+            finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')   # assume unary weight for all
 
         # TODO: check if it makes sense in some cases to let QE generate the Monkhorst mesh
         # finput.write('K_POINTS AUTOMATIC\n')
@@ -423,11 +425,10 @@ class Postqe_calc_full(Postqe_calc):
         for a, Z in enumerate(numbers):
             if Z not in self.species:
                 self.species.append(Z)
-        self.parameters['ntyp']=len(self.species)
+        self.parameters['ntyp'] = len(self.species)
         self.spinpol = atoms.get_initial_magnetic_moments().any()
 
-    def calculate(self, atoms=None, properties=['energy'],
-                  system_changes=all_changes):
+    def calculate(self, atoms=None, properties=('energy',), system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
         self.write_input(self.atoms, properties, system_changes)
@@ -439,6 +440,7 @@ class Postqe_calc_full(Postqe_calc):
         command = self.command.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
         try:
+            print(self.directory)
             os.chdir(self.directory)
             print (command)
             errorcode = subprocess.call(command, shell=True)
@@ -449,8 +451,12 @@ class Postqe_calc_full(Postqe_calc):
             raise RuntimeError('%s in %s returned an error: %d' %
                                (self.name, self.directory, errorcode))
 
-        filename = self.directory + '/temp/pwscf.xml'
-        print (filename)
-        self.dout = xml_to_dict(filename)   # import the whole output dictionary
         self.read_results()
 
+    def read_results(self):
+        # FIXME: compose XML output filename from parameters
+        filename = self.directory + '/temp/pwscf.xml'
+        print (filename)
+        self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
+        self.atoms = read_espresso_output(filename, output=self.output)
+        self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
