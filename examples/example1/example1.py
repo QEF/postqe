@@ -7,45 +7,22 @@ with the Murnaghan EOS.
 """
     
 if __name__ == "__main__":
-    from postqe.ase.calculator import EspressoCalculator
-    import numpy as np
+    import os.path
+    from postqe import read_EtotV
 
-    from ase import Atoms
-    from ase.io import read
+    # file with the total energy data E(V)
+    fin = os.path.join(os.path.dirname(__file__), "EtotV.dat")
+
     from ase.units import kJ
     from ase.eos import EquationOfState
-    from ase.io.trajectory import Trajectory
-    from ase.visualize import view
 
-    # Set the calculator and parameters for Quantum Espresso
-    QEparameters = {'outdir': 'temp', 'smearing': 'mp', 'occupations': 'smearing', 'degauss': 0.02,
-                    'pp_dict': { 'Ni': 'Ni.pz-n-rrkjus_psl.1.0.0.UPF', 'Ag': 'Ag.pz-n-rrkjus_psl.1.0.0.UPF'},
-                    }
+    # Extract volumes and energies from the input file:
+    volumes, energies = read_EtotV(fin)
 
-    calcul = EspressoCalculator(atoms=None, label='./Ni', restart=None, ibrav=0, ecutwfc=50,
-                                kpoints=[3, 3, 3, 0, 0, 0], tstress=True, tprnfor=True,
-                                command='/home/mauropalumbo/q-e/bin/pw.x < PREFIX.in > PREFIX.out',
-                                pseudo_dir='../PSEUDOPOTENTIALS', **QEparameters)
-
-    a = 6.5  # approximate lattice constant
-    b = a / 2
-    Ni = Atoms('Ni',
-               cell=[(0, b, b), (b, 0, b), (b, b, 0)],
-               pbc=1,
-               calculator=calcul)
-    cell = Ni.get_cell()
-    traj = Trajectory('Ni.traj', 'w')
-    for x in np.linspace(0.95, 1.05, 9):
-        Ni.set_cell(cell * x, scale_atoms=True)
-        Ni.get_potential_energy()
-        traj.write(Ni)
-
-    configs = read('Ni.traj@0:9')  # read 9 configurations
-    # Extract volumes and energies:
-    volumes = [Ni.get_volume() for Ni in configs]
-    energies = [Ni.get_potential_energy() for Ni in configs]
+    # Create an object EquationOfState and fit with Murnaghan (or other) EOS
     eos = EquationOfState(volumes, energies, eos='murnaghan')
     v0, e0, B = eos.fit()
+    # Print some data and plot
     print('Equilibrium volume = '+str(v0)+' Ang^3')
     print('Equilibrium energy = '+str(e0)+' eV')
     print('Equilibrium Bulk modulus = '+str(B / kJ * 1.0e24)+' GPa')

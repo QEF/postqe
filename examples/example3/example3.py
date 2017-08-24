@@ -12,17 +12,22 @@ if __name__ == "__main__":
     from postqe.ase.io import get_atoms_from_xml_output
     from postqe.ase.calculator import PostqeCalculator
 
-    calcul = PostqeCalculator(atoms=None, label='./Si', schema='../../schemas/qes.xsd')
-
+    # define the Atoms structure reading the xml file
     Si = get_atoms_from_xml_output('Si.xml', schema='../../schemas/qes.xsd')
+    # set a simple calculator, only to read the xml file results
+    calcul = PostqeCalculator(atoms=None, label='./Si', schema='../../schemas/qes.xsd')
     Si.set_calculator(calcul)
+    # read the results
     Si.calc.read_results()
+    # TODO: can the above lines be moved into a function?
 
+    # Create a DOS object with width= eV and npts points
     dos = DOS(calcul, width=0.02*13.605698066*2, npts=3000)
+    # get the dos and energies for further processing
     d = dos.get_dos()
     e = dos.get_energies()
 
-    # if you want, you can plot the DOS with Matplotlib...
+    # Plot the DOS with Matplotlib...
     import matplotlib.pyplot as plt
     plt.plot(e, d)
     plt.xlabel('energy [eV]')

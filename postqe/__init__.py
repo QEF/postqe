@@ -1,5 +1,5 @@
 
-from .eos_postqe import fitEtotV
+from .eos_postqe import read_EtotV, fitEtotV
 from .dos_postqe import compute_dos
 from .bands import compute_bands
 from .compute_vs import compute_v_bare, compute_v_h, compute_v_xc

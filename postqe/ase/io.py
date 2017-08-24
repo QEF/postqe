@@ -51,7 +51,6 @@ def get_atoms_from_xml_output(filename, schema=None, output=None):
     for atomx in a_p:
         # TODO: extend to all possible cases the symbol splitting (for now, only numbering up to 9 work). Not a very common case...
         symbol = split_atomic_symbol(atomx['@name'])[0]
-        print(atomx['@name'], symbol)
         x = float(atomx['$'][0])
         y = float(atomx['$'][1])
         z = float(atomx['$'][2])

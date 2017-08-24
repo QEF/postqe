@@ -455,7 +455,6 @@ class EspressoCalculator(PostqeCalculator):
     def read_results(self):
         # FIXME: compose XML output filename from parameters
         filename = self.directory + '/temp/pwscf.xml'
-        print (filename)
         self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
         self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
