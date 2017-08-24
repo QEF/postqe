@@ -20,7 +20,7 @@ def get_dict(xmlfile):
     try:
         xs = xmlschema.XMLSchema('schemas/qes.xsd')
     except:
-        xs = xmlschema.XMLSchema('../../postqe/schemas/qes.xsd')
+        xs = xmlschema.XMLSchema('../../schemas/qes.xsd')
     ##########################################################
 
     d = xs.to_dict(xmlfile)

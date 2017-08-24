@@ -72,7 +72,7 @@ class PostqeCalculator(Calculator):
 
     def read_results(self):
         filename = self.label + '.xml'
-        self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
+        self.output = xmlschema.to_dict(filename, schema=self.schema, path=None)['output']
         self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 
