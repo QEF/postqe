@@ -1,6 +1,7 @@
 #!/bin/bash
 
-QE_SOURCE_MD5SUM="c8c403fd9a9e6b3049683a94a68dc7d9"
+QE_SOURCE_URL="https://github.com/QEF/q-e/archive/585716d6435014dfc493abcd08294cd9f02eee30.zip"
+QE_SOURCE_MD5SUM="05dede6dd93e4d69109062aa429161c9"
 
 # Move into build/ directory
 if [ -d build ]
@@ -15,14 +16,12 @@ else
 fi
 cd build
 
-# https://github.com/QEF/q-e/archive/1b1c427c1bc604d9746de2eefd6e2a96849e56fe.zip
-
 if [ -e q-e.zip ]
 then
    echo "QE source code already downloaded ..."
 else
    echo "Download QE source code ..."
-   curl -SL "https://github.com/QEF/q-e/archive/master.zip" -o q-e.zip
+   curl -SL $QE_SOURCE_URL -o q-e.zip
 fi
 
 echo -n "Checks MD5SUM of source archive ... "
@@ -50,7 +49,7 @@ fi
 
 echo "Extract source files from archive ..."
 unzip q-e.zip
-mv q-e-master/ q-e/
+mv q-e-585716d6435014dfc493abcd08294cd9f02eee30/ q-e/
 
 echo "Build Quantum Espresso modules ..."
 cd q-e
