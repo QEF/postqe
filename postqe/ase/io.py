@@ -18,9 +18,32 @@ def split_atomic_symbol(x):
         return False
 
 
-def read_espresso_xml(fileobj, schema=None):
-    data = xmlschema.to_dict(fileobj, schema)
-    dout = data["output"]
+def xml_to_dict(filename):
+    """
+    This function reads the xml output using the xmlschema package and returns a dictionary with the output section.
+    :param filename:
+    :return:
+    """
+
+    import xmlschema
+
+    ##########################################################
+    # TODO for whatever reason this is not working now
+    # schemaLoc = xmlschema.fetch_schema(filename)
+    # xs = xmlschema.XMLSchema(schemaLoc)
+    #
+    # temporary local solution
+    xs = xmlschema.XMLSchema('/home/mauropalumbo/pythonprojects/postqe/postqe/schemas/qes.xsd')
+    ##########################################################
+
+    print("Reading xml file: ", filename)
+    d = xs.to_dict(filename)
+    return d["output"]
+
+
+def read_espresso_xml(filename):
+
+    dout = xml_to_dict(filename)
     a1 = np.array(dout["atomic_structure"]["cell"]["a1"])
     a2 = np.array(dout["atomic_structure"]["cell"]["a2"])
     a3 = np.array(dout["atomic_structure"]["cell"]["a3"])
