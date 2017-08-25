@@ -1,5 +1,5 @@
 
-QE_DIR = /home/mauropalumbo/pythonprojects/postqe/postqe/fortran/build/q-e
+QE_DIR = `pwd`/build/q-e
 
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90
