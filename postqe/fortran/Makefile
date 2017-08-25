@@ -18,8 +18,7 @@ libpostqe: $(LIBFILES)
 
 pyqe: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
 	f2py3 -c wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90 -m pyqe \
-	-I$(QE_DIR)/Modules/ -llapack -lblas \
-	$(QE_DIR)/clib/c_mkdir.o \
+	-I$(QE_DIR)/Modules/	$(QE_DIR)/clib/c_mkdir.o \
 	$(QE_DIR)/clib/copy.o \
 	$(QE_DIR)/clib/cptimer.o \
 	$(QE_DIR)/clib/customize_signals.o \
@@ -36,6 +35,7 @@ pyqe: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
 	-L$(QE_DIR)/FFTXlib/ -lqefft \
 	$(QE_DIR)/PW/src/libpw.a \
 	-L$(QE_DIR)/UtilXlib/ -lutil \
+        -llapack -lblas \
 	libpostqe.a
 
 all: libpostqe pyqe move
