@@ -17,4 +17,4 @@ if __name__ == "__main__":
     G = compute_G(b, charge.shape)
     fig1 = plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0),
                             nx=100, ny=100, plot_file='plotfile')
-    fig1.savefig("figure_1.png")
+    fig1.savefig("figure_1.pdf", format='pdf')
