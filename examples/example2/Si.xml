@@ -566,7 +566,7 @@
     <convergence_info>
       <scf_conv>
         <n_scf_steps>
-           0
+           1
         </n_scf_steps>
         <scf_error>
   0.0000000000000000E+00
