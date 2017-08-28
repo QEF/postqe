@@ -33,7 +33,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     atoms = atoms if atoms is not None else calc.atoms
     calc = calc if calc is not None else atoms.calc
 
-    kpts = calc.get_bz_k_points()
+    kpts = calc.get_k_points()
 
     energies = []
     for s in range(calc.get_number_of_spins()):
