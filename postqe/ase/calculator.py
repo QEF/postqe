@@ -98,6 +98,7 @@ class PostqeCalculator(Calculator):
 
     def read_results(self):
         filename = self.label + '.xml'
+        self.input = xmlschema.to_dict(filename, schema=self.schema, path=None)['input']
         self.output = xmlschema.to_dict(filename, schema=self.schema, path=None)['output']
         self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
@@ -248,6 +249,9 @@ class PostqeCalculator(Calculator):
     def get_ecutrho(self):
         return float(self.output["basis_set"]["ecutrho"])
 
+    def get_pseudodir(self):
+        return (self.input["control_variables"]["pseudo_dir"])
+
     # TODO: these two methods are just a temporary patch (a and b vectors can be obtained from Atoms object)
     def get_a_vectors(self):
         a1 = np.array(self.output["atomic_structure"]["cell"]["a1"])
@@ -261,6 +265,23 @@ class PostqeCalculator(Calculator):
         b3 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b3"])
         return np.array([b1, b2, b3])
 
+    def get_atomic_positions(self):
+        a_p = (self.output["atomic_structure"]["atomic_positions"]["atom"])
+        if (type(a_p) == type([])):
+            atomic_positions = a_p
+        else:
+            atomic_positions = [a_p]
+        return atomic_positions
+
+    def get_atomic_species(self):
+        a_s = (self.output["atomic_species"]["species"])
+        # for subsequent loops it is important to have always lists for atomic_positions
+        # and atomic_species. If this is not, convert
+        if (type(a_s) == type([])):
+            atomic_species = a_s
+        else:
+            atomic_species = [a_s]
+        return atomic_species
 
     # TODO: methods below are not implemented yet (do it if necessary)
     def get_bz_k_points(self):

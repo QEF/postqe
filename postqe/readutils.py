@@ -149,33 +149,10 @@ def read_pseudo_file(xmlfile):
 
     return pseudo
 
-
-def write_charge(filename, charge, header):
-    """
-    Write the charge or another quantity calculated by postqe into a text file *filename*.
-    """
-    
-    fout = open(filename, "w")
-    
-    # The header contains some information on the system, the grid nr, etc.
-    fout.write(header)
-    nr = charge.shape
-    count = 0
-    # Loop with the order as in QE files
-    for z in range(0,nr[2]):
-        for y in range(0,nr[1]):
-            for x in range(0,nr[0]):
-                fout.write("  {:.9E}".format(charge[x,y,z]))
-                count += 1
-                if (count%5==0):
-                    fout.write("\n")
-                        
-    fout.close()
-    
     
 def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
     """
-    Creates the header lines for the output charge (or potential) text file and is called by *write_charge*.
+    Creates the header lines for the output charge (or potential) text file as in pp.x.
     The format is:
 
     system_prefix
