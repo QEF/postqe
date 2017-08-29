@@ -11,5 +11,5 @@ if __name__ == "__main__":
 
     charge = get_charge(label="./Ni", schema='../../schemas/qes.xsd')
 
-    figure = charge.plot1D(x0=(0, 0, 0), e1=(1, 0, 0), nx=100)
+    figure = charge.plot(x0=(0, 0, 0), e1=(1, 0, 0), nx=100)
     figure.savefig("figure_1.png")

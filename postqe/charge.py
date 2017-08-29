@@ -93,33 +93,47 @@ class Charge:
         #write_charge(plot_file + '_down', charge_down, header)
         pass
 
-    def plot1D(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, ifmagn='total'):
+    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (1., 0., 0.), ny=50, dim=1, ifmagn='total'):
         """
-        Plot a 1D section of the charge from x0 along e1 direction using Fourier interpolation.
+        Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.
 
         :param x0: 3D vector, origin of the line
-        :param e1: 3D vector which determines the plotting line
-        :param nx: number of points in the line
+        :param e1, e2: 3D vectors which determines the plotting lines
+        :param nx, ny: number of points along e1, e2
+        :param dim: 1 for a 1D section, 2 for a 2D section
         :param ifmagn: for a magnetic calculation, 'total' plot the total charge, 'up' plot the charge with spin up, 'down' for spin down
         :return: a Matplotlib figure object
         """
         a = self.calculator.get_a_vectors()
         b = self.calculator.get_b_vectors()
         G = compute_G(b, self.nr)
+
         if not self.calculator.get_spin_polarized():  # non magnetic calculation
-            fig = plot1D_FFTinterp(self.charge, G, a, x0, e1, nx)
+            if dim == 1:  # 1D section
+                fig = plot1D_FFTinterp(self.charge, G, a, x0, e1, nx)
+            else:
+                fig = plot2D_FFTinterp(self.charge, G, a, x0, e1, e2, nx, ny)
             fig.show()
             return fig
         else:  # magnetic calculation, plot as ifmagn
-            if ifmagn=='up':
+            if ifmagn == 'up':
                 charge_up = (self.charge + self.charge_diff) / 2.0
-                fig2 = plot1D_FFTinterp(charge_up, G, a, x0, e1, nx)
-                fig2.show()
-            elif ifmagn=='down':
+                if dim == 1:  # 1D section
+                    fig = plot1D_FFTinterp(charge_up, G, a, x0, e1, nx)
+                else:
+                    fig = plot2D_FFTinterp(charge_up, G, a, x0, e1, e2, nx, ny)
+                fig.show()
+            elif ifmagn == 'down':
                 charge_down = (self.charge - self.charge_diff) / 2.0
-                fig = plot1D_FFTinterp(charge_down, G, a, x0, e1, nx)
+                if dim == 1:  # 1D section
+                    fig = plot1D_FFTinterp(charge_down, G, a, x0, e1, nx)
+                else:
+                    fig = plot2D_FFTinterp(charge_down, G, a, x0, e1, e2, nx, ny)
                 fig.show()
             else:
-                fig = plot1D_FFTinterp(self.charge, G, a, x0, e1, nx)
+                if dim == 1:  # 1D section
+                    fig = plot1D_FFTinterp(self.charge, G, a, x0, e1, nx)
+                else:
+                    fig = plot2D_FFTinterp(self.charge, G, a, x0, e1, e2, nx, ny)
                 fig.show()
             return fig
