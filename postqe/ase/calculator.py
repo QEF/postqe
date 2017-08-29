@@ -225,6 +225,43 @@ class PostqeCalculator(Calculator):
 
         return occupations
 
+    # Here are a number of additional getter methods, some very specific for Quantum Espresso
+    def get_nr(self):
+        nr = np.array([self.output["basis_set"]["fft_grid"]["@nr1"], self.output["basis_set"]["fft_grid"]["@nr2"],
+                       self.output["basis_set"]["fft_grid"]["@nr3"]], int)
+        return nr
+
+    def get_nr_smooth(self):
+        nr_smooth = np.array([self.output["basis_set"]["fft_smooth"]["@nr1"], self.output["basis_set"]["fft_smooth"]["@nr2"],
+                              self.output["basis_set"]["fft_smooth"]["@nr3"]], int)
+        return nr_smooth
+
+    def get_ibrav(self):
+        return int(self.output["atomic_structure"]["@bravais_index"])
+
+    def get_alat(self):
+        return float(self.output["atomic_structure"]["@alat"])
+
+    def get_ecutwfc(self):
+        return float(self.output["basis_set"]["ecutwfc"])
+
+    def get_ecutrho(self):
+        return float(self.output["basis_set"]["ecutrho"])
+
+    # TODO: these two methods are just a temporary patch (a and b vectors can be obtained from Atoms object)
+    def get_a_vectors(self):
+        a1 = np.array(self.output["atomic_structure"]["cell"]["a1"])
+        a2 = np.array(self.output["atomic_structure"]["cell"]["a2"])
+        a3 = np.array(self.output["atomic_structure"]["cell"]["a3"])
+        return np.array([a1, a2, a3])
+
+    def get_b_vectors(self):
+        b1 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b1"])
+        b2 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b2"])
+        b3 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b3"])
+        return np.array([b1, b2, b3])
+
+
     # TODO: methods below are not implemented yet (do it if necessary)
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.

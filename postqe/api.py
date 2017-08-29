@@ -8,7 +8,8 @@ A tentative collection of functions to be part of postqe API and exposed to the 
 
 import numpy as np
 from .xmlfile import get_cell_data, get_calculation_data
-from .readutils import read_charge_file_hdf5, write_charge, create_header
+from .readutils import write_charge, create_header
+from .charge import Charge, read_charge_file_hdf5
 from .plot import plot1D_FFTinterp, plot2D_FFTinterp
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 from .pyqe import pyqe_getcelldms
@@ -44,12 +45,12 @@ def get_band_structure(label, schema, reference_energy=0):
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
-    Si = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
-    Si.set_calculator(calcul)
+    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms.set_calculator(calcul)
     # read the results
-    Si.calc.read_results()
+    atoms.calc.read_results()
 
-    bs = Si.calc.band_structure(reference=reference_energy)
+    bs = atoms.calc.band_structure(reference=reference_energy)
 
     return bs
 
@@ -71,18 +72,17 @@ def get_dos(label, schema, width=0.01, npts=100):
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
-    Si = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
-    Si.set_calculator(calcul)
+    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms.set_calculator(calcul)
     # read the results
-    Si.calc.read_results()
+    atoms.calc.read_results()
 
     # Create a DOS object with width= eV and npts points
     dos = DOS(calcul, width=width, npts=npts)
 
     return dos
 
-
-def get_charge(xmlfile, outfile='postqe.out'):
+def get_charge(label, schema):
     """
     This function reads the *xmlfile* and the HDF5 charge file produced by Quantum Espresso and writes the charge values
      in a text file.
@@ -94,21 +94,25 @@ def get_charge(xmlfile, outfile='postqe.out'):
       charge density spin down
     """
 
-    ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
-    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
-        get_calculation_data(xmlfile)
-    celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
-    charge_file = outdir+prefix+".save/charge-density.hdf5"
+    from postqe.ase.io import get_atoms_from_xml_output
+    from postqe.ase.calculator import PostqeCalculator
 
-    charge, chargediff = read_charge_file_hdf5(charge_file, nr)
-    header = create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions)
+    # set a simple calculator, only to read the xml file results
+    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
+    # define the Atoms structure reading the xml file
+    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms.set_calculator(calcul)
+    # read the results
+    atoms.calc.read_results()
 
-    write_charge(outfile, charge, header)
+    nr = calcul.get_nr()
+    charge_file = calcul.prefix+".save/charge-density.hdf5"
 
-    if (lsda == 'true'):    # non magnetic calculation
-        write_charge(outfile+'_diff', charge, header)
+    charge = Charge(nr)
+    charge.read(charge_file)
+    charge.set_calculator(calcul)
 
-    return charge, chargediff
+    return charge
 
 def get_potential(xmlfile, outfile='postqe.out', pot_type='vtot'):
     """
@@ -149,50 +153,6 @@ def get_potential(xmlfile, outfile='postqe.out', pot_type='vtot'):
     write_charge(outfile, v, header)
 
     return v
-
-
-def plot_charge1D(xmlfile, plot_file='plotout', x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50):
-    """
-
-    :param xmlfile: File xml produced by the QE calculation
-    :param plot_file: Output text file with the charge
-    :param x0: 3D vector, origin of the line
-    :param e1: 3D vector which determines the plotting line
-    :param nx: number of points in the line
-    :return:
-    """
-    ibrav, alat, a, b, nat, ntyp, atomic_positions, atomic_species = get_cell_data(xmlfile)
-    prefix, outdir, ecutwfc, ecutrho, functional, lsda, noncolin, pseudodir, nr, nr_smooth = \
-        get_calculation_data(xmlfile)
-    celldms = pyqe_getcelldms(alat, a[0], a[1], a[2], ibrav)
-
-    charge_file = outdir+prefix+".save/charge-density.hdf5"
-
-    charge, chargediff = read_charge_file_hdf5(charge_file, nr)
-    header = create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions)
-
-    if (lsda != 'true'):    # non magnetic calculation
-        write_charge(plot_file, charge, header)
-
-        # Plot a 1D section
-        G = compute_G(b, charge.shape)
-        fig = plot1D_FFTinterp(charge, G, a, x0, e1, nx)
-        fig.show()
-    else:                   # magnetic calculation, also plot charge_up and charge_down
-        write_charge(plot_file, charge, header)
-        charge_up = (charge + chargediff) / 2.0
-        charge_down = (charge - chargediff) / 2.0
-        write_charge(plot_file+'_up', charge_up, header)
-        write_charge(plot_file+'_down', charge_down, header)
-
-        # Plot 2D sections
-        G = compute_G(b, charge.shape)
-        fig1 = plot1D_FFTinterp(charge, G, a, x0, e1, nx)
-        fig1.show()
-        fig2 = plot1D_FFTinterp(charge_up, G, a, x0, e1, nx)
-        fig2.show()
-        fig3 = plot1D_FFTinterp(charge_down, G, a, x0, e1, nx)
-        fig3.show()
 
 
 def plot_charge2D(xmlfile, plot_file='plotout', x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50,

@@ -7,14 +7,9 @@ This is a simple example of plotting a 1D section of the electronic charge densi
     
 if __name__ == "__main__":
 
-    from postqe import get_charge, get_cell_data, compute_G, plot1D_FFTinterp
+    from postqe import get_charge
 
-    fin = "./Ni.xml"  				            # file xml produce by QE
-    ibrav, alat, a, b, nat, ntyp,\
-    atomic_positions, atomic_species = get_cell_data(fin)  # get some data on the unit cell
+    charge = get_charge(label="./Ni", schema='../../schemas/qes.xsd')
 
-    charge, chargediff = get_charge(fin)    	# get the charge (and charge diff)
-
-    G = compute_G(b, charge.shape)
-    fig1 = plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=50, plot_file='plotfile')
-    fig1.savefig("figure_1.png")
+    figure = charge.plot1D(x0=(0, 0, 0), e1=(1, 0, 0), nx=100)
+    figure.savefig("figure_1.png")
