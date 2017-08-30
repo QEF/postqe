@@ -8,6 +8,37 @@ A collection of functions for reading different files and quantities.
 import numpy as np
 import h5py
 from xml.etree import ElementTree as ET
+def read_charge_h5file_retab(filename:str, nr=None, dataset='rhotot_g'):
+    """
+    :param filename: file to parse 
+    :param nr: grid dataset if not provided a mimimal one will be computed with miller indices
+    :param dataset: name of the dataset to read possible values rhotot_g rhodiff_g
+    :return: charge in real space grid
+    """
+
+    with h5py.File(filename) as h5f:
+        MI = h5f['MillerIndices']
+        if nr is None:
+            nr1 = 2 * max(abs(MI[:, 0])) + 1
+            nr2 = 2 * max(abs(MI[:, 1])) + 1
+            nr3 = 2 * max(abs(MI[:, 2])) + 1
+        else:
+            nr1, nr2, nr3 = nr
+
+        ngm_g = h5f.attrs.get('ngm_g')
+
+        aux = np.array(h5f[dataset]).reshape([ngm_g, 2])
+        rhotot_g = aux.dot([1.e0,1.e0j])
+        rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+        for el in zip(MI, rhotot_g):
+            (i, j, k), rho = el
+            try:
+                rho_temp[i, j, k] = rho
+            except IndexError:
+                pass
+        rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+        return rhotot_r.real
+
 
 
 def read_charge_file_hdf5(filename, nr):
