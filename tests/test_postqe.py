@@ -21,54 +21,6 @@ PACKAGE_DIR = os.path.dirname(TEST_DIR)
 if sys.path[0] != PACKAGE_DIR:
     sys.path.insert(0, PACKAGE_DIR)
 
-import numpy as np
-from postqe.readutils import read_charge_file_hdf5, write_charge, create_header
-from postqe.compute_vs import compute_v_bare, compute_v_h, compute_v_xc
-from postqe.pyqe import pyqe_getcelldms
-from postqe.xmldata import PWData
-
-
-def run_test_case(pseudo_dir):
-    # get some needed values from the XML file
-    data = PWData(os.path.join(pseudo_dir, "Ni.xml"), os.path.join(PACKAGE_DIR, 'postqe/schemas/qes.xsd'))
-    celldms = pyqe_getcelldms(data.alat, data.a[0], data.a[1], data.a[2], data.ibrav)
-    charge_file = os.path.join(pseudo_dir, "charge-density.hdf5")
-
-    charge, chargediff = read_charge_file_hdf5(charge_file, data.nr)
-    header = create_header("Ni", data.nr, data.nr_smooth, data.ibrav, celldms, data.nat,
-                           data.ntyp, data.atomic_species, data.atomic_positions)
-
-    # plot_num = 0
-    write_charge(os.path.join(pseudo_dir, 'postqeout0'), charge, header)
-
-    # plot_num = 6
-    write_charge(os.path.join(pseudo_dir, 'postqeout6'), chargediff, header)
-
-    # plot_num = 2
-    v_bare = compute_v_bare(
-        data.ecutrho, data.alat, data.a[0], data.a[1], data.a[2], data.nr,
-        data.atomic_positions, data.atomic_species, pseudo_dir
-    )
-    write_charge(os.path.join(pseudo_dir, 'postqeout2'), v_bare, header)
-
-    # plot_num = 11
-    v_bare = compute_v_bare(data.ecutrho, data.alat, data.a[0], data.a[1], data.a[2], data.nr,
-                            data.atomic_positions, data.atomic_species, pseudo_dir)
-    v_h = compute_v_h(charge, data.ecutrho, data.alat, data.b)
-    v_tot = v_bare + v_h
-    write_charge(os.path.join(pseudo_dir, 'postqeout11'), v_tot, header)
-
-    # plot_num = 1
-    v_bare = compute_v_bare(
-        data.ecutrho, data.alat, data.a[0], data.a[1], data.a[2], data.nr,
-        data.atomic_positions, data.atomic_species, pseudo_dir
-    )
-    v_h = compute_v_h(charge, data.ecutrho, data.alat, data.b)
-    charge_core = np.zeros(charge.shape)
-    v_xc = compute_v_xc(charge, charge_core, str(data.functional))
-    v_tot = v_bare + v_h + v_xc
-    write_charge(os.path.join(pseudo_dir, 'postqeout1'), v_tot, header)
-
 
 def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
     """Compare two data files, discarding the first 'header' lines."""
@@ -96,35 +48,16 @@ def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
                     return False
     return True
 
+
 class TestPostQE(unittest.TestCase):
 
-    def test_001(self):
-        """
-        Test case: diamond-like Si LDA norm-conserving
-        """
-        test_dir = "./Si"
-
-    def test_002(self):
-        """
-        Test case: magnetic Ni fcc with norm-conserving LDA pseudo
-        """
-        run_test_case(os.path.join(TEST_DIR, "Ni_pz_nc"))
-        for k in (0, 1, 2, 6, 11):
-            self.assertTrue(compare_data(
-                os.path.join(TEST_DIR, 'Ni_pz_nc/reference/ppout%d' % k),
-                os.path.join(TEST_DIR, 'Ni_pz_nc/postqeout%d' % k),
-                header=6),
-                msg="Data file postqeout%d differs!" % k
-            )
-
-    def test_003(self):
-        """
-        Test case: magnetic Ni fcc with ultrasoft PBE pseudo
-        """
-        test_dir = "./Ni_pbe_us"
+    def test_get_band_structure(self):
+        from postqe import get_band_structure
+        import pdb
+        pdb.set_trace()
+        bs = get_band_structure(label="./examples/Si", schema='../schemas/qes.xsd', reference_energy=0)
+        self.assertTrue(True)
 
 
 if __name__ == '__main__':
-    import postqe
-    print("module = ", postqe)
     unittest.main()

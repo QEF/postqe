@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+#
+# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Internazionale Superiore di Studi Avanzati). All rights reserved.
+# This file is distributed under the terms of the LGPL-2.1 license. See the
+# file 'LICENSE' in the root directory of the present distribution, or
+# https://opensource.org/licenses/LGPL-2.1
+#
 import os, subprocess
 import numpy as np
 import xmlschema
@@ -33,7 +39,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     atoms = atoms if atoms is not None else calc.atoms
     calc = calc if calc is not None else atoms.calc
 
-    kpts = calc.get_bz_k_points()
+    kpts = calc.get_k_points()
 
     energies = []
     for s in range(calc.get_number_of_spins()):
@@ -98,6 +104,7 @@ class PostqeCalculator(Calculator):
 
     def read_results(self):
         filename = self.label + '.xml'
+        self.input = xmlschema.to_dict(filename, schema=self.schema, path=None)['input']
         self.output = xmlschema.to_dict(filename, schema=self.schema, path=None)['output']
         self.atoms = get_atoms_from_xml_output(filename, output=self.output)
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
@@ -118,11 +125,9 @@ class PostqeCalculator(Calculator):
         'LDA', 'PBE', ..."""
         return self.output["dft"]["functional"]
 
-    def get_bz_k_points(self):
-        """Return all the k-points in the 1. Brillouin zone.
-
-        The coordinates are relative to reciprocal lattice vectors."""
-        # TODO: check what units of the k-points ASE requires (2pi/a or else) and convert into reciprocal lattice? (check band structure class)
+    def get_k_points(self):
+        """Return all the k-points exactely as in the calculation.
+        """
         nks = int(self.output["band_structure"]["nks"])  # get the number of k-points
         kpoints = np.zeros((nks, 3))
         ks_energies = self.output["band_structure"]["ks_energies"]
@@ -227,13 +232,77 @@ class PostqeCalculator(Calculator):
 
         return occupations
 
+    # Here are a number of additional getter methods, some very specific for Quantum Espresso
+    def get_nr(self):
+        nr = np.array([self.output["basis_set"]["fft_grid"]["@nr1"], self.output["basis_set"]["fft_grid"]["@nr2"],
+                       self.output["basis_set"]["fft_grid"]["@nr3"]], int)
+        return nr
+
+    def get_nr_smooth(self):
+        nr_smooth = np.array([self.output["basis_set"]["fft_smooth"]["@nr1"], self.output["basis_set"]["fft_smooth"]["@nr2"],
+                              self.output["basis_set"]["fft_smooth"]["@nr3"]], int)
+        return nr_smooth
+
+    def get_ibrav(self):
+        return int(self.output["atomic_structure"]["@bravais_index"])
+
+    def get_alat(self):
+        return float(self.output["atomic_structure"]["@alat"])
+
+    def get_ecutwfc(self):
+        return float(self.output["basis_set"]["ecutwfc"])
+
+    def get_ecutrho(self):
+        return float(self.output["basis_set"]["ecutrho"])
+
+    def get_pseudodir(self):
+        return (self.input["control_variables"]["pseudo_dir"])
+
+    # TODO: these two methods are just a temporary patch (a and b vectors can be obtained from Atoms object)
+    def get_a_vectors(self):
+        a1 = np.array(self.output["atomic_structure"]["cell"]["a1"])
+        a2 = np.array(self.output["atomic_structure"]["cell"]["a2"])
+        a3 = np.array(self.output["atomic_structure"]["cell"]["a3"])
+        return np.array([a1, a2, a3])
+
+    def get_b_vectors(self):
+        b1 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b1"])
+        b2 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b2"])
+        b3 = np.array(self.output["basis_set"]["reciprocal_lattice"]["b3"])
+        return np.array([b1, b2, b3])
+
+    def get_atomic_positions(self):
+        a_p = (self.output["atomic_structure"]["atomic_positions"]["atom"])
+        if (type(a_p) == type([])):
+            atomic_positions = a_p
+        else:
+            atomic_positions = [a_p]
+        return atomic_positions
+
+    def get_atomic_species(self):
+        a_s = (self.output["atomic_species"]["species"])
+        # for subsequent loops it is important to have always lists for atomic_positions
+        # and atomic_species. If this is not, convert
+        if (type(a_s) == type([])):
+            atomic_species = a_s
+        else:
+            atomic_species = [a_s]
+        return atomic_species
+
     # TODO: methods below are not implemented yet (do it if necessary)
+    def get_bz_k_points(self):
+        """Return all the k-points in the 1. Brillouin zone.
+
+        The coordinates are relative to reciprocal lattice vectors."""
+        raise NotImplementedError
+        #return kpoints
+
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
-        #raise NotImplementedError
-        return self.get_bz_k_points()
+        raise NotImplementedError
+        #return kpoints
 
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.

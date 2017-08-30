@@ -1,7 +1,12 @@
 !
+! Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+! Internazionale Superiore di Studi Avanzati). All rights reserved.
+! This file is distributed under the terms of the LGPL-2.1 license. See the
+! file 'LICENSE' in the root directory of the present distribution, or
+! https://opensource.org/licenses/LGPL-2.1
+!
 ! Wrappers for functionals and related subroutines 
 !
-
 
 !-----------------------------------------------------------------------
 !subroutine py_set_dft_from_name( pydft_ , pyiexch, pyicorr, pyigcx, pyigcc, pyimeta, pyinlc )

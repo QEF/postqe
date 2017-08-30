@@ -1,4 +1,11 @@
-subroutine generate_gg_list(nrrr, nr1, nr2, nr3 , bg1, bg2, bg3, g, gg , mill) 
+!
+! Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+! Internazionale Superiore di Studi Avanzati). All rights reserved.
+! This file is distributed under the terms of the LGPL-2.1 license. See the
+! file 'LICENSE' in the root directory of the present distribution, or
+! https://opensource.org/licenses/LGPL-2.1
+!
+subroutine generate_gg_list(nrrr, nr1, nr2, nr3 , bg1, bg2, bg3, g, gg , mill)
   implicit none
   integer, parameter :: dp = selected_real_kind(14,200)
   real(dp), parameter :: pi = 4.d0*atan(1.d0) , fpi = 4.d0*pi, eps8 = 1.d-8
