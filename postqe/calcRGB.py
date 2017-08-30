@@ -82,7 +82,7 @@ np.savetxt(name_rgb,RGB)
 if arg.plot=="spectra" or arg.plot=="all":
     for i in np.arange(S[:,0].size):
         fig=plt.figure(i,figsize=(12, 10),dpi=1200)
-        gr.plotSp(griglia_nm,S[i],RGB[i])
+        gr.plot_sp(griglia_nm, S[i], RGB[i])
         name = "{}.eps"
         folder=arg.outS+name
         plt.savefig(folder.format(i))
@@ -96,7 +96,7 @@ if arg.av!=0:
     np.savetxt(rgb_av_out,RGB_av)
     if arg.plot=="average" or arg.plot=="all":
         plt.figure(99999,figsize=(12, 10),dpi=1200)
-        gr.plotSp(griglia_nm,np.squeeze(S_av,axis=0),np.squeeze(RGB_av,axis=0))
+        gr.plot_sp(griglia_nm, np.squeeze(S_av, axis=0), np.squeeze(RGB_av, axis=0))
         name = "_av.eps"
         folder=arg.outS+name
         plt.savefig(folder)
@@ -106,8 +106,8 @@ if arg.av!=0:
 if arg.movie!=0:
     points=int((arg.duration*gr.frps)/(files.size-1))+1
     if arg.eig!=0:
-        nOmega=gr.nPoints(files.size,energy_matrix[0,:,0].size,energy_matrix[:,:,0],points)
-        nOsc=gr.nPoints(files.size,energy_matrix[0,:,0].size,energy_matrix[:,:,1],points)
+        nOmega=gr.npoints(files.size,energy_matrix[0,:,0].size,energy_matrix[:,:,0],points)
+        nOsc=gr.npoints(files.size,energy_matrix[0,:,0].size,energy_matrix[:,:,1],points)
         nS_nm=sp.optical_spectra_default(nOmega, nOsc)
     
     elif arg.spec!=0:
@@ -120,7 +120,7 @@ if arg.movie!=0:
     def make_frame(t):
         plt.clf()
         fig=plt.figure(1,figsize=(12, 10),dpi=1200)
-        gr.plotMovie(griglia_nm,nS_nm[t*gr.frps],nRGB[t*gr.frps])
+        gr.plot_movie(griglia_nm, nS_nm[t * gr.frps], nRGB[t * gr.frps])
         fig.canvas.draw()
         figure = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
         figure = figure.reshape(fig.canvas.get_width_height()[::-1] + (3,))

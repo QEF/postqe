@@ -1,27 +1,15 @@
 import numpy as np
-from natsort import natsorted
-import glob
-from numpy import linalg as la
-import pylab
 import matplotlib.pyplot as plt
-import scipy 
-from scipy import interpolate as ipl
-import colormath
-from colormath.color_objects import sRGBColor, XYZColor, AdobeRGBColor
-from colormath.color_conversions import convert_color
-from matplotlib import rc
-import moviepy.editor as mpy
-import eig2spectra as sp
-import RGB as rgb
 
 #variables for plots and movie
 
 frps = 25
 
-def plotSp(x,S,rgb):
-    plt.plot(x, S,'-', color = rgb)
+
+def plot_sp(x, s, rgb):
+    plt.plot(x, s, '-', color = rgb)
     plt.gcf().subplots_adjust(bottom=0.15)
-    plt.fill_between(x,S,0.3,color = rgb)
+    plt.fill_between(x, s, 0.3, color = rgb)
     plt.xlabel('wavelength [nm]', fontsize=45, color='black')
     plt.ylabel('absorption', fontsize=45, color='black')
     plt.axis([380, 780, 0.30, 25])
@@ -29,10 +17,11 @@ def plotSp(x,S,rgb):
     plt.xticks([450,600,750])
     plt.yticks([])
 
-def plotMovie(x,S,rgb):
-    plt.plot(x, S,'-', color = rgb)
+
+def plot_movie(x, s, rgb):
+    plt.plot(x, s, '-', color = rgb)
     plt.gcf().subplots_adjust(bottom=0.20)
-    plt.fill_between(x,S,0.3,color = rgb)
+    plt.fill_between(x, s, 0.3, color = rgb)
     plt.xlabel('wavelength [nm]', fontsize=40, color='black')
     plt.ylabel('absorption', fontsize=40, color='black')
     plt.axis([380, 780, 0.30, 25])
@@ -40,17 +29,23 @@ def plotMovie(x,S,rgb):
     plt.xticks([450,600,750])
     plt.yticks([])
 
-#interpolation function for movie
 
-def nPoints(x,y,M,n):
-    M_out=list()
-    nDim=n*(x-1)
+def npoints(x, y, m, n):
+    """
+    Interpolation function for movie.
+
+    :param x:
+    :param y:
+    :param m:
+    :param n:
+    :return:
+    """
+    m_out = list()
+    nDim = n * (x-1)
     for i in np.arange(1,x):
-        M_out.append(np.transpose(np.array([np.linspace(a, b, n) for a, b in zip(M[i-1,:], M[i,:])])))
-    M_out=np.asarray(M_out).reshape(nDim,y)
-    return M_out    
-
-
+        m_out.append(np.transpose(np.array([np.linspace(a, b, n) for a, b in zip(m[i-1,:], m[i,:])])))
+    m_out = np.asarray(m_out).reshape(nDim,y)
+    return m_out
 
 
 

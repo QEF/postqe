@@ -1,0 +1,346 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial &mdash; postqe 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="postqe 0.1 documentation" href="index.html" />
+    <link rel="next" title="postqe package" href="postqe.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="postqe.html" title="postqe package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">postqe 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial">
+<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This is a simple tutorial demonstrating the main functionalities of <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code>. The examples below show how to use the package to perform the most common tasks. The code examples can be found in the directory <em>examples</em> of the package and can be run either as interactive sessions in your Python intepreter or as scripts.
+The tutorial is based on the following examples:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Example n.</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>Fitting <span class="math">\(E_{tot}(V)\)</span> for a cubic (isotropic) system using Murnaghan EOS</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>Calculate and plot the band structure of silicon</td>
+</tr>
+<tr class="row-even"><td>3</td>
+<td>Calculate and plot the density of states (DOS) of silicon and nickel</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>Plotting a 1D section of the charge density</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>Plotting a 2D section of the charge density</td>
+</tr>
+<tr class="row-odd"><td>6</td>
+<td>Plotting 1D sections of different potentials</td>
+</tr>
+</tbody>
+</table>
+<p>Several simplified plotting functions are available in <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> and are used in the following tutorial to show what you can plot.
+Note however that all plotting functions need the matplotlib library, which must be available on your system and can be used to further taylor your plot.</p>
+<div class="section" id="fitting-the-total-energy-using-murnaghan-eos-examples-1">
+<h2>Fitting the total energy using Murnaghan EOS (examples 1)<a class="headerlink" href="#fitting-the-total-energy-using-murnaghan-eos-examples-1" title="Permalink to this headline">¶</a></h2>
+<p>The simplest task you can do with <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> is to fit the total energy as a function of volume <span class="math">\(E_{tot}(V)\)</span> (example3). You can use
+an equation of state (EOS) such as Murnaghan&#8217;s or similar.  Currently the Murnaghan EOS and quadratic and quartic polynomials are implemented in <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code>.</p>
+<p>Let&#8217;s see how to fit <span class="math">\(E_{tot}(V)\)</span>. This is the case of isotropic cubic systems (simple cubic, body centered cubic, face centered cubic) or systems which can be approximated as isotropic (for example an hexagonal system with nearly constant <span class="math">\(c/a\)</span> ratio).</p>
+<div class="highlight-python"><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">postqe</span> <span class="kn">import</span> <span class="n">fitEtotV</span><span class="p">,</span> <span class="n">plot_EV</span>
+
+<span class="n">fin</span> <span class="o">=</span> <span class="s2">&quot;./EtotV.dat&quot;</span>  		            <span class="c1"># file with the total energy data E(V)</span>
+<span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">chi2</span> <span class="o">=</span> <span class="n">fitEtotV</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>    	    <span class="c1"># fits the E(V) data, returns the coefficients a and</span>
+                                	    <span class="c1"># the chi squared chi2</span>
+
+<span class="n">fig1</span> <span class="o">=</span> <span class="n">plot_EV</span><span class="p">(</span><span class="n">V</span><span class="p">,</span><span class="n">E</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>                  	<span class="c1"># plot the E(V) data and the fitting line</span>
+<span class="n">fig1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_1.png&quot;</span><span class="p">)</span>            <span class="c1"># save the matplotlib figure</span>
+
+</pre></div>
+</div>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">fitEtotV()</span></code> needs in input a file with two columns: the first with the volumes (in <span class="math">\(a.u.^3\)</span>), the second with energies (in <span class="math">\(Ryd/cell\)</span>). It returns the volumes <em>V</em> and energies <em>E</em> from the input file plus the fitting coefficients <em>a</em> and the <span class="math">\(\chi^2\)</span> <em>chi</em>. The fitting results are also written in details on the <em>stdout</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre># Murnaghan EOS 		 chi squared= 6.3052908120e-09
+# Etotmin= -1.6668753461e+03 Ry	 Vmin= 1.9256068649e+02 a.u.^3	 B0= 3.9507640525e+03 kbar	 dB0/dV= 4.7877558697e+00
+################################################################################
+# V *a.u.^3) 		 Etot  (Ry)		 Etotfit  (Ry)		 Etot-Etotfit (Ry)	P (kbar)
+1.7119697047e+02 	 -1.6668351807e+03	 -1.6668351587e+03	 -2.1971172146e-05	 6.2381531911e+02
+1.7637989181e+02 	 -1.6668536038e+03	 -1.6668536431e+03	 3.9227047637e-05	 4.3099793531e+02
+1.8166637877e+02 	 -1.6668660570e+03	 -1.6668660709e+03	 1.3986418708e-05	 2.6537059196e+02
+1.8705745588e+02 	 -1.6668731355e+03	 -1.6668731117e+03	 -2.3822185085e-05	 1.2288704542e+02
+1.9255414767e+02 	 -1.6668753764e+03	 -1.6668753461e+03	 -3.0392647432e-05	 1.3417016197e-01
+1.9815747866e+02 	 -1.6668732871e+03	 -1.6668732784e+03	 -8.7825126229e-06	 -1.0577186614e+02
+2.0386847338e+02 	 -1.6668673220e+03	 -1.6668673472e+03	 2.5205460133e-05	 -1.9727163448e+02
+2.0968815635e+02 	 -1.6668579007e+03	 -1.6668579345e+03	 3.3793803595e-05	 -2.7643386187e+02
+2.1561755211e+02 	 -1.6668454001e+03	 -1.6668453729e+03	 -2.7248831202e-05	 -3.4501482193e+02
+</pre></div>
+</div>
+<p>Optionally, you can plot the results with the <code class="xref py py-func docutils literal"><span class="pre">plot_EV()</span></code>. The original data are represented as points. If <em>a!=None</em>, a line with the fitting EOS will also be plotted. The output plot looks like the following:</p>
+<a class="reference internal image-reference" href="_images/figure_1.png"><img alt="_images/figure_1.png" src="_images/figure_1.png" style="width: 500px;" /></a>
+</div>
+<div class="section" id="calculate-and-plot-the-band-structure-of-silicon-examples-2">
+<h2>Calculate and plot the band structure of silicon (examples 2)<a class="headerlink" href="#calculate-and-plot-the-band-structure-of-silicon-examples-2" title="Permalink to this headline">¶</a></h2>
+<p>TODO</p>
+</div>
+<div class="section" id="calculate-and-plot-the-density-of-states-dos-of-silicon-and-nickel-examples-3">
+<h2>Calculate and plot the density of states (DOS) of silicon and nickel (examples 3)<a class="headerlink" href="#calculate-and-plot-the-density-of-states-dos-of-silicon-and-nickel-examples-3" title="Permalink to this headline">¶</a></h2>
+<p>This example shows how to calculate the electronic density of states (DOS) with <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code>. All necessary information is extracted from the standard xml output file. The following code shows how to do it for silicon (xml output file: Si.xml)</p>
+<div class="highlight-python"><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">postqe</span> <span class="kn">import</span> <span class="n">compute_dos</span><span class="p">,</span> <span class="n">simple_plot_xy</span><span class="p">,</span> <span class="n">multiple_plot_xy</span>
+
+<span class="n">e</span><span class="p">,</span> <span class="n">dos_up</span><span class="p">,</span> <span class="n">dos_down</span> <span class="o">=</span> <span class="n">compute_dos</span><span class="p">(</span><span class="s1">&#39;Si.xml&#39;</span><span class="p">,</span> <span class="n">filedos</span><span class="o">=</span><span class="s1">&#39;filedosSi&#39;</span><span class="p">,</span> <span class="n">e_min</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">e_max</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                                  <span class="n">e_step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">degauss</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">ngauss</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># plot the DOS</span>
+<span class="n">fig1</span> <span class="o">=</span> <span class="n">simple_plot_xy</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="n">dos_up</span><span class="p">,</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;E (eV/cell)&quot;</span><span class="p">,</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;DOS (states/eV/cell)&quot;</span><span class="p">)</span>
+<span class="n">fig1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_Sidos.png&quot;</span><span class="p">)</span>
+
+<span class="n">e2</span><span class="p">,</span> <span class="n">dos_up2</span><span class="p">,</span> <span class="n">dos_down2</span> <span class="o">=</span> <span class="n">compute_dos</span><span class="p">(</span><span class="s1">&#39;Ni.xml&#39;</span><span class="p">,</span> <span class="n">filedos</span><span class="o">=</span><span class="s1">&#39;filedosNi&#39;</span><span class="p">,</span> <span class="n">e_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">e_max</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                                  <span class="n">e_step</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">degauss</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">ngauss</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+</pre></div>
+</div>
+<p>The <code class="xref py py-func docutils literal"><span class="pre">compute_dos()</span></code> needs in input the xml file produced by pw.x. You must also specify the range of energies (and step) for which the DOS will be calculate (<em>e_min</em>, <em>e_max</em>, <em>e_step</em>), plus the type of Gaussian broadening (<em>ngauss</em>) and the value (<em>degauss</em>). The DOS values (and corresponding energies) are returned by the function in <em>e, dos_up, dos_down</em>. If you want to write the DOS values on a file, you must give it in the parameter <em>filedos</em> and the file will be like:</p>
+<div class="highlight-python"><div class="highlight"><pre>#  E                   dos up               dos down 
+#  (eV)                (states/eV/cell)     (states/eV/cell)
+  -1.000000000E+01     4.590900107E-86      0.000000000E+00
+  -9.990000000E+00     4.590900107E-86      0.000000000E+00
+  -9.980000000E+00     4.590900107E-86      0.000000000E+00
+  -9.970000000E+00     4.590900107E-86      0.000000000E+00
+  -9.960000000E+00     4.590900107E-86      0.000000000E+00
+  -9.950000000E+00     4.590900107E-86      0.000000000E+00
+  -9.940000000E+00     4.590900107E-86      0.000000000E+00
+  -9.930000000E+00     4.590900107E-86      0.000000000E+00
+</pre></div>
+</div>
+<p>The first column contains the energy values, the second one contains the DOS values. Since silicon is non magnetic, the third column contains zero values.
+Optionally, you can plot the results with the <code class="xref py py-func docutils literal"><span class="pre">simple_plot_xy()</span></code>, which is simply a wrapper to matplotlib. The output plot looks like the following:</p>
+<a class="reference internal image-reference" href="_images/figure_Sidos.png"><img alt="_images/figure_Sidos.png" src="_images/figure_Sidos.png" style="width: 500px;" /></a>
+<p>You can of course continue to calculate other quantities in your script. For example, the following lines show how to calculate the DOS for (magnetic) nickel.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># plot the DOS</span>
+<span class="n">fig2</span> <span class="o">=</span> <span class="n">simple_plot_xy</span><span class="p">(</span><span class="n">e2</span><span class="p">,</span><span class="n">dos_up2</span><span class="p">,</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;E (eV/cell)&quot;</span><span class="p">,</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;DOS (states/eV/cell)&quot;</span><span class="p">)</span>
+<span class="n">fig2</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_Nidosup.png&quot;</span><span class="p">)</span>
+<span class="n">fig3</span> <span class="o">=</span> <span class="n">simple_plot_xy</span><span class="p">(</span><span class="n">e2</span><span class="p">,</span><span class="n">dos_down2</span><span class="p">,</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;E (eV/cell)&quot;</span><span class="p">,</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;DOS (states/eV/cell)&quot;</span><span class="p">)</span>
+<span class="n">fig3</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_Nidosdown.png&quot;</span><span class="p">)</span>
+
+<span class="c1"># create a numpy matrix *doss* for plotting both spin up and down on the same plot</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">doss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">e2</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">doss</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">dos_up2</span>
+<span class="n">doss</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">dos_down2</span>
+<span class="n">fig4</span> <span class="o">=</span> <span class="n">multiple_plot_xy</span><span class="p">(</span><span class="n">e2</span><span class="p">,</span><span class="n">doss</span><span class="p">,</span><span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;E (eV/cell)&quot;</span><span class="p">,</span><span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;DOS (states/eV/cell)&quot;</span><span class="p">)</span>
+<span class="n">fig4</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_Nidosupanddown.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above lines compute the electronic DOS for nickel with spin up and down and are rather selfexplaining. The last lines put together in a numpy matrix the dos for spin up and down to show it in the same plot using the <em>matplotlib</em> wrapper <code class="xref py py-func docutils literal"><span class="pre">multiple_plot_xy()</span></code>.
+The output plots look like the following:</p>
+<a class="reference internal image-reference" href="_images/figure_Nidosup.png"><img alt="_images/figure_Nidosup.png" src="_images/figure_Nidosup.png" style="width: 500px;" /></a>
+<a class="reference internal image-reference" href="_images/figure_Nidosdown.png"><img alt="_images/figure_Nidosdown.png" src="_images/figure_Nidosdown.png" style="width: 500px;" /></a>
+<a class="reference internal image-reference" href="_images/figure_Nidosupanddown.png"><img alt="_images/figure_Nidosupanddown.png" src="_images/figure_Nidosupanddown.png" style="width: 500px;" /></a>
+</div>
+<div class="section" id="plotting-a-1d-section-of-the-charge-density-examples-4">
+<h2>Plotting a 1D section of the charge density  (examples 4)<a class="headerlink" href="#plotting-a-1d-section-of-the-charge-density-examples-4" title="Permalink to this headline">¶</a></h2>
+<p>A common task you can do with <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> is to plot the electronic charge density along one direction. The charge is read from the HDF5
+output file create by the Quantum Espresso calculation in <em>outdir</em>. Additional information are extracted from the standard xml output file.
+The code to do this is shown below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postqe</span> <span class="kn">import</span> <span class="n">get_charge</span><span class="p">,</span> <span class="n">get_cell_data</span><span class="p">,</span> <span class="n">compute_G</span><span class="p">,</span> <span class="n">plot1D_FFTinterp</span>
+
+<span class="n">fin</span> <span class="o">=</span> <span class="s2">&quot;./Ni.xml&quot;</span>  				            <span class="c1"># file xml produce by QE</span>
+<span class="n">ibrav</span><span class="p">,</span> <span class="n">alat</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">nat</span><span class="p">,</span> <span class="n">ntyp</span><span class="p">,</span>\
+<span class="n">atomic_positions</span><span class="p">,</span> <span class="n">atomic_species</span> <span class="o">=</span> <span class="n">get_cell_data</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>  <span class="c1"># get some data on the unit cell</span>
+
+<span class="n">charge</span><span class="p">,</span> <span class="n">chargediff</span> <span class="o">=</span> <span class="n">get_charge</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>    	<span class="c1"># get the charge (and charge diff)</span>
+
+<span class="n">G</span> <span class="o">=</span> <span class="n">compute_G</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">charge</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">fig1</span> <span class="o">=</span> <span class="n">plot1D_FFTinterp</span><span class="p">(</span><span class="n">charge</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nx</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">plot_file</span><span class="o">=</span><span class="s1">&#39;plotfile&#39;</span><span class="p">)</span>
+<span class="n">fig1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_1.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and it is essentially a call to the function <code class="xref py py-func docutils literal"><span class="pre">plot_charge1D()</span></code>, which needs in input the xml file create by Quantum Espresso.
+All other values are optional and taken either from the xml file or from default values.
+By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).</p>
+<a class="reference internal image-reference" href="_images/figure_11.png"><img alt="_images/figure_11.png" src="_images/figure_11.png" style="width: 500px;" /></a>
+</div>
+<div class="section" id="plotting-a-2d-section-of-the-charge-density-examples-5">
+<h2>Plotting a 2D section of the charge density  (examples 5)<a class="headerlink" href="#plotting-a-2d-section-of-the-charge-density-examples-5" title="Permalink to this headline">¶</a></h2>
+<p>This example is similar to the previous one except for producing a 2D plot of a planar section of the electronic charge density. The plane is defined
+by an initial point and two 3D vectors which define the plane.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postqe</span> <span class="kn">import</span> <span class="n">get_charge</span><span class="p">,</span> <span class="n">get_cell_data</span><span class="p">,</span> <span class="n">compute_G</span><span class="p">,</span> <span class="n">plot2D_FFTinterp</span>
+
+<span class="n">fin</span> <span class="o">=</span> <span class="s2">&quot;./Ni.xml&quot;</span>  				            <span class="c1"># file xml produce by QE</span>
+<span class="n">ibrav</span><span class="p">,</span> <span class="n">alat</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">nat</span><span class="p">,</span> <span class="n">ntyp</span><span class="p">,</span>\
+<span class="n">atomic_positions</span><span class="p">,</span> <span class="n">atomic_species</span> <span class="o">=</span> <span class="n">get_cell_data</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>  <span class="c1"># get some data on the unit cell</span>
+<span class="n">charge</span><span class="p">,</span> <span class="n">chargediff</span> <span class="o">=</span> <span class="n">get_charge</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>    	<span class="c1"># get the charge (and charge diff)</span>
+
+<span class="n">G</span> <span class="o">=</span> <span class="n">compute_G</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">charge</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">fig1</span> <span class="o">=</span> <span class="n">plot2D_FFTinterp</span><span class="p">(</span><span class="n">charge</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e2</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                        <span class="n">nx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">plot_file</span><span class="o">=</span><span class="s1">&#39;plotfile&#39;</span><span class="p">)</span>
+<span class="n">fig1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_1.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As in the previous example, it is essentially a call to a single function, which is in this case <code class="xref py py-func docutils literal"><span class="pre">plot_charge1D()</span></code>.
+The output figure is:</p>
+<a class="reference internal image-reference" href="_images/figure_12.png"><img alt="_images/figure_12.png" src="_images/figure_12.png" style="width: 500px;" /></a>
+</div>
+<div class="section" id="plotting-1d-sections-of-different-potentials-examples-6">
+<h2>Plotting 1D sections of different potentials  (examples 6)<a class="headerlink" href="#plotting-1d-sections-of-different-potentials-examples-6" title="Permalink to this headline">¶</a></h2>
+<p>This example computes all the different potentials available, i.e. the bare potential <span class="math">\(V_{bare}\)</span>, the Hartree potential <span class="math">\(V_{H}\)</span>, the exchange-correlation potential <span class="math">\(V_{xc}\)</span> and the total potential <span class="math">\(V_{tot}=V_{bare}+V_{H}+V_{xc}\)</span>. All necessary information is taken from the xml output file of QE and the HDF5 charge file. The pseudopotential file is also necessary to compute <span class="math">\(V_{bare}\)</span>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">postqe</span> <span class="kn">import</span> <span class="n">get_charge</span><span class="p">,</span> <span class="n">get_cell_data</span><span class="p">,</span> <span class="n">get_calculation_data</span><span class="p">,</span> \
+    <span class="n">compute_v_bare</span><span class="p">,</span> <span class="n">compute_v_h</span><span class="p">,</span> <span class="n">compute_v_xc</span><span class="p">,</span> <span class="n">compute_G</span><span class="p">,</span> <span class="n">plot1D_FFTinterp</span>
+
+<span class="n">fin</span> <span class="o">=</span> <span class="s2">&quot;./Ni.xml&quot;</span>  				            <span class="c1"># file xml produce by QE</span>
+<span class="n">ibrav</span><span class="p">,</span> <span class="n">alat</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">nat</span><span class="p">,</span> <span class="n">ntyp</span><span class="p">,</span>\
+<span class="n">atomic_positions</span><span class="p">,</span> <span class="n">atomic_species</span> <span class="o">=</span> <span class="n">get_cell_data</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>  <span class="c1"># get some data on the unit cell</span>
+<span class="n">prefix</span><span class="p">,</span> <span class="n">outdir</span><span class="p">,</span> <span class="n">ecutwfc</span><span class="p">,</span> <span class="n">ecutrho</span><span class="p">,</span> <span class="n">functional</span><span class="p">,</span> <span class="n">lsda</span><span class="p">,</span> <span class="n">noncolin</span><span class="p">,</span> <span class="n">pseudodir</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">nr_smooth</span> <span class="o">=</span>\
+    <span class="n">get_calculation_data</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>               <span class="c1"># get some data on the QE calculation</span>
+
+<span class="n">charge</span><span class="p">,</span> <span class="n">chargediff</span> <span class="o">=</span> <span class="n">get_charge</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>    	<span class="c1"># get the charge (and charge diff) from the HDF5 file</span>
+
+<span class="c1"># Compute the bare potential (v_bare), the Hartree potential (v_h) and the exhange-correlation potential (v_xc)</span>
+<span class="c1"># Add them up to get the total potential</span>
+<span class="n">v_bare</span> <span class="o">=</span> <span class="n">compute_v_bare</span><span class="p">(</span><span class="n">ecutrho</span><span class="p">,</span> <span class="n">alat</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">nr</span><span class="p">,</span> <span class="n">atomic_positions</span><span class="p">,</span> <span class="n">atomic_species</span><span class="p">,</span> <span class="n">pseudodir</span><span class="p">)</span>
+<span class="n">v_h</span> <span class="o">=</span> <span class="n">compute_v_h</span><span class="p">(</span><span class="n">charge</span><span class="p">,</span> <span class="n">ecutrho</span><span class="p">,</span> <span class="n">alat</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">charge_core</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">charge</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">v_xc</span> <span class="o">=</span> <span class="n">compute_v_xc</span><span class="p">(</span><span class="n">charge</span><span class="p">,</span> <span class="n">charge_core</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">functional</span><span class="p">))</span>
+<span class="n">v_tot</span> <span class="o">=</span> <span class="n">v_bare</span> <span class="o">+</span> <span class="n">v_h</span> <span class="o">+</span> <span class="n">v_xc</span>
+
+<span class="n">G</span> <span class="o">=</span> <span class="n">compute_G</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">charge</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>      <span class="c1"># calculate the G vectors for plotting</span>
+<span class="c1"># Plot the potentials as 1D sections from (0,0,0) along (1,0,0)</span>
+<span class="n">fig1</span> <span class="o">=</span> <span class="n">plot1D_FFTinterp</span><span class="p">(</span><span class="n">v_bare</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nx</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="s1">&#39;v_bare&#39;</span><span class="p">,</span> <span class="n">plot_file</span><span class="o">=</span><span class="s1">&#39;plot_v_bare&#39;</span><span class="p">)</span>
+<span class="n">fig1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_v_bare.png&quot;</span><span class="p">)</span>
+
+<span class="n">fig2</span> <span class="o">=</span> <span class="n">plot1D_FFTinterp</span><span class="p">(</span><span class="n">v_h</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nx</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="s1">&#39;v_h&#39;</span><span class="p">,</span> <span class="n">plot_file</span><span class="o">=</span><span class="s1">&#39;plot_v_h&#39;</span><span class="p">)</span>
+<span class="n">fig2</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_v_h.png&quot;</span><span class="p">)</span>
+
+<span class="n">fig3</span> <span class="o">=</span> <span class="n">plot1D_FFTinterp</span><span class="p">(</span><span class="n">v_xc</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nx</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="s1">&#39;v_xc&#39;</span><span class="p">,</span> <span class="n">plot_file</span><span class="o">=</span><span class="s1">&#39;plot_v_xc&#39;</span><span class="p">)</span>
+<span class="n">fig3</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_v_xc.png&quot;</span><span class="p">)</span>
+
+<span class="n">fig4</span> <span class="o">=</span> <span class="n">plot1D_FFTinterp</span><span class="p">(</span><span class="n">v_tot</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">e1</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">nx</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="s1">&#39;v_tot&#39;</span><span class="p">,</span> <span class="n">plot_file</span><span class="o">=</span><span class="s1">&#39;plot_v_tot&#39;</span><span class="p">)</span>
+<span class="n">fig4</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;figure_v_tot.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first lines are calls to functions to extract some necessary information from the xml output file of QE. Then we need to read the charge from the HDF5 file as in example 4. We call the proper <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> function to compute each potential and add them up to get the total potential.</p>
+<p>As in example 4, plotting is essentially a call to a single function, <code class="xref py py-func docutils literal"><span class="pre">plot_charge1D()</span></code>, passing the proper potential to be plot and changing the label on the y axis. The output figures are as follows:</p>
+<a class="reference internal image-reference" href="_images/figure_v_bare.png"><img alt="_images/figure_v_bare.png" src="_images/figure_v_bare.png" style="width: 500px;" /></a>
+<a class="reference internal image-reference" href="_images/figure_v_h.png"><img alt="_images/figure_v_h.png" src="_images/figure_v_h.png" style="width: 500px;" /></a>
+<a class="reference internal image-reference" href="_images/figure_v_xc.png"><img alt="_images/figure_v_xc.png" src="_images/figure_v_xc.png" style="width: 500px;" /></a>
+<a class="reference internal image-reference" href="_images/figure_v_tot.png"><img alt="_images/figure_v_tot.png" src="_images/figure_v_tot.png" style="width: 500px;" /></a>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Tutorial</a><ul>
+<li><a class="reference internal" href="#fitting-the-total-energy-using-murnaghan-eos-examples-1">Fitting the total energy using Murnaghan EOS (examples 1)</a></li>
+<li><a class="reference internal" href="#calculate-and-plot-the-band-structure-of-silicon-examples-2">Calculate and plot the band structure of silicon (examples 2)</a></li>
+<li><a class="reference internal" href="#calculate-and-plot-the-density-of-states-dos-of-silicon-and-nickel-examples-3">Calculate and plot the density of states (DOS) of silicon and nickel (examples 3)</a></li>
+<li><a class="reference internal" href="#plotting-a-1d-section-of-the-charge-density-examples-4">Plotting a 1D section of the charge density  (examples 4)</a></li>
+<li><a class="reference internal" href="#plotting-a-2d-section-of-the-charge-density-examples-5">Plotting a 2D section of the charge density  (examples 5)</a></li>
+<li><a class="reference internal" href="#plotting-1d-sections-of-different-potentials-examples-6">Plotting 1D sections of different potentials  (examples 6)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="postqe.html"
+                        title="next chapter">postqe package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tutorial.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="postqe.html" title="postqe package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">postqe 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2017, M. Palumbo, D. Brunato, P. D. Delugas.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+
+     Program POST-PROC v.6.1 starts on 17Jul2017 at 11:23: 2 
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum simulation of materials; please cite
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+          URL http://www.quantum-espresso.org", 
+     in publications or presentations arising from this work. More details at
+     http://www.quantum-espresso.org/quote
+
+     Parallel version (MPI), running on     4 processors
+     R & G space division:  proc/nbgrp/npool/nimage =       4
+
+   Info: using nr1, nr2, nr3 values from input
+
+   Info: using nr1, nr2, nr3 values from input
+
+     IMPORTANT: XC functional enforced from input :
+     Exchange-correlation      = PBE ( 1  4  3  4 0 0)
+     Any further DFT definition will be discarded
+     Please, verify this is what you really want
+
+               file Ni.pbe-nd-rrkjus.UPF: wavefunction(s)  4S renormalized
+
+     Parallelization info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Min         230      63     21                 4549      641     132
+     Max         232      64     22                 4550      642     135
+     Sum         925     253     85                18197     2565     531
+
+     Generating pointlists ...
+     new r_m :   0.2917 (alat units)  1.9397 (a.u.) for type    1
+
+     Check: negative/imaginary core charge=   -0.000002    0.000000
+
+     Calling punch_plot, plot_num =   6
+     Writing data to file  ppout6
+     Message from routine chdens:
+     namelist plot not found or invalid, exiting
+
+     POST-PROC    :     0.62s CPU         0.70s WALL
+
+
+   This run was terminated on:  11:23: 2  17Jul2017            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
