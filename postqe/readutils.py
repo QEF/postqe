@@ -72,10 +72,9 @@ def read_charge_file_hdf5(filename, nr):
                 (i, j, k), rho = el
                 rho_temp[i, j, k] = rho
             rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-        except:
-            rhodiff_r = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-
-    return rhotot_r.real, rhodiff_r.real
+            return rhotot_r.real, rhodiff_r.real
+        except KeyError:
+            return rhotot_r.real
 
 
 # TODO update to the new format
