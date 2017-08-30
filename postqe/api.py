@@ -41,7 +41,15 @@ def get_eos(label, eos='murnaghan'):
 
 
 def get_band_structure(label, schema, reference_energy=0):
+    """
+    This function returns a "band structure" object from an output xml Espresso file containing the results of a proper
+    calculation along a path in the Brilluoin zone.
 
+    :param label: defines the system and the xml file containing the results (possibly including the full path)
+    :param schema: the xml schema to be used to read and validate the xml output file
+    :param reference_energy: the Fermi level
+    :return: a band structure object
+    """
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
