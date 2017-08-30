@@ -1,9 +1,9 @@
 !
-! Copyright (C) 2001-2007 Quantum ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+! Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+! Internazionale Superiore di Studi Avanzati). All rights reserved.
+! This file is distributed under the terms of the LGPL-2.1 license. See the
+! file 'LICENSE' in the root directory of the present distribution, or
+! https://opensource.org/licenses/LGPL-2.1
 !
 !----------------------------------------------------------------------------
 SUBROUTINE errore2( calling_routine, message, ierr )

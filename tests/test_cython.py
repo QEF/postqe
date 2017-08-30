@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 #encoding: UTF-8
-
+#
+# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Internazionale Superiore di Studi Avanzati). All rights reserved.
+# This file is distributed under the terms of the LGPL-2.1 license. See the
+# file 'LICENSE' in the root directory of the present distribution, or
+# https://opensource.org/licenses/LGPL-2.1
+#
 import time, sys
 import numpy as np
 from readutils import read_charge_file_iotk
 
 from compute_vs import compute_G, compute_G_squared, compute_Gs, compute_v_h
 from cythonfun import compute_G_Cython, compute_Gs_Cython, compute_G_squared_Cython, compute_v_h_Cython
-
 
 
 if __name__ == "__main__":
