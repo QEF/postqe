@@ -8,6 +8,74 @@ A collection of functions for reading different files and quantities.
 import numpy as np
 import h5py
 from xml.etree import ElementTree as ET
+def read_charge_h5file_retab(filename:str, nr=None, dataset='rhotot_g'):
+    """
+    :param filename: file to parse 
+    :param nr: grid dataset if not provided a mimimal one will be computed with miller indices
+    :param dataset: name of the dataset to read possible values rhotot_g rhodiff_g
+    :return: charge in real space grid
+    """
+
+    with h5py.File(filename) as h5f:
+        MI = h5f['MillerIndices']
+        if nr is None:
+            nr1 = 2 * max(abs(MI[:, 0])) + 1
+            nr2 = 2 * max(abs(MI[:, 1])) + 1
+            nr3 = 2 * max(abs(MI[:, 2])) + 1
+        else:
+            nr1, nr2, nr3 = nr
+
+        ngm_g = h5f.attrs.get('ngm_g')
+
+        aux = np.array(h5f[dataset]).reshape([ngm_g, 2])
+        rhotot_g = aux.dot([1.e0,1.e0j])
+        rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+        for el in zip(MI, rhotot_g):
+            (i, j, k), rho = el
+            try:
+                rho_temp[i, j, k] = rho
+            except IndexError:
+                pass
+        rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+        return rhotot_r.real
+
+
+
+def read_charge_file_hdf5(filename, nr):
+    """
+    Reads a charge file written with QE in HDF5 format. *nr = [nr1,nr2,nr3]* (the dimensions of
+    the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
+
+    Notes: In the new format, the values of the charge in the reciprocal space are stored.
+    Besides, only the values of the charge > cutoff are stored, together with the Miller indexes.
+    Hence
+    """
+
+    nr1, nr2, nr3 = nr
+    with h5py.File(filename, "r") as h5f:
+        ngm_g = h5f.attrs.get('ngm_g')
+        # Read the total charge
+        aux = np.array(h5f['rhotot_g']).reshape([ngm_g,2])
+        rhotot_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
+        rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
+        for el in zip( h5f['MillerIndices'],rhotot_g):
+            (i,j,k), rho = el
+            rho_temp[i,j,k]=rho
+        rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+
+        # Read the charge difference spin up - spin down if present (for magnetic calculations)
+        try:
+            aux = np.array(h5f['rhodiff_g']).reshape([ngm_g, 2])
+            rhodiff_g = np.array(list(map(lambda x: x.dot((1e0, 1.j)), aux)))
+            rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+            for el in zip(h5f['MillerIndices'], rhodiff_g):
+                (i, j, k), rho = el
+                rho_temp[i, j, k] = rho
+            rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+        except:
+            rhodiff_r = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+
+    return rhotot_r.real, rhodiff_r.real
 
 
 # TODO update to the new format
@@ -149,10 +217,33 @@ def read_pseudo_file(xmlfile):
 
     return pseudo
 
+
+def write_charge(filename, charge, header):
+    """
+    Write the charge or another quantity calculated by postqe into a text file *filename*.
+    """
+    
+    fout = open(filename, "w")
+    
+    # The header contains some information on the system, the grid nr, etc.
+    fout.write(header)
+    nr = charge.shape
+    count = 0
+    # Loop with the order as in QE files
+    for z in range(0,nr[2]):
+        for y in range(0,nr[1]):
+            for x in range(0,nr[0]):
+                fout.write("  {:.9E}".format(charge[x,y,z]))
+                count += 1
+                if (count%5==0):
+                    fout.write("\n")
+                        
+    fout.close()
+    
     
 def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
     """
-    Creates the header lines for the output charge (or potential) text file as in pp.x.
+    Creates the header lines for the output charge (or potential) text file and is called by *write_charge*.
     The format is:
 
     system_prefix
