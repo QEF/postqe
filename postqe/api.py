@@ -8,10 +8,8 @@
 # https://opensource.org/licenses/LGPL-2.1
 #
 """
-A tentative collection of functions to be part of postqe API and exposed to the user.
+A collection of functions to be part of postqe API and exposed to the user.
 """
-
-import numpy as np
 from ase.eos import EquationOfState
 from ase.dft import DOS
 from .charge import Charge, Potential
@@ -20,10 +18,10 @@ from .ase.io import get_atoms_from_xml_output
 from .ase.calculator import PostqeCalculator
 
 
-
 def get_eos(label, eos='murnaghan'):
     """
-    This function returns an EOS object from a text input file containing the volumes and corresponding calculated energies.
+    This function returns an EOS object from a text input file containing the volumes
+    and corresponding calculated energies.
     Different equation of states are available: Murnaghan, Birch, Vinet, etc.
 
     :param label: input file for volumes and energies (possibly including the full path)
@@ -41,12 +39,13 @@ def get_eos(label, eos='murnaghan'):
 
     return eos
 
+
 def get_band_structure(label, schema, reference_energy=0):
 
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
     atoms.set_calculator(calcul)
     # read the results
     atoms.calc.read_results()
@@ -70,7 +69,7 @@ def get_dos(label, schema, width=0.01, npts=100):
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
     atoms.set_calculator(calcul)
     # read the results
     atoms.calc.read_results()
@@ -93,13 +92,13 @@ def get_charge(label, schema):
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
     atoms.set_calculator(calcul)
     # read the results
     atoms.calc.read_results()
 
     nr = calcul.get_nr()
-    charge_file = calcul.prefix+".save/charge-density.hdf5"
+    charge_file = calcul.label + ".save/charge-density.hdf5"
 
     charge = Charge(nr)
     charge.read(charge_file)
@@ -122,13 +121,13 @@ def get_potential(label, schema, pot_type='vtot'):
     # set a simple calculator, only to read the xml file results
     calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
     # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
     atoms.set_calculator(calcul)
     # read the results
     atoms.calc.read_results()
 
     nr = calcul.get_nr()
-    charge_file = calcul.prefix+".save/charge-density.hdf5"
+    charge_file = calcul.label + ".save/charge-density.hdf5"
 
     potential = Potential(nr)
     potential.read(charge_file)
