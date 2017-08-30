@@ -39,7 +39,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     atoms = atoms if atoms is not None else calc.atoms
     calc = calc if calc is not None else atoms.calc
 
-    kpts = calc.get_bz_k_points()
+    kpts = calc.get_k_points()
 
     energies = []
     for s in range(calc.get_number_of_spins()):
@@ -124,11 +124,9 @@ class PostqeCalculator(Calculator):
         'LDA', 'PBE', ..."""
         return self.output["dft"]["functional"]
 
-    def get_bz_k_points(self):
-        """Return all the k-points in the 1. Brillouin zone.
-
-        The coordinates are relative to reciprocal lattice vectors."""
-        # TODO: check what units of the k-points ASE requires (2pi/a or else) and convert into reciprocal lattice? (check band structure class)
+    def get_k_points(self):
+        """Return all the k-points exactely as in the calculation.
+        """
         nks = int(self.output["band_structure"]["nks"])  # get the number of k-points
         kpoints = np.zeros((nks, 3))
         ks_energies = self.output["band_structure"]["ks_energies"]
@@ -234,12 +232,19 @@ class PostqeCalculator(Calculator):
         return occupations
 
     # TODO: methods below are not implemented yet (do it if necessary)
+    def get_bz_k_points(self):
+        """Return all the k-points in the 1. Brillouin zone.
+
+        The coordinates are relative to reciprocal lattice vectors."""
+        raise NotImplementedError
+        #return kpoints
+
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
-        #raise NotImplementedError
-        return self.get_bz_k_points()
+        raise NotImplementedError
+        #return kpoints
 
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.

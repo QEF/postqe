@@ -181,10 +181,11 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     """
 
     try:
-        from cythonfn import plot2D_FFTinterp_Cython
-        X, Y, Z = plot2D_FFTinterp_Cython(charge, G, a, x0, e1, e2, nx, ny, zlab='charge', plot_file='')
+        from cythonfn import FFTinterp2D_Cython
+        X, Y, Z = FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)
     except ImportError:
-        X, Y, Z = plot2D_FFTinterp(charge, G, a, x0, e1, e2, nx, ny, zlab='charge', plot_file='')
+        X, Y, Z = FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)
+
 
     if plot_file != '':
         f = open(plot_file,'w')

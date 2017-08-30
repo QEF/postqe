@@ -19,6 +19,74 @@ from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 from .pyqe import pyqe_getcelldms
 
 
+def get_eos(label, eos='murnaghan'):
+    """
+    This function returns an EOS object from a text input file containing the volumes and corresponding calculated energies.
+    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
+
+    :param label: input file for volumes and energies (possibly including the full path)
+    :param eos_type: type of Equation of State (Murnaghan, Birch, Vinet, etc.)
+    :return: an EOS object
+    """
+    from .readutils import read_EtotV
+    from postqe.ase.calculator import PostqeCalculator
+    from ase.eos import EquationOfState
+
+    # set a simple calculator, only to get calcul.prefix from the label
+    calcul = PostqeCalculator(atoms=None, label=label)
+    # Extract volumes and energies from the input file:
+    volumes, energies = read_EtotV(calcul.prefix)
+
+    # Create an object EquationOfState and fit with Murnaghan (or other) EOS
+    eos = EquationOfState(volumes, energies, eos=eos)
+
+    return eos
+
+def get_band_structure(label, schema, reference_energy=0):
+    from postqe.ase.io import get_atoms_from_xml_output
+    from postqe.ase.calculator import PostqeCalculator
+
+    # set a simple calculator, only to read the xml file results
+    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
+    # define the Atoms structure reading the xml file
+    Si = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    Si.set_calculator(calcul)
+    # read the results
+    Si.calc.read_results()
+
+    bs = Si.calc.band_structure(reference=reference_energy)
+
+    return bs
+
+
+def get_dos(label, schema, width=0.01, npts=100):
+    """
+    This function returns an DOS object from an output xml Espresso file containing the results of a DOS calculation.
+
+    :param label: defines the system and the xml file containing the results (possibly including the full path)
+    :param schema: the xml schema to be used to read and validate the xml output file
+    :param width: width of the gaussian to be used for the DOS (in eV)
+    :param npts:  number of points of the DOS
+    :return: a DOS object
+    """
+    from ase.dft import DOS
+    from postqe.ase.io import get_atoms_from_xml_output
+    from postqe.ase.calculator import PostqeCalculator
+
+    # set a simple calculator, only to read the xml file results
+    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
+    # define the Atoms structure reading the xml file
+    Si = get_atoms_from_xml_output(calcul.prefix + ".xml", schema=schema)
+    Si.set_calculator(calcul)
+    # read the results
+    Si.calc.read_results()
+
+    # Create a DOS object with width= eV and npts points
+    dos = DOS(calcul, width=width, npts=npts)
+
+    return dos
+
+
 def get_charge(xmlfile, outfile='postqe.out'):
     """
     This function reads the *xmlfile* and the HDF5 charge file produced by Quantum Espresso and writes the charge values

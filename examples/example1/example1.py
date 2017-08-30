@@ -7,24 +7,15 @@ with the Murnaghan EOS.
 """
     
 if __name__ == "__main__":
-    import os.path
-    from postqe import read_EtotV
+    from postqe import units, get_eos
 
-    # file with the total energy data E(V)
-    fin = os.path.join(os.path.dirname(__file__), "EtotV.dat")
-
-    from ase.units import kJ
-    from ase.eos import EquationOfState
-
-    # Extract volumes and energies from the input file:
-    volumes, energies = read_EtotV(fin)
-
-    # Create an object EquationOfState and fit with Murnaghan (or other) EOS
-    eos = EquationOfState(volumes, energies, eos='murnaghan')
+    eos = get_eos(label="./Nienergies.dat", eos='murnaghan')
     v0, e0, B = eos.fit()
     # Print some data and plot
     print('Equilibrium volume = '+str(v0)+' Ang^3')
     print('Equilibrium energy = '+str(e0)+' eV')
-    print('Equilibrium Bulk modulus = '+str(B / kJ * 1.0e24)+' GPa')
-    eos.plot('Ni-eos.png')
+    print('Equilibrium Bulk modulus = '+str(B / units.kJ * 1.0e24)+' GPa')
+    fig = eos.plot('Ni-eos.png', show=True)
 
+    # Save the plot in a different format (pdf) with Matplotlib if you like
+    fig.figure.savefig("figure.pdf", format='pdf')
