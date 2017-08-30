@@ -14,7 +14,7 @@ The tutorial is based on the following examples:
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
 | 2             | Calculate and plot the band structure of silicon                                                                                         |
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
-| 3             | Calculate and plot the density of states (DOS) of silicon and nickel 						                           |
+| 3             | Calculate and plot the density of states (DOS) of silicon 						                           |
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
 | 4             | Plotting a 1D section of the charge density                                                                                              |
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
@@ -24,14 +24,14 @@ The tutorial is based on the following examples:
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
 
 Several simplified plotting functions are available in :py:mod:`postqe` and are used in the following tutorial to show what you can plot.
-Note however that all plotting functions need the matplotlib library, which must be available on your system and can be used to further taylor your plot. 
+Note however that all plotting functions need the matplotlib library, which must be available on your system and can be used to further tailor your plot. 
 
 ===========================================================
 Fitting the total energy using Murnaghan EOS (examples 1)
 ===========================================================
 
-The simplest task you can do with :py:mod:`postqe` is to fit the total energy as a function of volume :math:`E_{tot}(V)` (example3). You can use
-an equation of state (EOS) such as Murnaghan's or similar.  Currently the Murnaghan EOS and quadratic and quartic polynomials are implemented in :py:mod:`postqe`. 
+The simplest task you can do with :py:mod:`postqe` is to fit the total energy as a function of volume :math:`E_{tot}(V)`. You can use
+an equation of state (EOS) such as Murnaghan's or similar.  Currently you can use Murnaghan, Vinet, Birch, Birch-Murnaghan, Pourier-Tarantola and Anton-schmidt EOS and 2nd and 3rd order polynomials in :py:mod:`postqe`. 
 
 Let's see how to fit :math:`E_{tot}(V)`. This is the case of isotropic cubic systems (simple cubic, body centered cubic, face centered cubic) or systems which can be approximated as isotropic (for example an hexagonal system with nearly constant :math:`c/a` ratio).
 
@@ -40,79 +40,67 @@ Let's see how to fit :math:`E_{tot}(V)`. This is the case of isotropic cubic sys
    :dedent: 4
    :lines: 10-
    
-The :py:func:`fitEtotV` needs in input a file with two columns: the first with the volumes (in :math:`a.u.^3`), the second with energies (in :math:`Ryd/cell`). It returns the volumes *V* and energies *E* from the input file plus the fitting coefficients *a* and the :math:`\chi^2` *chi*. The fitting results are also written in details on the *stdout*:
+The :py:func:`get_eos()` needs in input a file with two columns: the first with the volumes (in :math:`a.u.^3`), the second with energies (in :math:`Ryd/cell`). You also define here what EOS to use, in this case Murnaghan's. This function returns an *eos* object. The method :py:func:`fit()` performs the fitting and returns the equilibrium volume *v0*, energy *e0* and bulk modulus *B*. The fitting results can then be printed or further processed.
 
-.. literalinclude:: ../examples/example1/out
+Optionally, you can plot the results with the :py:func:`plot_EV`. The original data are represented as points. 
 
-Optionally, you can plot the results with the :py:func:`plot_EV`. The original data are represented as points. If *a!=None*, a line with the fitting EOS will also be plotted. The output plot looks like the following:
-
-.. image:: ../examples/example1/figure_1.png
+.. image:: ../examples/example1/Ni-eos.png
    :width: 500
 
 
-===============================================================
+====================================================================================================================
 Calculate and plot the band structure of silicon (examples 2)
-===============================================================
+====================================================================================================================
 
-TODO
+This example shows how to calculate the electronic band structure of silicon with :py:mod:`postqe`. All necessary information is extracted from the standard xml output file of Quantum Espresso, produced by a proper calculation along the wanted path in the Brillouin zone. 
+
+.. literalinclude:: ../examples/example2/example2.py
+   :language: python
+   :dedent: 4
+   :lines: 10-
+
+The :py:func:`get_band_structure` needs a parameter *label* which identies the system and the corresponding xml file (label.xml). *label* may contain the full path to the file. The *schema* (optional) parameter allows the code to properly parse and validate the xml file. The parameter *reference_energy* (usually the Fermi level) allows you to shift the plot accordingly. :py:func:`get_band_structure` returns a band structure object which can be further processed.
+For example, the method :py:func:`plot` creates a figure and save it in a png file.
+
+.. image:: ../examples/example2/Sibands.png
+   :width: 500
+
 
 ==============================================================================================================================
-Calculate and plot the density of states (DOS) of silicon and nickel (examples 3)
+Calculate and plot the density of states (DOS) of silicon (examples 3)
 ==============================================================================================================================
 
-This example shows how to calculate the electronic density of states (DOS) with :py:mod:`postqe`. All necessary information is extracted from the standard xml output file. The following code shows how to do it for silicon (xml output file: Si.xml) 
+This example shows how to calculate the electronic density of states (DOS) with :py:mod:`postqe`. All necessary information is extracted from the standard xml output file. The following code shows how to do it for silicon (xml output file: Si.xml)
 
 .. literalinclude:: ../examples/example3/example3.py
    :language: python
    :dedent: 4
-   :lines: 12-24
+   :lines: 11-
    
-The :py:func:`compute_dos` needs in input the xml file produced by pw.x. You must also specify the range of energies (and step) for which the DOS will be calculate (*e_min*, *e_max*, *e_step*), plus the type of Gaussian broadening (*ngauss*) and the value (*degauss*). The DOS values (and corresponding energies) are returned by the function in *e, dos_up, dos_down*. If you want to write the DOS values on a file, you must give it in the parameter *filedos* and the file will be like:
+The :py:func:`get_dos` needs in input the xml file produced by pw.x, after a proper DOS calculation. This is identified using *label* which may contain the full path to the file (.xml is automatically added). The *schema* (optional) parameter allows the code to properly parse and validate the xml file.  You must also specify the number of energy steps in the DOS (*npts*), plus the Gaussian broadening (*width*). :py:func:`get_dos` then returns a DOS object. 
 
-.. literalinclude:: ../examples/example3/filedosSi
-   :lines: 1-10
+The DOS values and the corresponding energies can be obtained from the DOS object using the methods :py:func:`get_dos` and :py:func:`get_energies`. If you want you can further manipulate these values. For example you can make a plot with the Python library *Matplotlib*. The output plot looks like the following:
 
-The first column contains the energy values, the second one contains the DOS values. Since silicon is non magnetic, the third column contains zero values. 
-Optionally, you can plot the results with the :py:func:`simple_plot_xy`, which is simply a wrapper to matplotlib. The output plot looks like the following:
-
-.. image:: ../examples/example3/figure_Sidos.png
+.. image:: ../examples/example3/figure.png
    :width: 500
 
-You can of course continue to calculate other quantities in your script. For example, the following lines show how to calculate the DOS for (magnetic) nickel. 
+You can of course continue to calculate other quantities in your script. 
 
-.. literalinclude:: ../examples/example3/example3.py
-   :language: python
-   :dedent: 4
-   :lines: 25-
-
-The above lines compute the electronic DOS for nickel with spin up and down and are rather selfexplaining. The last lines put together in a numpy matrix the dos for spin up and down to show it in the same plot using the *matplotlib* wrapper :py:func:`multiple_plot_xy`. 
-The output plots look like the following:
-
-.. image:: ../examples/example3/figure_Nidosup.png
-   :width: 500
-
-.. image:: ../examples/example3/figure_Nidosdown.png
-   :width: 500
-
-.. image:: ../examples/example3/figure_Nidosupanddown.png
-   :width: 500
 
 ===========================================================
 Plotting a 1D section of the charge density  (examples 4)
 ===========================================================
 
 A common task you can do with :py:mod:`postqe` is to plot the electronic charge density along one direction. The charge is read from the HDF5 
-output file create by the Quantum Espresso calculation in *outdir*. Additional information are extracted from the standard xml output file.
-The code to do this is shown below:
+output file create by the Quantum Espresso calculation in *outdir*. Additional information are extracted from the standard xml output file, identified by the 'label' parameter in the :py:func:`get_charge` function. The *schema* (optional) parameter allows the code to properly parse and validate the xml file. The full code to do this is shown below:
 
 .. literalinclude:: ../examples/example4/example4.py
    :language: python
    :dedent: 4
    :lines: 10-
  
-and it is essentially a call to the function :py:func:`plot_charge1D`, which needs in input the xml file create by Quantum Espresso. 
-All other values are optional and taken either from the xml file or from default values. 
-By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0).
+The call to :py:func:`get_charge` creates a *charge* object. The charge can be written in a text file using the method :py:func:`write`. The call to the method :py:func:`plot` returns a *Matplotlib* figure object containing a 1D section plot of the charge from the point *x0* along the direction *e1*. 
+By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0). The *Matplotlib* figure object can be further modified with the standard methods of this library. For example, the plot can be save in a png file using the method :py:func:`savefig`. The result is shown below.
 
 .. image:: ../examples/example4/figure_1.png
    :width: 500
@@ -122,15 +110,14 @@ Plotting a 2D section of the charge density  (examples 5)
 ===========================================================
 
 This example is similar to the previous one except for producing a 2D plot of a planar section of the electronic charge density. The plane is defined 
-by an initial point and two 3D vectors which define the plane. 
+by an initial point *x0* and two vectors, *e1* and *e2* which define the plane, which are given as parameters to the method :py:func:`plot` together with *dim=2* to define a 2D plot. 
 
 .. literalinclude:: ../examples/example5/example5.py
    :language: python
    :dedent: 4
    :lines: 10-
    
-As in the previous example, it is essentially a call to a single function, which is in this case :py:func:`plot_charge1D`.
-The output figure is:
+The resulting *Matplotlib* plot is
 
 .. image:: ../examples/example5/figure_1.png
    :width: 500
@@ -147,9 +134,9 @@ This example computes all the different potentials available, i.e. the bare pote
    :dedent: 4
    :lines: 10-
    
-The first lines are calls to functions to extract some necessary information from the xml output file of QE. Then we need to read the charge from the HDF5 file as in example 4. We call the proper :py:mod:`postqe` function to compute each potential and add them up to get the total potential.
+The code essentialy call the function :py:func:`get_potential`, which returns a potential object of the type defined in *pot_typ*. The :py:func:`write` and :py:func:`plot` methods are then used to write the output in a text file and produce the plots as in the previous example (in fact they accept the same parameters). 
 
-As in example 4, plotting is essentially a call to a single function, :py:func:`plot_charge1D`, passing the proper potential to be plot and changing the label on the y axis. The output figures are as follows:
+The output figures are as follows:
 
 .. image:: ../examples/example6/figure_v_bare.png
    :width: 500
@@ -162,6 +149,4 @@ As in example 4, plotting is essentially a call to a single function, :py:func:`
 
 .. image:: ../examples/example6/figure_v_tot.png
    :width: 500
-
-
 

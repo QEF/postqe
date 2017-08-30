@@ -2,18 +2,19 @@
 \contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}
 \contentsline {section}{\numberline {1.1}Installation}{3}{section.1.1}
 \contentsline {section}{\numberline {1.2}General notes}{4}{section.1.2}
-\contentsline {subsection}{\numberline {1.2.1}Plotting}{4}{subsection.1.2.1}
+\contentsline {subsection}{\numberline {1.2.1}Version}{4}{subsection.1.2.1}
+\contentsline {subsection}{\numberline {1.2.2}Plotting}{4}{subsection.1.2.2}
 \contentsline {chapter}{\numberline {2}Tutorial}{5}{chapter.2}
 \contentsline {section}{\numberline {2.1}Fitting the total energy using Murnaghan EOS (examples 1)}{5}{section.2.1}
 \contentsline {section}{\numberline {2.2}Calculate and plot the band structure of silicon (examples 2)}{6}{section.2.2}
-\contentsline {section}{\numberline {2.3}Calculate and plot the density of states (DOS) of silicon and nickel (examples 3)}{7}{section.2.3}
-\contentsline {section}{\numberline {2.4}Plotting a 1D section of the charge density (examples 4)}{11}{section.2.4}
-\contentsline {section}{\numberline {2.5}Plotting a 2D section of the charge density (examples 5)}{12}{section.2.5}
-\contentsline {section}{\numberline {2.6}Plotting 1D sections of different potentials (examples 6)}{13}{section.2.6}
-\contentsline {chapter}{\numberline {3}postqe package}{19}{chapter.3}
-\contentsline {section}{\numberline {3.1}Submodules}{19}{section.3.1}
-\contentsline {section}{\numberline {3.2}postqe.constants module}{19}{section.3.2}
-\contentsline {section}{\numberline {3.3}postqe.eos module}{19}{section.3.3}
-\contentsline {section}{\numberline {3.4}postqe.plot module}{19}{section.3.4}
-\contentsline {section}{\numberline {3.5}postqe.readutils module}{19}{section.3.5}
-\contentsline {chapter}{\numberline {4}Indices and tables}{21}{chapter.4}
+\contentsline {section}{\numberline {2.3}Calculate and plot the density of states (DOS) of silicon (examples 3)}{7}{section.2.3}
+\contentsline {section}{\numberline {2.4}Plotting a 1D section of the charge density (examples 4)}{8}{section.2.4}
+\contentsline {section}{\numberline {2.5}Plotting a 2D section of the charge density (examples 5)}{9}{section.2.5}
+\contentsline {section}{\numberline {2.6}Plotting 1D sections of different potentials (examples 6)}{10}{section.2.6}
+\contentsline {chapter}{\numberline {3}postqe package}{15}{chapter.3}
+\contentsline {section}{\numberline {3.1}Submodules}{15}{section.3.1}
+\contentsline {section}{\numberline {3.2}postqe.constants module}{15}{section.3.2}
+\contentsline {section}{\numberline {3.3}postqe.eos module}{15}{section.3.3}
+\contentsline {section}{\numberline {3.4}postqe.plot module}{15}{section.3.4}
+\contentsline {section}{\numberline {3.5}postqe.readutils module}{15}{section.3.5}
+\contentsline {chapter}{\numberline {4}Indices and tables}{17}{chapter.4}
