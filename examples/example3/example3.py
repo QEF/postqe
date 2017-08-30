@@ -11,7 +11,7 @@ if __name__ == "__main__":
     from postqe import get_dos
 
     # get a DOS object
-    dos = get_dos(label="./Si", schema='../../schemas/qes.xsd', width=0.02*13.605698066*2, npts=1000)
+    dos = get_dos(label="./Si", schema='../../schemas/qes.xsd', width=0.5, npts=200)
 
     # get the dos and energies for further processing
     d = dos.get_dos()
@@ -22,6 +22,7 @@ if __name__ == "__main__":
     plt.plot(e, d)
     plt.xlabel('energy [eV]')
     plt.ylabel('DOS')
+    plt.savefig("figure.png")
     plt.show()
-    plt.savefig("figure_Sidos.png")
+
 
