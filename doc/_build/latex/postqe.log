@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.8.24)  30 AUG 2017 16:02
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.8.24)  31 AUG 2017 13:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1091,131 +1091,173 @@ File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <9> not available
 (Font)              Font shape `T1/pcr/m/sl' tried instead on input line 228.
 
-<Ni-eos.png, id=159, 578.16pt x 433.62pt>
+<Ni-eos.png, id=154, 578.16pt x 433.62pt>
 File: Ni-eos.png Graphic file (type png)
  <use Ni-eos.png>
-Package pdftex.def Info: Ni-eos.png used on input line 242.
+Package pdftex.def Info: Ni-eos.png used on input line 243.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: Ni-eos.png Graphic file (type png)
  <use Ni-eos.png>
-Package pdftex.def Info: Ni-eos.png used on input line 242.
+Package pdftex.def Info: Ni-eos.png used on input line 243.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
 
 [5
 
-] <Sibands.png, id=168, 578.16pt x 433.62pt>
+] <Sibands.png, id=163, 578.16pt x 433.62pt>
 File: Sibands.png Graphic file (type png)
  <use Sibands.png>
-Package pdftex.def Info: Sibands.png used on input line 258.
+Package pdftex.def Info: Sibands.png used on input line 259.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: Sibands.png Graphic file (type png)
 
 <use Sibands.png>
-Package pdftex.def Info: Sibands.png used on input line 258.
+Package pdftex.def Info: Sibands.png used on input line 259.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
  [6 <./Ni-eos.png>] [7 <./Sibands.png>]
-<figure.png, id=179, 578.16pt x 433.62pt>
+<figure.png, id=174, 578.16pt x 433.62pt>
 File: figure.png Graphic file (type png)
  <use figure.png>
-Package pdftex.def Info: figure.png used on input line 290.
+Package pdftex.def Info: figure.png used on input line 291.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure.png Graphic file (type png)
  <use figure.png>
-Package pdftex.def Info: figure.png used on input line 290.
+Package pdftex.def Info: figure.png used on input line 291.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
 
-[8 <./figure.png>] <figure_1.png, id=185, 578.16pt x 433.62pt>
+[8 <./figure.png>] <figure_1.png, id=180, 578.16pt x 433.62pt>
 File: figure_1.png Graphic file (type png)
 
 <use figure_1.png>
-Package pdftex.def Info: figure_1.png used on input line 313.
+Package pdftex.def Info: figure_1.png used on input line 314.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_1.png Graphic file (type png)
  <use figure_1.png>
-Package pdftex.def Info: figure_1.png used on input line 313.
+Package pdftex.def Info: figure_1.png used on input line 314.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
  [9 <./figure_1.png>]
-<figure_11.png, id=192, 578.16pt x 433.62pt>
+<figure_11.png, id=187, 578.16pt x 433.62pt>
 File: figure_11.png Graphic file (type png)
  <use figure_11.png>
-Package pdftex.def Info: figure_11.png used on input line 333.
+Package pdftex.def Info: figure_11.png used on input line 334.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_11.png Graphic file (type png)
 
 <use figure_11.png>
-Package pdftex.def Info: figure_11.png used on input line 333.
+Package pdftex.def Info: figure_11.png used on input line 334.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
  [10 <./figure_11.png>]
-<figure_v_bare.png, id=198, 578.16pt x 433.62pt>
+<figure_v_bare.png, id=193, 578.16pt x 433.62pt>
 File: figure_v_bare.png Graphic file (type png)
  <use figure_v_bare.png>
-Package pdftex.def Info: figure_v_bare.png used on input line 368.
+Package pdftex.def Info: figure_v_bare.png used on input line 369.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_bare.png Graphic file (type png)
 
 <use figure_v_bare.png>
-Package pdftex.def Info: figure_v_bare.png used on input line 368.
+Package pdftex.def Info: figure_v_bare.png used on input line 369.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- <figure_v_h.png, id=199, 578.16pt x 433.62pt>
+ <figure_v_h.png, id=194, 578.16pt x 433.62pt>
 File: figure_v_h.png Graphic file (type png)
 
 <use figure_v_h.png>
-Package pdftex.def Info: figure_v_h.png used on input line 370.
+Package pdftex.def Info: figure_v_h.png used on input line 371.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_h.png Graphic file (type png)
  <use figure_v_h.png>
-Package pdftex.def Info: figure_v_h.png used on input line 370.
+Package pdftex.def Info: figure_v_h.png used on input line 371.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
 
-<figure_v_xc.png, id=200, 578.16pt x 433.62pt>
+<figure_v_xc.png, id=195, 578.16pt x 433.62pt>
 File: figure_v_xc.png Graphic file (type png)
  <use figure_v_xc.png>
-Package pdftex.def Info: figure_v_xc.png used on input line 372.
+Package pdftex.def Info: figure_v_xc.png used on input line 373.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_xc.png Graphic file (type png)
 
 <use figure_v_xc.png>
-Package pdftex.def Info: figure_v_xc.png used on input line 372.
+Package pdftex.def Info: figure_v_xc.png used on input line 373.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
  [11 <./figure_v_bare.png>]
-<figure_v_tot.png, id=206, 578.16pt x 433.62pt>
+<figure_v_tot.png, id=201, 578.16pt x 433.62pt>
 File: figure_v_tot.png Graphic file (type png)
  <use figure_v_tot.png>
-Package pdftex.def Info: figure_v_tot.png used on input line 374.
+Package pdftex.def Info: figure_v_tot.png used on input line 375.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_tot.png Graphic file (type png)
 
 <use figure_v_tot.png>
-Package pdftex.def Info: figure_v_tot.png used on input line 374.
+Package pdftex.def Info: figure_v_tot.png used on input line 375.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
  [12 <./figure_v_h.png>] [13 <./figure_v_xc.png>]
 [14 <./figure_v_tot.png>]
 Chapter 3.
+LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 392.
+
+Underfull \hbox (badness 10000) in paragraph at lines 401--402
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 430--431
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
 [15
 
-] [16
-
 ]
+Underfull \hbox (badness 10000) in paragraph at lines 455--456
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 488--489
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 522--523
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[16]
 Chapter 4.
-(./postqe.ind)
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 414.
- [17]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 414.
+[17
+
+] [18
+
+] [19
+
+
+] (./postqe.ind [20
+
+
+] [21
+
+
+])
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 563.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 563.
  (./postqe.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 414.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 414.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 563.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 563.
 Package rerunfilecheck Info: File `postqe.out' has not changed.
-(rerunfilecheck)             Checksum: DF256C87FEA188E7D32CFBE26FB4325F;1408.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 414.
+(rerunfilecheck)             Checksum: 91B8423D635A3B8B60CC552B9D7D15D6;1302.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 563.
  ) 
 Here is how much of TeX's memory you used:
- 9731 strings out of 494953
- 135930 string characters out of 6180977
- 232355 words of memory out of 5000000
- 12639 multiletter control sequences out of 15000+600000
- 73426 words of font info for 96 fonts, out of 8000000 for 9000
+ 9749 strings out of 494953
+ 136175 string characters out of 6180977
+ 233516 words of memory out of 5000000
+ 12645 multiletter control sequences out of 15000+600000
+ 75201 words of font info for 99 fonts, out of 8000000 for 9000
  15 hyphenation exceptions out of 8191
- 36i,11n,49p,605b,407s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36i,11n,49p,605b,563s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/
@@ -1225,13 +1267,13 @@ ype1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></usr
 /share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/share/texli
 ve/texmf-dist/fonts/type1/urw/helvetic/uhvbo8a.pfb></usr/share/texlive/texmf-di
-st/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/
-urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri
-8a.pfb>
-Output written on postqe.pdf (21 pages, 693446 bytes).
+st/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/typ
+e1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/ut
+mr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on postqe.pdf (25 pages, 708266 bytes).
 PDF statistics:
- 289 PDF objects out of 1000 (max. 8388607)
- 228 compressed objects within 3 object streams
- 46 named destinations out of 1000 (max. 500000)
- 218 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 321 PDF objects out of 1000 (max. 8388607)
+ 255 compressed objects within 3 object streams
+ 55 named destinations out of 1000 (max. 500000)
+ 210 words of extra memory for PDF output out of 10000 (max. 10000000)
 

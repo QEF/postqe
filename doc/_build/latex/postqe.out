@@ -12,8 +12,7 @@
 \BOOKMARK [1][-]{section.2.6}{Plotting 1D sections of different potentials \(examples 6\)}{chapter.2}% 12
 \BOOKMARK [0][-]{chapter.3}{postqe package}{}% 13
 \BOOKMARK [1][-]{section.3.1}{Submodules}{chapter.3}% 14
-\BOOKMARK [1][-]{section.3.2}{postqe.constants module}{chapter.3}% 15
-\BOOKMARK [1][-]{section.3.3}{postqe.eos module}{chapter.3}% 16
-\BOOKMARK [1][-]{section.3.4}{postqe.plot module}{chapter.3}% 17
-\BOOKMARK [1][-]{section.3.5}{postqe.readutils module}{chapter.3}% 18
-\BOOKMARK [0][-]{chapter.4}{Indices and tables}{}% 19
+\BOOKMARK [1][-]{section.3.2}{postqe.api module}{chapter.3}% 15
+\BOOKMARK [0][-]{chapter.4}{Indices and tables}{}% 16
+\BOOKMARK [0][-]{section*.9}{Python Module Index}{}% 17
+\BOOKMARK [0][-]{section*.10}{Index}{}% 18

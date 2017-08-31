@@ -1,0 +1,16 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter G
+  \item get\_band\_structure() (in module postqe.api), \hyperpage{15}
+  \item get\_charge() (in module postqe.api), \hyperpage{15}
+  \item get\_dos() (in module postqe.api), \hyperpage{15}
+  \item get\_eos() (in module postqe.api), \hyperpage{16}
+  \item get\_label() (in module postqe.api), \hyperpage{16}
+  \item get\_potential() (in module postqe.api), \hyperpage{16}
+
+  \indexspace
+  \bigletter P
+  \item postqe.api (module), \hyperpage{15}
+
+\end{theindex}
