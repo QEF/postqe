@@ -6,7 +6,7 @@ import h5py
 from .plot import plot1D_FFTinterp, plot2D_FFTinterp
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
-def read_charge_file_hdf5(filename, nr):
+def read_charge_file_hdf5(filename, nr = None):
     """
     Reads a charge file written with QE in HDF5 format. *nr = [nr1,nr2,nr3]* (the dimensions of
     the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
@@ -16,31 +16,45 @@ def read_charge_file_hdf5(filename, nr):
     Hence
     """
 
-    nr1, nr2, nr3 = nr
     with h5py.File(filename, "r") as h5f:
+        MI = h5f.get('MillerIndices')
+        if nr is None:
+            nr1 = 2*max(abs(MI[:,0]))+1
+            nr2 = 2*max(abs(MI[:,1]))+1
+            nr3 = 2*max(abs(MI[:,2]))+1
+        else:
+            nr1,nr2,nr3 = nr
+
         ngm_g = h5f.attrs.get('ngm_g')
         # Read the total charge
         aux = np.array(h5f['rhotot_g']).reshape([ngm_g,2])
-        rhotot_g = np.array(list(map(lambda x: x.dot((1e0,1.j)), aux)))
+        rhotot_g = aux.dot([1.e0,1.e0j])
         rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
-        for el in zip( h5f['MillerIndices'],rhotot_g):
+        for el in zip( MI,rhotot_g):
             (i,j,k), rho = el
-            rho_temp[i,j,k]=rho
+            try:
+                rho_temp[i,j,k]=rho
+            except IndexError:
+                pass
         rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
         # Read the charge difference spin up - spin down if present (for magnetic calculations)
-        try:
+        if not h5f.get('rhodiff_g') is None:
             aux = np.array(h5f['rhodiff_g']).reshape([ngm_g, 2])
-            rhodiff_g = np.array(list(map(lambda x: x.dot((1e0, 1.j)), aux)))
+            rhodiff_g = aux.dot([1.0e0,1.0e0j])
             rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
             for el in zip(h5f['MillerIndices'], rhodiff_g):
                 (i, j, k), rho = el
-                rho_temp[i, j, k] = rho
+                try:
+                    rho_temp[i, j, k] = rho
+                except IndexError:
+                    pass
             rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-        except:
-            rhodiff_r = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+            return rhotot_r.real, rhodiff_r.real
+        else:
+            return rhotot_r.real, None
 
-    return rhotot_r.real, rhodiff_r.real
+
 
 
 def write_charge(filename, charge, header):
@@ -174,8 +188,6 @@ class Charge:
                     fig = plot2D_FFTinterp(self.charge, G, a, x0, e1, e2, nx, ny)
                 fig.show()
             return fig
-
-
 
 
 class Potential(Charge):

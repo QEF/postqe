@@ -2,7 +2,7 @@
 postqe
 ======
 
-:py:mod:`postqe` is a Python package to perform postprocessing calculations for results
+*Postqe* is a Python package to perform postprocessing calculations for results
 obtained with the Quantum Espresso (QE) code [#QE]_. The package provides Python functions
 to post-process the results, such as plotting the charge density (or the bare/Hartree/total
 potentials) on 1D or 2D sections, fitting the total energy with Murnaghan Equation of State
