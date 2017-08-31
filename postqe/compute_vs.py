@@ -28,26 +28,15 @@ def compute_G(b,nr):
     of the mesh points defined by nr. G are the vectors in the reciprocal lattice vector.
     b[0], b[1], b[2] are the reciprocal cell base vectors
     """
-
-    G = np.zeros((nr[0],nr[1],nr[2],3))
-    for x in range(0,nr[0]):
-        if (x>=nr[0]//2):
-            g0 = (x-nr[0])
-        else:
-            g0 = x
-        for y in range(0,nr[1]):
-            if (y>=nr[1]//2):
-                g1 = (y-nr[1])
-            else:
-                g1 = y
-            for z in range(0,nr[2]):
-                if (z>=nr[2]//2):
-                    g2 = (z-nr[2])
-                else:
-                    g2 = z
- 
-                G[x,y,z,:] = (g0*b[0]+g1*b[1]+g2*b[2])    # compute the G vector
-                
+    gx, gy, gz = [
+        np.fromiter((i - nr[k] if i >= nr[k] // 2 else i for i in range(nr[k])), dtype=np.int64)
+        for k in range(3)
+    ]
+    g = np.fromfunction(
+        function=lambda x, y, z: np.array((gx[x], gy[y], gz[z]), dtype=np.float64),
+        shape=nr, dtype=np.int32
+    )
+    G = np.dot(np.rollaxis(g, 0, 4), b)  # compute the G vector
     return G
 
 
@@ -59,30 +48,19 @@ def compute_G_squared(b,nr,ecutrho,alat):
     Here G^2 is set to a big number so that n(G)/G^2 is 0 in the inverse FFT.
     """
     bignum = 1.0E16
-    
-    ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2)  # spherical cut-off for g vectors    
-    G2 = np.zeros((nr[0],nr[1],nr[2]))
-    for x in range(0,nr[0]):
-        if (x>=nr[0]//2):
-            g0 = (x-nr[0])
-        else:
-            g0 = x
-        for y in range(0,nr[1]):
-            if (y>=nr[1]//2):
-                g1 = (y-nr[1])
-            else:
-                g1 = y
-            for z in range(0,nr[2]):
-                if (z>=nr[2]//2):
-                    g2 = (z-nr[2])
-                else:
-                    g2 = z
- 
-                G = g0*b[0]+g1*b[1]+g2*b[2]                 # compute the G vector
-                G2[x,y,z] =  np.linalg.norm(G)**2           # compute the G^2
-                if (G2[x,y,z] > ecutm) or (G2[x,y,z] ==0.0):
-                    G2[x,y,z] = bignum     # dummy high value so that n(G)/G^2 is 0
- 
+    ecutm = 2.0 * ecutrho / ((2.0 * pi / alat) ** 2)  # spherical cut-off for g vectors
+    gx = np.fromiter((x - nr[0] if x >= nr[0] // 2 else x for x in range(nr[0])), dtype=int)
+    gy = np.fromiter((y - nr[1] if y >= nr[1] // 2 else y for y in range(nr[1])), dtype=int)
+    gz = np.fromiter((z - nr[2] if z >= nr[2] // 2 else z for z in range(nr[2])), dtype=int)
+    g = np.fromfunction(function=lambda x, y, z: np.array((gx[x], gy[y], gz[z])), shape=nr, dtype=int)
+    G = np.dot(np.rollaxis(g, 0, 4), b)  # compute the G vector
+
+    def g_square(x, y, z):
+        g2 = np.linalg.norm(G, axis=3) ** 2  # compute the G^2
+        g2[(g2 == 0.0) | (g2 > ecutm)] = bignum  # dummy high value so that n(G)/G^2 is 0
+        return g2
+
+    G2 = np.fromfunction(function=g_square, shape=nr, dtype=int)
     return G2
 
 
@@ -95,31 +73,19 @@ def compute_Gs(b,nr,ecutrho,alat):
     Here G^2 is set to a big number so that n(G)/G^2 is 0 in the inverse FFT.
     """
     bignum = 1.0E16
-    
-    ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2)  # spherical cut-off for g vectors    
-    G = np.zeros((nr[0],nr[1],nr[2],3))
-    G2 = np.zeros((nr[0],nr[1],nr[2]))
-    for x in range(0,nr[0]):
-        if (x>=nr[0]//2):
-            g0 = (x-nr[0])
-        else:
-            g0 = x
-        for y in range(0,nr[1]):
-            if (y>=nr[1]//2):
-                g1 = (y-nr[1])
-            else:
-                g1 = y
-            for z in range(0,nr[2]):
-                if (z>=nr[2]//2):
-                    g2 = (z-nr[2])
-                else:
-                    g2 = z
- 
-                G[x,y,z,:] = (g0*b[0]+g1*b[1]+g2*b[2])    # compute the G vector
-                G2[x,y,z] =  np.linalg.norm(G[x,y,z,:])**2           # compute the G^2
-                if (G2[x,y,z] > ecutm) or (G2[x,y,z] ==0.0):
-                    G2[x,y,z] = bignum     # dummy high value so that n(G)/G^2 is 0
- 
+    ecutm = 2.0 * ecutrho / ((2.0 * pi / alat) ** 2)  # spherical cut-off for g vectors
+    gx = np.fromiter((x - nr[0] if x >= nr[0] // 2 else x for x in range(nr[0])), dtype=int)
+    gy = np.fromiter((y - nr[1] if y >= nr[1] // 2 else y for y in range(nr[1])), dtype=int)
+    gz = np.fromiter((z - nr[2] if z >= nr[2] // 2 else z for z in range(nr[2])), dtype=int)
+    g = np.fromfunction(function=lambda x, y, z: np.array((gx[x], gy[y], gz[z])), shape=nr, dtype=int)
+    G = np.dot(np.rollaxis(g, 0, 4), b)  # compute the G vector
+
+    def g_square(x, y, z):
+        g2 = np.linalg.norm(G, axis=3) ** 2  # compute the G^2
+        g2[(g2 == 0.0) | (g2 > ecutm)] = bignum  # dummy high value so that n(G)/G^2 is 0
+        return g2
+
+    G2 = np.fromfunction(function=g_square, shape=nr, dtype=int)
     return G, G2
 
 
