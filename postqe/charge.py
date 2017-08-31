@@ -176,8 +176,6 @@ class Charge:
             return fig
 
 
-
-
 class Potential(Charge):
     """
     A class for a potential. This is derived from a Charge class and additionally contains the potential.
