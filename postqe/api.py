@@ -174,3 +174,31 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='vtot'):
     potential.compute_potential(pot_type=pot_type)
 
     return potential
+
+def fit_and_write_eos(label, eos='murnaghan', filename='eos.out'):
+    """
+    This function fits an Equation of state of type *eos* and writes the results into *filename*.
+    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
+
+    :param label: input file for volumes and energies (possibly including the full path)
+    :param eos: type of Equation of State (Murnaghan, Birch, Vinet, etc.)
+    :param filename: name of the output file
+    """
+
+    eos = get_eos(label, eos)
+    v0, e0, B = eos.fit()
+    eos.write(filename)
+
+def fit_and_plot_eos(label, eos='murnaghan', filename='EOSplot', show=None, ax=None):
+    """
+    This function fits an Equation of state of type *eos* and writes the results into *filename*.
+    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
+
+    :param label: input file for volumes and energies (possibly including the full path)
+    :param eos: type of Equation of State (Murnaghan, Birch, Vinet, etc.)
+    :param filename: name of the output file
+    """
+
+    eos = get_eos(label, eos)
+    v0, e0, B = eos.fit()
+    fig = eos.plot(filename, show=show, ax=ax)
