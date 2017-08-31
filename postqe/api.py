@@ -12,7 +12,7 @@ A collection of functions to be part of postqe API and exposed to the user.
 """
 import os
 from postqe.eos import QEEquationOfState
-from ase.dft import DOS
+from postqe.dos import QEDOS
 
 from .charge import Charge, Potential
 from .readutils import read_EtotV
@@ -81,7 +81,7 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     return bs
 
 
-def get_dos(prefix, outdir=None, schema=None, width=0.01, npts=100):
+def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100):
     """
     This function returns an DOS object from an output xml Espresso file containing the
     results of a DOS calculation.
@@ -91,6 +91,7 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, npts=100):
     ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param width: width of the gaussian to be used for the DOS (in eV)
+    :param window = emin, emax: defines the minimun and maximun energies for the DOS
     :param npts:  number of points of the DOS
     :return: a DOS object
     """
@@ -105,7 +106,7 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, npts=100):
     atoms.calc.read_results()
 
     # Create a DOS object with width= eV and npts points
-    dos = DOS(calcul, width=width, npts=npts)
+    dos = QEDOS(calcul, width=width, window=window, npts=npts)
 
     return dos
 

@@ -12,8 +12,8 @@ def create_header(eos, v0, e0, B):
 
 class QEEquationOfState(EquationOfState):
 
-    def __init__(self, volumes, energies, eos='sj'):
-        EquationOfState.__init__(self, volumes, energies, eos='sj')
+    def __init__(self, volumes, energies, eos='murnaghan'):
+        EquationOfState.__init__(self, volumes, energies, eos=eos)
 
     def write(self,filename='eos.out'):
         self.filename = filename
