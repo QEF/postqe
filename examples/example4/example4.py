@@ -9,8 +9,8 @@ if __name__ == "__main__":
 
     from postqe import get_charge
 
-    charge = get_charge(label="./Ni", schema='../../schemas/qes.xsd')
+    charge = get_charge(prefix='Ni', schema='../../schemas/qes.xsd')
     charge.write('outputcharge.dat')
 
     figure = charge.plot(x0=(0, 0, 0), e1=(1, 0, 0), nx=100)
-    figure.savefig("figure_1.png")
+    figure.savefig('figure_1.png')
