@@ -24,18 +24,12 @@ class MyBuildExt(build_ext):
 class MySDist(sdist):
 
     def run(self):
-        print("MySDist !!!")
-        import pdb
-        pdb.set_trace()
         sdist.run(self)
 
 
 class MyInstall(install):
 
     def run(self):
-        print("MyInstall !!!")
-        import pdb
-        pdb.set_trace()
         install.run(self)
 
 setup(
@@ -72,7 +66,6 @@ setup(
     author='Mauro Palumbo',
     author_email='mpalumbo@sissa.it',
     license='LGPL-2.1',
-    summary='Post processing tools for Quantum Espresso',
     long_description='Post processing tools for Quantum Espresso',
     classifiers=[
         'Development Status :: 3 - Alpha',
