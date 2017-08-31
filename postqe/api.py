@@ -10,8 +10,7 @@
 """
 A collection of functions to be part of postqe API and exposed to the user.
 """
-import os
-from ase.eos import EquationOfState
+from postqe.eos import QEEquationOfState
 from ase.dft import DOS
 
 from .charge import Charge, Potential
@@ -49,7 +48,8 @@ def get_eos(prefix, outdir=None, eos='murnaghan'):
     volumes, energies = read_EtotV(label)
 
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
-    eos = EquationOfState(volumes, energies, eos=eos)
+    eos = QEEquationOfState(volumes, energies, eos=eos)
+
     return eos
 
 
