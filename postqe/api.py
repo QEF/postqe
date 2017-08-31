@@ -10,6 +10,7 @@
 """
 A collection of functions to be part of postqe API and exposed to the user.
 """
+import os
 from postqe.eos import QEEquationOfState
 from ase.dft import DOS
 
@@ -24,7 +25,7 @@ def get_label(prefix, outdir=None):
         try:
             outdir = os.environ['ESPRESSO_TMPDIR']
         except KeyError:
-            outdir = '.'  # os.getcwd()??
+            outdir = os.curdir
 
     label = os.path.join(outdir, prefix)
     return label
