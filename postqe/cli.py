@@ -13,8 +13,10 @@ Command line interface for postqe.
 import sys
 import time
 
+from .api import get_charge, get_potential
 
-def get_cli_parser():
+
+def get_cli_parser_pp():
     import argparse
 
     parser = argparse.ArgumentParser(description='QE post processing')
@@ -88,6 +90,35 @@ def get_cli_parser():
                         help='if plot_num==0: 0 = total charge (default value), 1 = spin up charge, 2 = spin down charge.\
                           if plot_num==1: 0 = spin averaged potential (default value), 1 = spin up potential,\
                           2 = spin down potential.')
+
+    return parser
+
+
+def get_cli_parser():
+    import argparse
+    PREFIX_HELP = 'prefix of files saved by program pw.x'
+    OUTDIR_HELP = 'directory containing the input data, i.e. the same as in pw.x'
+    SCHEMA_HELP = 'the XSD schema file for QE XML output file. If not provided the schema' \
+                  'information is taken from xsi:schemaLocation attributes.'
+
+    parser = argparse.ArgumentParser(description='QE post processing')
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    # create the parser for the "charge" command
+    charge_parser = subparsers.add_parser(
+        'charge', help='Get the charge from Espresso XML and HDF5 output.')
+    charge_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    charge_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+
+    # create the parser for the "potential" command
+    charge_parser = subparsers.add_parser(
+        'potential', help='Get the potential from Espresso XML and HDF5 output.')
+    charge_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    charge_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    charge_parser.add_argument(
+        '-pot_type', type=str, default=None, help="Type of the potential ('vtot', ...).")
 
     return parser
 
