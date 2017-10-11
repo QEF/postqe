@@ -15,8 +15,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
-from .eos_postqe import calculate_fitted_points
-from .bands import set_high_symmetry_points, compute_kx
+from .writecharge import write_1Dcharge_file, write_2Dcharge_file
+from .oldeos import calculate_fitted_points
+from .oldbands import set_high_symmetry_points, compute_kx
 from .constants import pi
 
 
@@ -56,6 +57,61 @@ def FFTinterp1D(charge, G, a, x0, e1, nx):
 
         return X, Y
 
+def spherical1D(charge, G, a, x0, e1, nx):
+    """
+    This function calculates a 1D plot of the input charge (or else), starting from the
+    input point x0 and along the direction given by the vector e1. The G vectors
+    in the reciprocal space must also be given in input. nx is the number of
+    points where the spherically averaged charge is calculated (rho0(|r|) = int rho(r) dOmega
+    rho0(r) = 4pi \sum_G rho(G) j_0(|G||r|)).
+
+    :param charge:  eletronic charge density (or other quantity) to be plotted
+    :param G:  G vectors in the reciprocal space
+    :param a:  basis vectors of the unit cell
+    :param x0: 3D vector, origin of the line
+    :param e1: 3D vector which determines the plotting line
+    :param nx: number of points in the line
+    """
+
+    #TODO: this function needs some optimization...
+
+    # normalize e1
+    m1 = np.linalg.norm(e1)
+    if abs(m1) < 1.0E-6:  # if the module is less than 1.0E-6
+        e1 = a[1]
+        m1 = np.linalg.norm(e1)
+    e1 = e1 / m1
+
+    # Computes the FFT of the charge
+    fft_charge = np.fft.fftn(charge)
+    nr = charge.shape
+
+    # Steps along the e1 direction...
+    deltax = m1 / (nx - 1)
+    X = np.zeros(nx)
+    Y = np.zeros(nx, dtype=complex)
+
+    for x in range(0, nr[0]):
+        for y in range(0, nr[1]):
+            for z in range(0, nr[2]):
+                if (x==0) and (y==0) and (z==0):    # at the Gamma point
+                    if (np.linalg.norm(G[0, 0, 0])<1e-10):
+                        for i in range(0, nx):
+                            Y[i] += 4.0 * pi * fft_charge[0, 0, 0]
+                else:                               # not at Gamma
+                    #arg = 2.0 * pi * (x0[0] * G[x, y, z, 0] + x0[1] * G[x, y, z, 1] + x0[2] * G[x, y, z, 2])
+                    arg = 2.0 * pi * np.dot(x0, G[x, y, z])
+                    rho0g = fft_charge[x, y, z] * complex(np.cos(arg), np.sin(arg))  # Move the origin to x0
+                    Y[0] += 4.0 * pi * rho0g        # term at r=0
+                    for i in range(1, nx):          # other terms at r!=0
+                        gr = 2.0 * pi * np.linalg.norm(G[x,y,z]) * i * deltax
+                        Y[i] += 4.0 * pi * rho0g * np.sin(gr) / gr
+
+    for i in range(0, nx):
+        X[i] = i * deltax                           # fill
+        Y[i] = Y[i] / (nr[0] * nr[1] * nr[2])       # normalize
+
+    return X, Y
 
 
 def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
@@ -121,7 +177,8 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
     return X, Y, Z
 
 
-def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge', plot_file=''):
+def plot_1Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge', plot_file='',
+                  method='FFT', format=''):
     """
     This function calculates a 1D plot of the input charge (or else), starting from the
     input point x0 and along the direction given by the vector e1. The G vectors
@@ -136,20 +193,30 @@ def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='char
     :param nx: number of points in the line
     :param ylab: y axix label in the plot ('charge', 'Vtot', etc.)
     :param plot_file: if plot_file!='', write the plotting values on a text file
+    :param format: output file format (not used in 1D)
+    :param method: interpolation method. 'spherical' is for averaged spherical, 'FFT' for Fourier interpolation
     :return: the matplotlib figure object
     """
 
-    try:
-        from cythonfn import FFTinterp1D_Cython
-        X, Y = FFTinterp1D_Cython(charge, G, a, x0, e1, nx)
-    except ImportError:
-        X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
+    if (method == 'FFT'):
+        try:
+            from cythonfn import FFTinterp1D_Cython
+            X, Y = FFTinterp1D_Cython(charge, G, a, x0, e1, nx)
+        except ImportError:
+            X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
+    elif (method == 'spherical'):
+        try:
+            #TODO: Cython function to be implemented
+            from cythonfn import spherical1D_Cython
+            X, Y = spherical1D_Cython(charge, G, a, x0, e1, nx)
+        except ImportError:
+            X, Y = spherical1D(charge, G, a, x0, e1, nx)
+
+    else:
+        raise NotImplementedError
 
     if plot_file != '':
-        f = open(plot_file, 'w')
-        f.write('X' + 16 * ' ' + 'Y\n')
-        for i in range(0, nx):
-            f.write("{:.9E}  ".format(X[i]) + "{:.9E}\n".format(Y[i].real))
+        write_1Dcharge_file(X, Y, nx, plot_file)
 
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
@@ -160,9 +227,10 @@ def plot1D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='char
     plt.show()
 
     return fig
+
     
-    
-def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file=''):
+def plot_2Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file='',
+                  method='FFT', format=''):
     """
     This function calculates a 2D plot of the input charge (or else), starting from the
     input point x0 and along the directions given by the vectors e1, e2. These
@@ -177,8 +245,15 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     :param e1, e2: 3D vectors which determines the plotting plane
     :param nx, ny: number of points along e1, e2 respectively
     :param zlab: y axix label in the plot
+    :param plot_file: if plot_file!='', write the plotting values on a text file
+    :param method: interpolation method ('FFT' or 'splines', only 'FFT' implemented)
+    :param format: output file format
     :return: the matplotlib figure object
     """
+
+    #TODO: check that e1 and e2 are not orthonormal
+    # if (abs(e1(1) * e2(1) + e1(2) * e2(2) + e1(3) * e2(3)) > 1e-6):
+    # throw something
 
     try:
         from cythonfn import FFTinterp2D_Cython
@@ -186,19 +261,8 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     except ImportError:
         X, Y, Z = FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)
 
-
     if plot_file != '':
-        f = open(plot_file,'w')
-        f.write('X'+16*' '+'Y'+16*' '+'Z\n')
-
-    # loop again over nx,ny to normalize, print on screen and write on file
-    for i in range(0,nx):
-        for j in range(0,ny): 
-            print (X[i,j], Y[i,j], Z[i,j])
-            try:
-                f.write("{:.9E}  ".format(X[i, j]) + "{:.9E}  ".format(Y[i, j]) + "{:.9E}\n".format(Z[i, j]))
-            except:
-                pass
+        write_2Dcharge_file(...)
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -220,6 +284,11 @@ def plot2D_FFTinterp(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=
     plt.show()
 
     return fig
+
+def plot_3Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file=''):
+
+    # TODO: this is to be implemented
+    pass
 
 
 def simple_plot_xy(x, y, xlabel="", ylabel=""):

@@ -25,4 +25,5 @@ if __name__ == "__main__":
     plt.savefig('figure.png')
     plt.show()
 
-
+    # save DOS in a file
+    dos.write('DOS.out')

@@ -20,9 +20,10 @@ if not locals()['__package__']:
     # Ref: https://www.python.org/dev/peps/pep-0366/ for details.
     import os
     import sys
+    sys.path[0] = ''
     pkg_search_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-    if sys.path[0] != pkg_search_path:
-        sys.path.insert(0, pkg_search_path)
+    if pkg_search_path not in sys.path:
+        sys.path.append(pkg_search_path)
     import postqe
     __package__ = postqe.__name__
 
