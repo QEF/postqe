@@ -156,26 +156,36 @@ class Charge:
             self.charge
         except:
             return
-        a = self.calculator.get_a_vectors()
-        b = self.calculator.get_b_vectors()
-        G = compute_G(b, self.nr)
+        # Extract some structural info
+        struct_info = {
+            'a' : self.calculator.get_a_vectors(),
+            'b' : self.calculator.get_b_vectors(),
+            'alat' : self.calculator.get_alat(),
+            'nat'  : len(self.calculator.get_atomic_positions()),
+            'atomic_positions' : self.calculator.get_atomic_positions(),
+            'atomic_species': self.calculator.get_atomic_species(),
+        }
+        G = compute_G(struct_info['b'], self.nr)
 
         if not self.calculator.get_spin_polarized():  # non magnetic calculation
             if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
-                fig = plot_1Dcharge(self.charge, G, a, x0, e1, nx, 'charge', plot_file, method, format)
+                fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
             elif dim == 2:  # 2D section
-                fig = plot_2Dcharge(self.charge, G, a, x0, e1, e2, nx, ny)
+                fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
             else:           # 3D section
-                fig = plot_3Dcharge(self.charge, G, a, x0, e1, e2, nx, ny)
+                fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format)
             fig.show()
             return fig
         else:  # magnetic calculation, plot as ifmagn
             if ifmagn == 'up':
                 charge_up = (self.charge + self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(charge_up, G, a, x0, e1, nx)
-                else:
-                    fig = plot_2Dcharge(charge_up, G, a, x0, e1, e2, nx, ny)
+                    fig = plot_1Dcharge(charge_up, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                elif dim == 2:  # 2D section
+                    fig = plot_2Dcharge(charge_up, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
+                else:  # 3D section
+                    fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
+                                        format)
                 fig.show()
             elif ifmagn == 'down':
                 charge_down = (self.charge - self.charge_diff) / 2.0

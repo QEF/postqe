@@ -1,5 +1,5 @@
 
-     Program POST-PROC v.6.1 starts on 11Oct2017 at 11:12: 2 
+     Program POST-PROC v.6.1 starts on 11Oct2017 at 14:50:41 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -34,7 +34,7 @@
      POST-PROC    :     0.11s CPU         0.12s WALL
 
 
-   This run was terminated on:  11:12: 2  11Oct2017            
+   This run was terminated on:  14:50:41  11Oct2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

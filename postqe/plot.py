@@ -177,7 +177,7 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
     return X, Y, Z
 
 
-def plot_1Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge', plot_file='',
+def plot_1Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge', plot_file='',
                   method='FFT', format=''):
     """
     This function calculates a 1D plot of the input charge (or else), starting from the
@@ -197,20 +197,19 @@ def plot_1Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge'
     :param method: interpolation method. 'spherical' is for averaged spherical, 'FFT' for Fourier interpolation
     :return: the matplotlib figure object
     """
-
     if (method == 'FFT'):
         try:
             from cythonfn import FFTinterp1D_Cython
-            X, Y = FFTinterp1D_Cython(charge, G, a, x0, e1, nx)
+            X, Y = FFTinterp1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
         except ImportError:
-            X, Y = FFTinterp1D(charge, G, a, x0, e1, nx)
+            X, Y = FFTinterp1D(charge, G, struct_info['a'], x0, e1, nx)
     elif (method == 'spherical'):
         try:
             #TODO: Cython function to be implemented
             from cythonfn import spherical1D_Cython
-            X, Y = spherical1D_Cython(charge, G, a, x0, e1, nx)
+            X, Y = spherical1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
         except ImportError:
-            X, Y = spherical1D(charge, G, a, x0, e1, nx)
+            X, Y = spherical1D(charge, G, struct_info['a'], x0, e1, nx)
 
     else:
         raise NotImplementedError
@@ -229,7 +228,7 @@ def plot_1Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, ylab='charge'
     return fig
 
     
-def plot_2Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file='',
+def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), nx=20, ny=20, zlab='charge', plot_file='',
                   method='FFT', format=''):
     """
     This function calculates a 2D plot of the input charge (or else), starting from the
@@ -257,12 +256,12 @@ def plot_2Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20,
 
     try:
         from cythonfn import FFTinterp2D_Cython
-        X, Y, Z = FFTinterp2D_Cython(charge, G, a, x0, e1, e2, nx, ny)
+        X, Y, Z = FFTinterp2D_Cython(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
     except ImportError:
-        X, Y, Z = FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny)
+        X, Y, Z = FFTinterp2D(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
 
     if plot_file != '':
-        write_2Dcharge_file(...)
+        write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx, ny, plot_file, format)
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
@@ -285,7 +284,8 @@ def plot_2Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20,
 
     return fig
 
-def plot_3Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(1, 0, 0), nx=20, ny=20, zlab='charge', plot_file=''):
+def plot_3Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), e3=(0, 0, 1), nx=20, ny=20, nz=20,
+                  zlab='charge', plot_file='', method='FFT', format=''):
 
     # TODO: this is to be implemented
     pass

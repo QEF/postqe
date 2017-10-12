@@ -1,5 +1,5 @@
 
-     Program POST-PROC v.6.1 starts on 17Jul2017 at 11:16:15 
+     Program POST-PROC v.6.1 starts on 11Oct2017 at 14:50:41 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -8,8 +8,7 @@
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
 
-     Parallel version (MPI), running on     4 processors
-     R & G space division:  proc/nbgrp/npool/nimage =       4
+     Parallel version (MPI), running on     1 processors
 
    Info: using nr1, nr2, nr3 values from input
 
@@ -21,11 +20,9 @@
      Please, verify this is what you really want
 
 
-     Parallelization info
+     G-vector sticks info
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
-     Min          87      87     30                 1068     1068     216
-     Max          88      88     31                 1071     1071     218
      Sum         349     349    121                 4279     4279     869
 
 
@@ -34,10 +31,10 @@
      Message from routine chdens:
      namelist plot not found or invalid, exiting
 
-     POST-PROC    :     0.18s CPU         0.21s WALL
+     POST-PROC    :     0.12s CPU         0.13s WALL
 
 
-   This run was terminated on:  11:16:15  17Jul2017            
+   This run was terminated on:  14:50:42  11Oct2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
