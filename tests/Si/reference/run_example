@@ -1,0 +1,43 @@
+#!/bin/sh
+
+
+# check whether echo has the -e option
+if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
+
+$ECHO
+$ECHO "$EXAMPLE_DIR : starting"
+
+PW_COMMAND="/home/mauropalumbo/q-e/bin/pw.x"
+PP_COMMAND="/home/mauropalumbo/q-e/bin/pp.x"
+
+$ECHO "  running the pp.x calculations for Si...\c"
+
+# If necessary, run pw.x
+#$PW_COMMAND < si.in > si.out
+
+# First calculated the charge and some potential
+$PP_COMMAND < sipp0.in > sipp0.out
+$PP_COMMAND < sipp1.in > sipp1.out
+$PP_COMMAND < sipp2.in > sipp2.out
+$PP_COMMAND < sipp6.in > sipp6.out
+$PP_COMMAND < sipp11.in > sipp11.out
+
+# Now test different output formats, 1D, 2D etc. (flags iflag and output_format)
+# 1D
+$PP_COMMAND < sipp0biflag0out0.in 
+$PP_COMMAND < sipp0biflag1out0.in 
+# 2D
+$PP_COMMAND < sipp0biflag2out1.in 
+$PP_COMMAND < sipp0biflag2out2.in 
+$PP_COMMAND < sipp0biflag2out3.in 
+$PP_COMMAND < sipp0biflag2out7.in 
+# 3D
+$PP_COMMAND < sipp0biflag3out3.in 
+$PP_COMMAND < sipp0biflag3out5.in 
+# polar
+$PP_COMMAND < sipp0biflag4out0.in 
+$PP_COMMAND < sipp0biflag4out1.in
+
+$ECHO " done"
+
+

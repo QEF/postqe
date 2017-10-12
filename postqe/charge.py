@@ -181,7 +181,7 @@ class Charge:
             write_charge(filename + '_down', charge_down, header)
 
 
-    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (1., 0., 0.), ny=50, dim=1, ifmagn='total',
+    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, dim=1, ifmagn='total',
              plot_file='', method='FFT', format='gnuplot'):
         """
         Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.
@@ -225,21 +225,28 @@ class Charge:
                 elif dim == 2:  # 2D section
                     fig = plot_2Dcharge(charge_up, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
                 else:  # 3D section
-                    fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
+                    fig = plot_3Dcharge(charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
                                         format)
                 fig.show()
             elif ifmagn == 'down':
                 charge_down = (self.charge - self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(charge_down, G, a, x0, e1, nx)
-                else:
-                    fig = plot_2Dcharge(charge_down, G, a, x0, e1, e2, nx, ny)
+                    fig = plot_1Dcharge(charge_down, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                elif dim == 2:  # 2D section
+                    fig = plot_2Dcharge(charge_down, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
+                else:  # 3D section
+                    fig = plot_3Dcharge(charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
+                                        format)
                 fig.show()
             else:
-                if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(self.charge, G, a, x0, e1, nx)
-                else:
-                    fig = plot_2Dcharge(self.charge, G, a, x0, e1, e2, nx, ny)
+                if dim == 1:  # 1D section ylab='charge', plot_file='', format='', method='FFT'
+                    fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                elif dim == 2:  # 2D section
+                    fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method,
+                                        format)
+                else:  # 3D section
+                    fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
+                                        method, format)
                 fig.show()
             return fig
 

@@ -1,0 +1,14 @@
+ &inputpp
+/
+ &plot
+   filepp='ppout0',
+   iflag = 4,
+   output_format = 1,
+   radius = 10,
+   x0(1) = 0.0, 
+   x0(2) = 0.0,
+   x0(3) = 0.0,
+   nx = 10,
+   ny = 10,
+   fileout = 'ppout0iflag4out1.out' 
+/
