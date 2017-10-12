@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
-from .writecharge import write_1Dcharge_file, write_2Dcharge_file
+from .writecharge import write_1Dcharge_file, write_2Dcharge_file, write_3Dcharge_file
 from .oldeos import calculate_fitted_points
 from .oldbands import set_high_symmetry_points, compute_kx
 from .constants import pi
@@ -26,7 +26,7 @@ def FFTinterp1D(charge, G, a, x0, e1, nx):
         # normalize e1
         m1 = np.linalg.norm(e1)
         if abs(m1) < 1.0E-6:  # if the module is less than 1.0E-6
-            e1 = a[1]
+            e1 = a[0]
             m1 = np.linalg.norm(e1)
         e1 = e1 / m1
 
@@ -78,9 +78,9 @@ def spherical1D(charge, G, a, x0, e1, nx):
     # normalize e1
     m1 = np.linalg.norm(e1)
     if abs(m1) < 1.0E-6:  # if the module is less than 1.0E-6
-        e1 = a[1]
+        e1 = a[0]
         m1 = np.linalg.norm(e1)
-    e1 = e1 / m1
+    #e1 = e1 / m1
 
     # Computes the FFT of the charge
     fft_charge = np.fft.fftn(charge)
@@ -117,14 +117,14 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
     # normalize e1
     m1 = np.linalg.norm(e1)
     if (abs(m1) < 1.0E-6):  # if the module is less than 1.0E-6
-        e1 = a[1]
+        e1 = a[0]
         m1 = np.linalg.norm(e1)
     e1 = e1 / m1
 
     # normalize e2
     m2 = np.linalg.norm(e2)
     if abs(m2) < 1.0E-6:  # if the module is less than 1.0E-6
-        e2 = a[2]
+        e2 = a[1]
         m2 = np.linalg.norm(e2)
     e2 = e2 / m2
 
@@ -154,17 +154,11 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
                 # compute these factors to save CPU time
                 eigx = np.zeros(nx, dtype=complex)
                 for i in range(0, nx):
-                    eigx[i] = np.exp(2.0 * pi * complex(0.0, 1.0) * (i * deltax *
-                                                                        (e1[0] * G[x, y, z, 0] + e1[1] * G[x, y, z, 1] +
-                                                                         e1[2] * G[x, y, z, 2]) +
-                                                                        (x0[0] * G[x, y, z, 0] + x0[1] * G[x, y, z, 1] +
-                                                                         x0[2] * G[x, y, z, 2])))
+                    np.exp(np.complex(0, 2.0 * pi * i * deltax * np.dot(e1, G[x, y, z])) + np.dot(x0, G[x, y, z]))
 
                 eigy = np.zeros(ny, dtype=complex)
                 for j in range(0, ny):
-                    eigy[j] = np.exp(2.0 * pi * complex(0.0, 1.0) * (j * deltax *
-                                                                        (e2[0] * G[x, y, z, 0] + e2[1] * G[x, y, z, 1] +
-                                                                         e2[2] * G[x, y, z, 2])))
+                    eigy[j] = np.exp(np.complex(0, 2.0 * pi * j * deltay * np.dot(e2, G[x, y, z])))
 
                 for i in range(0, nx):
                     for j in range(0, ny):
@@ -258,7 +252,7 @@ def polar2D(charge, G, nx, ny, radius, alat):
             for z in range(0, nr[2]):
                 for i in range(0, nx):
                     for j in range(0, ny):
-                        eig =  np.exp(np.complex(0,2.0 * pi * np.dot(r[i,j],G[x,y,z])))
+                        eig =  np.exp(np.complex(0,2.0 * pi * np.dot(r[i,j], G[x,y,z])))
                         Z[i,j] += fft_charge[x, y, z] * eig
 
     Z = Z / (nr[0] * nr[1] * nr[2])
@@ -269,11 +263,11 @@ def polar2D(charge, G, nx, ny, radius, alat):
 def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), nx=20, ny=20, radius=1, zlab='charge', plot_file='',
                   method='FFT', format=''):
     """
-    This function calculates a 2D plot of the input charge (or else), starting from the
+    This function calculates a 2D plot of the input charge (or else). If method=='FFT', the plot starts from the
     input point x0 and along the directions given by the vectors e1, e2. These
-    vectors define the section plane along which the plot is draw. The G vectors
-    in the reciprocal space must also be given in input. nx is the number of
-    points where the charge is effectively calculated using Fourier interpolation.
+    vectors define the section plane along which the plot is draw. If method=='polar', the plot is a polar one on a
+    sphere of radius = 'radius'. The G vectors in the reciprocal space must also be given in input. nx and ny define the
+    grid of points where the charge is effectively calculated using Fourier interpolation (or polar projection).
 
     :param charge:  eletronic charge density (or other quantity) to be plotted
     :param G:  G vectors in the reciprocal space
@@ -335,11 +329,90 @@ def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 
 
     return fig
 
-def plot_3Dcharge(charge, G, a, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), e3=(0, 0, 1), nx=20, ny=20, nz=20,
-                  zlab='charge', plot_file='', method='FFT', format=''):
 
-    # TODO: this is to be implemented
+def FFTinterp3D(charge, G, a, x0, e1, e2, e3, nx, ny, nz):
+    # normalize e1
+    m1 = np.linalg.norm(e1)
+    if (abs(m1) < 1.0E-6):  # if the module is less than 1.0E-6
+        e1 = a[0]
+        m1 = np.linalg.norm(e1)
+    e1 = e1 / m1
+
+    # normalize e2
+    m2 = np.linalg.norm(e2)
+    if abs(m2) < 1.0E-6:  # if the module is less than 1.0E-6
+        e2 = a[1]
+        m2 = np.linalg.norm(e2)
+    e2 = e2 / m2
+
+    # normalize e3
+    m3 = np.linalg.norm(e3)
+    if abs(m3) < 1.0E-6:  # if the module is less than 1.0E-6
+        e3 = a[2]
+        m3 = np.linalg.norm(e3)
+    e3 = e3 / m3
+
+    # Computes the FFT of the charge
+    fft_charge = np.fft.fftn(charge)
+    nr = charge.shape
+
+    # Steps along the e1, e2 and e3 directions...
+    deltax = m1 / (nx - 1)
+    deltay = m2 / (ny - 1)
+    deltaz = m3 / (nz - 1)
+
+    X = np.zeros((nx, ny, nz))
+    Y = np.zeros((nx, ny, nz))
+    Z = np.zeros((nx, ny, nz))
+    W = np.zeros((nx, ny, nz), dtype=complex)
+
+    for i in range(0, nx):
+        for j in range(0, ny):
+            for k in range(0, nz):
+                X[i, j, k] = i * deltax
+                Y[i, j, k] = j * deltay
+                Z[i, j, k] = k * deltaz
+
+    # loop(s) over the G points
+    for x in range(0, nr[0]):
+        for y in range(0, nr[1]):
+            for z in range(0, nr[2]):
+
+                # eigx=exp(iG*e1+iGx0), eigy=(iG*e2)
+                # compute these factors to save CPU time
+                eigx = np.zeros(nx, dtype=complex)
+                for i in range(0, nx):
+                    eigx[i] = np.exp( np.complex(0, 2.0 * pi * i * deltax * np.dot(e1,G[x, y, z])) + np.dot(x0,G[x, y, z]))
+
+                eigy = np.zeros(ny, dtype=complex)
+                for j in range(0, ny):
+                    eigy[j] = np.exp( np.complex(0, 2.0 * pi * j * deltay * np.dot(e2,G[x, y, z])))
+
+                eigz = np.zeros(nz, dtype=complex)
+                for k in range(0, nz):
+                    eigz[k] = np.exp( np.complex(0, 2.0 * pi * k * deltaz * np.dot(e3,G[x, y, z])))
+
+                for i in range(0, nx):
+                    for j in range(0, ny):
+                        for k in range(0, nz):
+                            W[i, j, k] += fft_charge[x, y, z] * eigx[i] * eigy[j] * eigz[k]
+
+    W = W / (nr[0] * nr[1] * nr[2])
+
+    return X, Y, Z, W
+
+
+def plot_3Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), e3=(0, 0, 1), nx=20, ny=20, nz=20,
+                  zlab='charge', plot_file='', method='FFT', format=''):
+    try:
+        # TODO: to be implemented
+        from cythonfn import FFTinterp3D_Cython
+        X, Y, Z, W = FFTinterp3D_Cython(charge, G, struct_info['a'], x0, e1, e2, e3, nx, ny, nz)
+    except ImportError:
+        X, Y, Z, W = FFTinterp3D(charge, G, struct_info['a'], x0, e1, e2, e3, nx, ny, nz)
     pass
+
+    write_3Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, e3, nx, ny, nz, plot_file, method, format)
 
 
 def simple_plot_xy(x, y, xlabel="", ylabel=""):

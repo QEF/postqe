@@ -180,8 +180,8 @@ class Charge:
             write_charge(filename + '_down', charge_down, header)
 
 
-    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, radius=1, dim=1,
-             ifmagn='total', plot_file='', method='FFT', format='gnuplot'):
+    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), nz=50,
+             radius=1, dim=1, ifmagn='total', plot_file='', method='FFT', format='gnuplot'):
         """
         Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.
 

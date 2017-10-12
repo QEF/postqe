@@ -54,14 +54,14 @@ def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file 
     # normalize e1
     m1 = np.linalg.norm(e1)
     if (abs(m1) < 1.0E-6):  # if the module is less than 1.0E-6
-        e1 = a[1]
+        e1 = a[0]
         m1 = np.linalg.norm(e1)
     e1 = e1 / m1
 
     # normalize e2
     m2 = np.linalg.norm(e2)
     if abs(m2) < 1.0E-6:  # if the module is less than 1.0E-6
-        e2 = a[2]
+        e2 = a[1]
         m2 = np.linalg.norm(e2)
     e2 = e2 / m2
 
@@ -121,6 +121,71 @@ def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file 
         one = xsf_struct(struct_info)
         two = xsf_datagrid_2d(Z, nx, ny, m1, m2, x0, e1, e2, struct_info)
         f.write(one+two)
+    else:
+        print('Format not implemented')
+        raise NotImplementedError
+
+
+def write_3Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, e3, nx=1, ny=1, nz=1, plot_file = 'chargeplot3D.out', method='FFT', format='gnuplot'):
+    """
+    Writes a file for a 2D plot of the charge in different formats.
+
+    :param X: variable x along the 1st direction chosen for the plot
+    :param Y: variable y along the 2nd direction chosen for the plot
+    :param Z: charge on the grid
+    :param nx: number of points along the 1st direction
+    :param ny: number of points along the 2nd direction
+    :param plot_file: output charge plot file
+    :param format:  'gnuplot' -> 3 columns with x, y coordinates and charge data (suitable for gnuplot or similar)
+                    'plotrho.x' -> format for plotrho.x
+                    'xsf' -> xsf format for XCrySDen
+    :return:
+    """
+
+    a = struct_info['a']
+    # normalize e1
+    m1 = np.linalg.norm(e1)
+    if (abs(m1) < 1.0E-6):  # if the module is less than 1.0E-6
+        e1 = a[0]
+        m1 = np.linalg.norm(e1)
+    e1 = e1 / m1
+
+    # normalize e2
+    m2 = np.linalg.norm(e2)
+    if abs(m2) < 1.0E-6:  # if the module is less than 1.0E-6
+        e2 = a[1]
+        m2 = np.linalg.norm(e2)
+    e2 = e2 / m2
+
+    # normalize e3
+    m3 = np.linalg.norm(e3)
+    if abs(m3) < 1.0E-6:  # if the module is less than 1.0E-6
+        e3 = a[2]
+        m3 = np.linalg.norm(e3)
+    e3 = e3 / m3
+
+    # Steps along the e1, e2 and e3 directions...
+    deltax = m1 / (nx - 1)
+    deltay = m2 / (ny - 1)
+    deltaz = m3 / (nz - 1)
+
+    # Determine max and min of the (real) charge and the sum of imaginary (absolute) charge
+    charge_min = np.min(Z.real)
+    charge_max = np.max(Z.real)
+    charge_im = np.sum(np.abs(Z.imag)) / nx / ny
+
+    f = open(plot_file,'w')
+
+    if format == 'gOpenMol':
+        #TODO: not implemented
+        raise NotImplementedError
+    elif format == 'xsf':
+        one = xsf_struct(struct_info)
+        two = xsf_datagrid_3d(W, nx, ny, nz, m1, m2, m3, x0, e1, e2, e3, struct_info)
+        f.write(one+two)
+    elif format == 'cube':
+        #TODO: not implemented
+        raise NotImplementedError
     else:
         print('Format not implemented')
         raise NotImplementedError

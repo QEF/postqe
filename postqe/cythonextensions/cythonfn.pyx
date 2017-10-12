@@ -252,7 +252,7 @@ def FFTinterp2D_Cython(np.ndarray[double, ndim=3] charge, np.ndarray[double, ndi
     cdef np.ndarray[complex, ndim = 2] Z = np.zeros((nx, ny), dtype=complex)
 
     cdef np.ndarray[complex] eigx = np.zeros(nx, dtype=complex)
-    cdef np.ndarray[complex] eigy = np.zeros(nx, dtype=complex)
+    cdef np.ndarray[complex] eigy = np.zeros(ny, dtype=complex)
 
     # normalize e1
     m1 = np.linalg.norm(e1)
@@ -304,7 +304,7 @@ def FFTinterp2D_Cython(np.ndarray[double, ndim=3] charge, np.ndarray[double, ndi
 
                 for j in range(0, nyy):
                     arg = (2.0 * pi * complesso2(0.0, 1.0) *
-                            (j * deltax * (e20 * G[x, y, z, 0] + e21 * G[x, y, z, 1] + e22 * G[x, y, z, 2])))
+                            (j * deltay * (e20 * G[x, y, z, 0] + e21 * G[x, y, z, 1] + e22 * G[x, y, z, 2])))
                     eigy[j] = cexp(arg)     # much more efficient with cexp
 
                 for i in range(0, nxx):
@@ -314,3 +314,100 @@ def FFTinterp2D_Cython(np.ndarray[double, ndim=3] charge, np.ndarray[double, ndi
     Z = Z / (nr[0] * nr[1] * nr[2])
 
     return np.asarray(X), np.asarray(Y), np.asarray(Z)
+
+
+def FFTinterp3D_Cython(np.ndarray[double, ndim=3] charge, np.ndarray[double, ndim=4] G, np.ndarray[double, ndim=2] a,
+        x0, e1, e2, e3, nx, ny, nz):
+
+    cdef unsigned int i, j, k, x, y, z
+    cdef long nr0, nr1, nr2, nxx, nyy
+    cdef double x00, x01, x02, e10, e11, e12, e20, e21, e22, e30, e31, e32, m1, m2, m3, deltax, deltay, deltaz, xi, yi, zi
+    cdef double complex arg
+
+    cdef double[:,:,:] X = np.zeros((nx, ny, nz))
+    cdef double[:,:,:] Y = np.zeros((nx, ny, nz))
+    cdef double[:,:,:] Z = np.zeros((nx, ny, nz))
+    cdef np.ndarray[complex, ndim = 3] W = np.zeros((nx, ny, nz), dtype=complex)
+
+    cdef np.ndarray[complex] eigx = np.zeros(nx, dtype=complex)
+    cdef np.ndarray[complex] eigy = np.zeros(ny, dtype=complex)
+    cdef np.ndarray[complex] eigz = np.zeros(nz, dtype=complex)
+
+    # normalize e1
+    m1 = np.linalg.norm(e1)
+    if (abs(m1) < 1.0E-6):  # if the module is less than 1.0E-6
+        e1 = a[0]
+        m1 = np.linalg.norm(e1)
+    e10 = e1[0] / m1
+    e11 = e1[1] / m1
+    e12 = e1[2] / m1
+
+    # normalize e2
+    m2 = np.linalg.norm(e2)
+    if abs(m2) < 1.0E-6:  # if the module is less than 1.0E-6
+        e2 = a[1]
+        m2 = np.linalg.norm(e2)
+    e20 = e2[0] / m2
+    e21 = e2[1] / m2
+    e22 = e2[2] / m2
+
+    # normalize e3
+    m3 = np.linalg.norm(e3)
+    if abs(m3) < 1.0E-6:  # if the module is less than 1.0E-6
+        e3 = a[2]
+        m3 = np.linalg.norm(e3)
+    e30 = e3[0] / m3
+    e31 = e3[1] / m3
+    e32 = e3[2] / m3
+
+    # Computes the FFT of the charge
+    cdef np.ndarray[complex, ndim = 3] fft_charge = np.fft.fftn(charge)
+    nr = charge.shape
+
+    nr0, nr1, nr2 = nr[0], nr[1], nr[2]
+    x00, x01, x02 = x0[0], x0[1], x0[2]
+    nxx, nyy, nzz = nx, ny, nz
+
+    # Steps along the e1 and e2 directions...
+    deltax = m1 / (nx - 1)
+    deltay = m2 / (ny - 1)
+    deltaz = m3 / (nz - 1)
+
+    for i in range(0, nxx):
+        for j in range(0, nyy):
+            for k in range(0, nzz):
+                X[i, j, k] = i * deltax
+                Y[i, j, k] = j * deltay
+                Z[i, j, k] = k * deltaz
+
+    # loop(s) over the G points
+    for x in range(0, nr0):
+        for y in range(0, nr1):
+            for z in range(0, nr2):
+
+                # eigx=exp(iG*e1+iGx0), eigy=(iG*e2), eigz=(iG*e3)
+                # compute these factors to save CPU time
+                for i in range(0, nxx):
+                    arg = (2.0 * pi * complesso2(0.0, 1.0) *
+                            (i * deltax * (e10 * G[x, y, z, 0] + e11 * G[x, y, z, 1] +  e12 * G[x, y, z, 2]) +
+                            (x00 * G[x, y, z, 0] + x01 * G[x, y, z, 1] + x02 * G[x, y, z, 2])))
+                    eigx[i] = cexp(arg)     # much more efficient with cexp
+
+                for j in range(0, nyy):
+                    arg = (2.0 * pi * complesso2(0.0, 1.0) *
+                            (j * deltay * (e20 * G[x, y, z, 0] + e21 * G[x, y, z, 1] + e22 * G[x, y, z, 2])))
+                    eigy[j] = cexp(arg)     # much more efficient with cexp
+
+                for k in range(0, nzz):
+                    arg = (2.0 * pi * complesso2(0.0, 1.0) *
+                            (k * deltaz * (e30 * G[x, y, z, 0] + e31 * G[x, y, z, 1] + e32 * G[x, y, z, 2])))
+                    eigz[k] = cexp(arg)     # much more efficient with cexp
+
+                for i in range(0, nxx):
+                    for j in range(0, nyy):
+                        for k in range(0, nzz):
+                            W[i, j, k] = W[i, j, k] + fft_charge[x, y, z] * eigx[i] * eigy[j] * eigz[k]
+
+    W = W / (nr[0] * nr[1] * nr[2])
+
+    return np.asarray(X), np.asarray(Y), np.asarray(Z), np.asarray(W)
