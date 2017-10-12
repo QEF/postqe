@@ -86,7 +86,12 @@ def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file 
                 f.write("{:.9E}  ".format(X[i, j]) + "{:.9E}  ".format(Y[i, j]) + "{:.9E}\n".format(Z[i, j].real))
             f.write("\n")
     elif format == 'contour.x':
-        pass
+        f.write("{:5d} {:5d} {:5d} {:25.14f} {:25.14f}\n".format(nx, ny, 1, deltax, deltay))
+        for i in range(0, nx):
+            for j in range(0,ny):
+                f.write("{:25.14E}".format(Z[i, j].real))
+                if ((i*ny + j +1) % 4) == 0:
+                    f.write("\n")
     elif format == 'plotrho.x':
         f.write("{:4d} {:4d}\n".format( (nx-1), (ny-1) ))
         for i in range(0, nx):
