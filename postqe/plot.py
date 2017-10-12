@@ -53,7 +53,7 @@ def FFTinterp1D(charge, G, a, x0, e1, nx):
 
             X[i] = i * deltax
             Y[i] = Y[i] / (nr[0] * nr[1] * nr[2])
-            print(X[i], Y[i].real)
+            #print(X[i], Y[i].real)
 
         return X, Y
 
@@ -99,7 +99,6 @@ def spherical1D(charge, G, a, x0, e1, nx):
                         for i in range(0, nx):
                             Y[i] += 4.0 * pi * fft_charge[0, 0, 0]
                 else:                               # not at Gamma
-                    #arg = 2.0 * pi * (x0[0] * G[x, y, z, 0] + x0[1] * G[x, y, z, 1] + x0[2] * G[x, y, z, 2])
                     arg = 2.0 * pi * np.dot(x0, G[x, y, z])
                     rho0g = fft_charge[x, y, z] * complex(np.cos(arg), np.sin(arg))  # Move the origin to x0
                     Y[0] += 4.0 * pi * rho0g        # term at r=0
@@ -137,10 +136,9 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
     deltax = m1 / (nx - 1)
     deltay = m2 / (ny - 1)
 
-    temp = np.zeros((nx, ny), dtype=complex)
     X = np.zeros((nx, ny))
     Y = np.zeros((nx, ny))
-    Z = np.zeros((nx, ny))
+    Z = np.zeros((nx, ny), dtype=complex)
 
     for i in range(0, nx):
         for j in range(0, ny):
@@ -170,9 +168,9 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
 
                 for i in range(0, nx):
                     for j in range(0, ny):
-                        temp[i, j] += fft_charge[x, y, z] * eigx[i] * eigy[j]
+                        Z[i, j] += fft_charge[x, y, z] * eigx[i] * eigy[j]
 
-    Z = temp.real / (nr[0] * nr[1] * nr[2])
+    Z = Z / (nr[0] * nr[1] * nr[2])
 
     return X, Y, Z
 
@@ -187,7 +185,7 @@ def plot_1Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, yla
 
     :param charge:  eletronic charge density (or other quantity) to be plotted
     :param G:  G vectors in the reciprocal space
-    :param a:  basis vectors of the unit cell
+    :param struct_info: a dictionary with structural info on the unit cell
     :param x0: 3D vector, origin of the line
     :param e1: 3D vector which determines the plotting line
     :param nx: number of points in the line
@@ -210,7 +208,6 @@ def plot_1Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, yla
             X, Y = spherical1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
         except ImportError:
             X, Y = spherical1D(charge, G, struct_info['a'], x0, e1, nx)
-
     else:
         raise NotImplementedError
 
@@ -227,8 +224,49 @@ def plot_1Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, yla
 
     return fig
 
-    
-def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), nx=20, ny=20, zlab='charge', plot_file='',
+
+def polar2D(charge, G, nx, ny, radius, alat):
+    """
+    Computes a polar plot on a sphere.
+    """
+
+    phi = np.zeros((nx, ny))
+    theta = np.zeros((nx, ny))
+    Z = np.zeros((nx, ny), dtype=complex)
+    r = np.zeros((nx, ny, 3))
+
+    radius /= alat
+    deltax = 2.0 * pi / (nx - 1)
+    deltay = pi / (ny - 1)
+
+    # Computes the FFT of the charge
+    fft_charge = np.fft.fftn(charge)
+    nr = charge.shape
+
+    # first compute r coordinates on the sphere
+    for i in range(0, nx):
+        for j in range(0, ny):
+            phi[i,j] = i * deltax
+            theta[i,j] = j * deltay
+            r[i,j,0] = radius * np.sin(theta[i,j]) * np.cos(phi[i,j])
+            r[i,j,1] = radius * np.sin(theta[i,j]) * np.sin(phi[i,j])
+            r[i,j,2] = radius * np.cos(theta[i,j])
+
+    # loop(s) over the G points
+    for x in range(0, nr[0]):
+        for y in range(0, nr[1]):
+            for z in range(0, nr[2]):
+                for i in range(0, nx):
+                    for j in range(0, ny):
+                        eig =  np.exp(np.complex(0,2.0 * pi * np.dot(r[i,j],G[x,y,z])))
+                        Z[i,j] += fft_charge[x, y, z] * eig
+
+    Z = Z / (nr[0] * nr[1] * nr[2])
+
+    return phi, theta, Z
+
+
+def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), nx=20, ny=20, radius=1, zlab='charge', plot_file='',
                   method='FFT', format=''):
     """
     This function calculates a 2D plot of the input charge (or else), starting from the
@@ -239,29 +277,42 @@ def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 
 
     :param charge:  eletronic charge density (or other quantity) to be plotted
     :param G:  G vectors in the reciprocal space
-    :param a:  basis vectors of the unit cell
+    :param struct_info: a dictionary with structural info on the unit cell
     :param x0: 3D vector, origin of the line
     :param e1, e2: 3D vectors which determines the plotting plane
     :param nx, ny: number of points along e1, e2 respectively
     :param zlab: y axix label in the plot
     :param plot_file: if plot_file!='', write the plotting values on a text file
-    :param method: interpolation method ('FFT' or 'splines', only 'FFT' implemented)
+    :param method: interpolation method ('FFT' or 'splines' or 'polar', only 'FFT' and 'polar' implemented)
     :param format: output file format
     :return: the matplotlib figure object
     """
 
-    #TODO: check that e1 and e2 are not orthonormal
+    #TODO: check that e1 and e2 are orthonormal
     # if (abs(e1(1) * e2(1) + e1(2) * e2(2) + e1(3) * e2(3)) > 1e-6):
     # throw something
 
-    try:
-        from cythonfn import FFTinterp2D_Cython
-        X, Y, Z = FFTinterp2D_Cython(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
-    except ImportError:
-        X, Y, Z = FFTinterp2D(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
+    if (method == 'FFT'):
+        try:
+            from cythonfn import FFTinterp2D_Cython
+            X, Y, Z = FFTinterp2D_Cython(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
+        except ImportError:
+            X, Y, Z = FFTinterp2D(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
+    elif (method == 'polar'):
+        try:
+            #TODO: Cython function to be implemented
+            from cythonfn import polar2D_Cython
+            X, Y, Z = polar2D_Cython(charge, G, nx, ny, radius, struct_info['alat'])
+        except ImportError:
+            X, Y, Z = polar2D(charge, G, nx, ny, radius, struct_info['alat'])
+    elif (method == 'splines'):
+        # TODO: to be implemented
+        raise NotImplementedError
+    else:
+        raise NotImplementedError
 
     if plot_file != '':
-        write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx, ny, plot_file, format)
+        write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx, ny, plot_file, method, format)
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')

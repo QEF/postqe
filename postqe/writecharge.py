@@ -7,6 +7,7 @@ A tentative collection of functions for writing the charge in different formats 
 ################################################################################
 
 import numpy as np
+from .constants import pi
 from .xsf_format import xsf_struct, xsf_datagrid_2d
 
 def write_1Dcharge_file(X, Y, nx=1, plot_file = 'chargeplot1D.out'):
@@ -33,7 +34,7 @@ def write_1Dcharge_file(X, Y, nx=1, plot_file = 'chargeplot1D.out'):
         f.write("{:.9E}  ".format(X[i]) + "{:.9E}\n".format(Y[i].real))
 
 
-def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file = 'chargeplot2D.out', format='gnuplot'):
+def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file = 'chargeplot2D.out', method='FFT', format='gnuplot'):
     """
     Writes a file for a 2D plot of the charge in different formats.
 
@@ -65,8 +66,12 @@ def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file 
     e2 = e2 / m2
 
     # Steps along the e1 and e2 directions...
-    deltax = m1 / (nx - 1)
-    deltay = m2 / (ny - 1)
+    if (method=='polar'):
+        deltax = 2.0 * pi / (nx - 1)
+        deltay = pi / (ny - 1)
+    else:
+        deltax = m1 / (nx - 1)
+        deltay = m2 / (ny - 1)
 
     # Determine max and min of the (real) charge and the sum of imaginary (absolute) charge
     charge_min = np.min(Z.real)

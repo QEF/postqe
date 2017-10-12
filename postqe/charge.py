@@ -6,6 +6,7 @@ import h5py
 from .plot import plot_1Dcharge, plot_2Dcharge, plot_3Dcharge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
+
 def read_charge_file_hdf5(filename, nr = None):
     """
     Reads a charge file written with QE in HDF5 format. *nr = [nr1,nr2,nr3]* (the dimensions of
@@ -96,8 +97,6 @@ def read_charge_file_hdf5(filename, nr = None):
             return rhotot_r.real, None
 
 
-
-
 def write_charge(filename, charge, header):
     """
     Write the charge or another quantity calculated by postqe into a text file *filename*.
@@ -181,8 +180,8 @@ class Charge:
             write_charge(filename + '_down', charge_down, header)
 
 
-    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, dim=1, ifmagn='total',
-             plot_file='', method='FFT', format='gnuplot'):
+    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, radius=1, dim=1,
+             ifmagn='total', plot_file='', method='FFT', format='gnuplot'):
         """
         Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.
 
@@ -197,7 +196,7 @@ class Charge:
             self.charge
         except:
             return
-        # Extract some structural info
+        # Extract some structural info in a dictionary
         struct_info = {
             'a' : self.calculator.get_a_vectors(),
             'b' : self.calculator.get_b_vectors(),
@@ -212,7 +211,7 @@ class Charge:
             if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
                 fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
             elif dim == 2:  # 2D section
-                fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
+                fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
             else:           # 3D section
                 fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format)
             fig.show()
@@ -223,7 +222,7 @@ class Charge:
                 if dim == 1:  # 1D section
                     fig = plot_1Dcharge(charge_up, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(charge_up, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
+                    fig = plot_2Dcharge(charge_up, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
                 else:  # 3D section
                     fig = plot_3Dcharge(charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
                                         format)
@@ -233,7 +232,7 @@ class Charge:
                 if dim == 1:  # 1D section
                     fig = plot_1Dcharge(charge_down, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(charge_down, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method, format)
+                    fig = plot_2Dcharge(charge_down, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
                 else:  # 3D section
                     fig = plot_3Dcharge(charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
                                         format)
@@ -242,7 +241,7 @@ class Charge:
                 if dim == 1:  # 1D section ylab='charge', plot_file='', format='', method='FFT'
                     fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, 'charge', plot_file, method,
+                    fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method,
                                         format)
                 else:  # 3D section
                     fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
