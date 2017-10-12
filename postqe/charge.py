@@ -26,6 +26,8 @@ def read_charge_file_hdf5(filename, nr = None):
             nr1,nr2,nr3 = nr
 
         ngm_g = h5f.attrs.get('ngm_g')
+        gamma_only = h5f.attrs.get('gamma_only')
+        gamma_only = 'TRUE' in str(gamma_only).upper()
         # Read the total charge
         aux = np.array(h5f['rhotot_g']).reshape([ngm_g,2])
         rhotot_g = aux.dot([1.e0,1.e0j])
@@ -36,6 +38,26 @@ def read_charge_file_hdf5(filename, nr = None):
                 rho_temp[i,j,k]=rho
             except IndexError:
                 pass
+        if gamma_only:
+            rhotot_g = aux.dot([1.e0,-1.e0j])
+            for el in zip(MI, rhotot_g):
+                (i,j,k), rho = el
+                if i > 0:
+                    try:
+                        rho_temp[-i, j, k] = rho
+                    except IndexError:
+                        pass
+                elif j > 0:
+                    try:
+                        rho_temp[0, -j, k] = rho
+                    except IndexError:
+                        pass
+                elif k > 0:
+                    try:
+                        rho_temp[0, 0, -k] = rho
+                    except IndexError:
+                        pass
+
         rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
         # Read the charge difference spin up - spin down if present (for magnetic calculations)
@@ -49,6 +71,25 @@ def read_charge_file_hdf5(filename, nr = None):
                     rho_temp[i, j, k] = rho
                 except IndexError:
                     pass
+            if gamma_only:
+                rhodiff_g = aux.dot([1.e0, -1.e0j])
+                for el in zip(MI, rhodiff_g):
+                    (i, j, k), rho = el
+                    if i > 0:
+                        try:
+                            rho_temp[-i, j, k] = rho
+                        except IndexError:
+                            pass
+                    elif j > 0:
+                        try:
+                            rho_temp[0, -j, k] = rho
+                        except IndexError:
+                            pass
+                    elif k > 0:
+                        try:
+                            rho_temp[0, 0, -k] = rho
+                        except IndexError:
+                            pass
             rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
             return rhotot_r.real, rhodiff_r.real
         else:
