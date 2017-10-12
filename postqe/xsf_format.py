@@ -44,11 +44,38 @@ def xsf_datagrid_2d(Z, nx, ny, m1, m2, x0, e1, e2, struct_info):
     for x in e2:
         xsf += '{:15.9f} '.format(x*m2*fact)
     xsf += '\n'
-    for i in range(0, nx):
-        for j in range(0, ny):
+    for j in range(0, ny-1):
+        for i in range(0, nx-1):
             xsf += '{:12.4E}'.format(Z[i, j].real)
-            if ((i * ny + j + 1) % 6) == 0:
+            if ((j * (nx-1) + i + 1) % 6) == 0:
                 xsf += '\n'
     xsf += '\n'
     xsf += 'END_DATAGRID_2D\nEND_BLOCK_DATAGRID_2D'
+    return xsf
+
+def xsf_datagrid_3d(W, nx, ny, nz, m1, m2, m3, x0, e1, e2, e3, struct_info):
+
+    xsf = 'BEGIN_BLOCK_DATAGRID_3D\n3D_PWSCF\nDATAGRID_3D_UNKNOWN\n'
+    xsf += '{:4d}  {:4d}  {:4d}\n'.format(nx, ny, nz)
+    fact = struct_info['alat']*BOHR_RADIUS_SI*1e9
+    for x in x0:
+        xsf += '{:15.9f} '.format(x*fact)
+    xsf += '\n'
+    for x in e1:
+        xsf += '{:15.9f} '.format(x*m1*fact)
+    xsf += '\n'
+    for x in e2:
+        xsf += '{:15.9f} '.format(x*m2*fact)
+    xsf += '\n'
+    for x in e3:
+        xsf += '{:15.9f} '.format(x * m3 * fact)
+    xsf += '\n'
+    for k in range(0, nz-1):
+        for j in range(0, ny-1):
+            for i in range(0, nx-1):
+                xsf += '{:12.4E}'.format(W[i, j, k].real)
+                if ((k * ((ny-1)*(nx-1)) + j * (nx-1) + i + 1) % 6) == 0:
+                    xsf += '\n'
+    xsf += '\n'
+    xsf += 'END_DATAGRID_3D\nEND_BLOCK_DATAGRID_3D'
     return xsf

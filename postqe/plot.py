@@ -412,7 +412,7 @@ def plot_3Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 
         X, Y, Z, W = FFTinterp3D(charge, G, struct_info['a'], x0, e1, e2, e3, nx, ny, nz)
     pass
 
-    write_3Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, e3, nx, ny, nz, plot_file, method, format)
+    write_3Dcharge_file(X, Y, Z, W, struct_info, x0, e1, e2, e3, nx, ny, nz, plot_file, method, format)
 
 
 def simple_plot_xy(x, y, xlabel="", ylabel=""):

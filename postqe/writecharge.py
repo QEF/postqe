@@ -8,7 +8,7 @@ A tentative collection of functions for writing the charge in different formats 
 
 import numpy as np
 from .constants import pi
-from .xsf_format import xsf_struct, xsf_datagrid_2d
+from .xsf_format import xsf_struct, xsf_datagrid_2d, xsf_datagrid_3d
 
 def write_1Dcharge_file(X, Y, nx=1, plot_file = 'chargeplot1D.out'):
     """
@@ -126,7 +126,7 @@ def write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx=1, ny=1, plot_file 
         raise NotImplementedError
 
 
-def write_3Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, e3, nx=1, ny=1, nz=1, plot_file = 'chargeplot3D.out', method='FFT', format='gnuplot'):
+def write_3Dcharge_file(X, Y, Z, W, struct_info, x0, e1, e2, e3, nx=1, ny=1, nz=1, plot_file = 'chargeplot3D.out', method='FFT', format='gnuplot'):
     """
     Writes a file for a 2D plot of the charge in different formats.
 
@@ -170,9 +170,9 @@ def write_3Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, e3, nx=1, ny=1, nz=1, 
     deltaz = m3 / (nz - 1)
 
     # Determine max and min of the (real) charge and the sum of imaginary (absolute) charge
-    charge_min = np.min(Z.real)
-    charge_max = np.max(Z.real)
-    charge_im = np.sum(np.abs(Z.imag)) / nx / ny
+    charge_min = np.min(W.real)
+    charge_max = np.max(W.real)
+    charge_im = np.sum(np.abs(W.imag)) / nx / ny
 
     f = open(plot_file,'w')
 
