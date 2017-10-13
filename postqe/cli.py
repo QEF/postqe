@@ -112,12 +112,12 @@ def get_cli_parser():
     charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
 
     # create the parser for the "potential" command
-    charge_parser = subparsers.add_parser(
+    potential_parser = subparsers.add_parser(
         'potential', help='Get the potential from Espresso XML and HDF5 output.')
-    charge_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
-    charge_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
-    charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
-    charge_parser.add_argument(
+    potential_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    potential_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    potential_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    potential_parser.add_argument(
         '-pot_type', type=str, default=None, help="Type of the potential ('vtot', ...).")
 
     return parser

@@ -34,6 +34,8 @@ $PP_COMMAND < sipp0biflag2out7.in
 # 3D
 $PP_COMMAND < sipp0biflag3out3.in 
 $PP_COMMAND < sipp0biflag3out5.in 
+$PP_COMMAND < sipp0biflag3out6.in 
+$PP_COMMAND < sipp0biflag3out6splines.in 
 # polar
 $PP_COMMAND < sipp0biflag4out0.in 
 $PP_COMMAND < sipp0biflag4out1.in

@@ -1,5 +1,5 @@
 
-     Program POST-PROC v.6.1 starts on 11Oct2017 at 14:50:41 
+     Program POST-PROC v.6.1 starts on 13Oct2017 at 14:19:35 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -31,10 +31,10 @@
      Message from routine chdens:
      namelist plot not found or invalid, exiting
 
-     POST-PROC    :     0.12s CPU         0.13s WALL
+     POST-PROC    :     0.11s CPU         0.12s WALL
 
 
-   This run was terminated on:  14:50:42  11Oct2017            
+   This run was terminated on:  14:19:36  13Oct2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
