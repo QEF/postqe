@@ -9,6 +9,7 @@ A tentative collection of functions for writing the charge in different formats 
 import numpy as np
 from .constants import pi
 from .xsf_format import xsf_struct, xsf_datagrid_2d, xsf_datagrid_3d
+from .cube_format import cube
 
 def write_1Dcharge_file(X, Y, nx=1, plot_file = 'chargeplot1D.out'):
     """
@@ -180,12 +181,12 @@ def write_3Dcharge_file(X, Y, Z, W, struct_info, x0, e1, e2, e3, nx=1, ny=1, nz=
         #TODO: not implemented
         raise NotImplementedError
     elif format == 'xsf':
-        one = xsf_struct(struct_info)
-        two = xsf_datagrid_3d(W, nx, ny, nz, m1, m2, m3, x0, e1, e2, e3, struct_info)
-        f.write(one+two)
+        temp_struct = xsf_struct(struct_info)
+        temp_grid = xsf_datagrid_3d(W, nx, ny, nz, m1, m2, m3, x0, e1, e2, e3, struct_info)
+        f.write(temp_struct+temp_grid)
     elif format == 'cube':
-        #TODO: not implemented
-        raise NotImplementedError
+        temp = cube(W, nx, ny, nz, e1, e2, e3, struct_info)
+        f.write(temp)
     else:
         print('Format not implemented')
         raise NotImplementedError

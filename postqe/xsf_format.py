@@ -14,12 +14,11 @@ from .constants import BOHR_RADIUS_SI
 
 def xsf_struct(struct_info):
     """
-    Create a string with XSF format for structural info (periodic systems)
+    Creates and returns a string with XSF format for structural info (periodic systems)
     :param struct_info: a dictionary containing the structural parameters
     :return: a string formatted as the XSF format
     """
 
-    #TODO: check a vectors. It seems right here but it is different from pp.x (why?)
     xsf =  ' CRYSTAL\n PRIMVEC\n'
     fact = BOHR_RADIUS_SI*1e10
     a = struct_info['a']*fact # convert in Ang
@@ -32,6 +31,9 @@ def xsf_struct(struct_info):
     return xsf
 
 def xsf_datagrid_2d(Z, nx, ny, m1, m2, x0, e1, e2, struct_info):
+    """
+    Creates and returns a string with XSF 2D datablock for the charge (or similar quantity) on a grid.
+    """
 
     xsf = 'BEGIN_BLOCK_DATAGRID_2D\n2D_PWSCF\nDATAGRID_2D_UNKNOWN\n'
     xsf += '{:4d}  {:4d}\n'.format(nx, ny)
@@ -55,7 +57,9 @@ def xsf_datagrid_2d(Z, nx, ny, m1, m2, x0, e1, e2, struct_info):
     return xsf
 
 def xsf_datagrid_3d(W, nx, ny, nz, m1, m2, m3, x0, e1, e2, e3, struct_info):
-
+    """
+    Creates and returns a string with XSF 3D datablock for the charge (or similar quantity) on a grid.
+    """
     xsf = 'BEGIN_BLOCK_DATAGRID_3D\n3D_PWSCF\nDATAGRID_3D_UNKNOWN\n'
     xsf += '{:4d}  {:4d}  {:4d}\n'.format(nx, ny, nz)
     fact = struct_info['alat']*BOHR_RADIUS_SI*1e10
