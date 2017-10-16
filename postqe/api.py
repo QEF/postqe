@@ -31,28 +31,71 @@ def get_label(prefix, outdir=None):
     return label
 
 
-def get_eos(prefix, outdir=None, eos='murnaghan'):
+def get_eos(prefix, outdir=None, eos_type='murnaghan'):
     """
-    This function returns an EOS object from a text input file containing the volumes
+    Returns an EOS object from a text input file containing the volumes
     and corresponding calculated energies.
     Different equation of states are available: Murnaghan, Birch, Vinet, etc.
 
     :param prefix: prefix of saved files for volumes and energies
-    :param outdir: directory containing the input data. Default to the value of \
-    ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
-    :param eos: type of Equation of State (Murnaghan, Birch, Vinet, etc.)
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
+    :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n
+            'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n
+            'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n
+            \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n
+            'taylor' -> A third order Taylor series expansion around the minimum volume\n
+            'vinet' -> Vinet EOS, PRB 70, 224107 \n
+            'birch' -> Birch EOS, Intermetallic compounds: Principles and Practice, Vol I: Principles, p. 195\n
+            'birchmurnaghan' -> Birch-Murnaghan EOS, PRB 70, 224107\n
+            'pouriertarantola' -> Pourier-Tarantola EOS, PRB 70, 224107\n
+            'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n
+            'p3' -> A third order inverse polynomial fit\n
+
     :return: an EOS object
     """
     label = get_label(prefix, outdir)
-
     # Extract volumes and energies from the input file:
     volumes, energies = read_EtotV(label)
-
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
-    eos = QEEquationOfState(volumes, energies, eos=eos)
-
+    eos = QEEquationOfState(volumes, energies, eos=eos_type)
     return eos
 
+
+def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot='EOSplot', show=True, ax=None):
+    """
+    This function fits an Equation of state of type *eos* and writes the results into *filename*.
+    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
+
+    :param prefix: prefix of saved files for volumes and energies
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
+    :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n
+            'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n
+            'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n
+            \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n
+            'taylor' -> A third order Taylor series expansion around the minimum volume\n
+            'vinet' -> Vinet EOS, PRB 70, 224107 \n
+            'birch' -> Birch EOS, Intermetallic compounds: Principles and Practice, Vol I: Principles, p. 195\n
+            'birchmurnaghan' -> Birch-Murnaghan EOS, PRB 70, 224107\n
+            'pouriertarantola' -> Pourier-Tarantola EOS, PRB 70, 224107\n
+            'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n
+            'p3' -> A third order inverse polynomial fit
+    :param fileout: output file with fitting data and results (default='', not written).
+    :param fileplot: output plot file (default='EOSplot') in png format.
+    :param show: True -> plot results with Matplotlib; None or False -> do nothing. Default = True
+    :param ax: a Matplotlib "Axes" instance (see Matplotlib documentation for details). If ax=None (default), creates
+            a new one
+    :return: an EOS object and a Matplotlib figure object
+    """
+
+    eos = get_eos(prefix, outdir, eos_type)
+    v0, e0, B = eos.fit()
+    if fileout !='':
+        eos.write(fileout)
+    fig = eos.plot(fileplot, show=show, ax=ax)
+
+    return eos, fig
 
 def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     """
@@ -60,8 +103,8 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     containing the results of a proper calculation along a path in the Brilluoin zone.
 
     :param prefix: prefix of saved output files
-    :param outdir: directory containing the input data. Default to the value of \
-    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param reference_energy: the Fermi level
     :return: a band structure object
@@ -87,8 +130,8 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100
     results of a DOS calculation.
 
     :param prefix: prefix of saved output files
-    :param outdir: directory containing the input data. Default to the value of \
-    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param width: width of the gaussian to be used for the DOS (in eV)
     :param window = emin, emax: defines the minimun and maximun energies for the DOS
@@ -117,10 +160,10 @@ def get_charge(prefix, outdir=None, schema=None):
     corresponding HDF5 charge file containing the results of a calculation.
 
     :param prefix: prefix of saved output files
-    :param outdir: directory containing the input data. Default to the value of \
-    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
-    :return a Charge object
+    :return: a Charge object
     """
     label = get_label(prefix, outdir)
 
@@ -150,11 +193,11 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='vtot'):
     exchange-correlation (pot_type='v_xc') and total (pot_type='v_tot').
 
     :param prefix: prefix of saved output files
-    :param outdir: directory containing the input data. Default to the value of \
-    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param pot_type: type of the Potential ('vtot', ....)
-    :return a Potential object
+    :return: a Potential object
     """
     label = get_label(prefix, outdir)
 
@@ -176,30 +219,3 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='vtot'):
 
     return potential
 
-def fit_and_write_eos(label, eos='murnaghan', filename='eos.out'):
-    """
-    This function fits an Equation of state of type *eos* and writes the results into *filename*.
-    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
-
-    :param label: input file for volumes and energies (possibly including the full path)
-    :param eos: type of Equation of State (Murnaghan, Birch, Vinet, etc.)
-    :param filename: name of the output file
-    """
-
-    eos = get_eos(label, eos)
-    v0, e0, B = eos.fit()
-    eos.write(filename)
-
-def fit_and_plot_eos(label, eos='murnaghan', filename='EOSplot', show=None, ax=None):
-    """
-    This function fits an Equation of state of type *eos* and writes the results into *filename*.
-    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
-
-    :param label: input file for volumes and energies (possibly including the full path)
-    :param eos: type of Equation of State (Murnaghan, Birch, Vinet, etc.)
-    :param filename: name of the output file
-    """
-
-    eos = get_eos(label, eos)
-    v0, e0, B = eos.fit()
-    fig = eos.plot(filename, show=show, ax=ax)

@@ -115,7 +115,8 @@ For example, the method <code class="xref py py-func docutils literal"><span cla
 <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;figure.png&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
-
+<span class="c1"># save DOS in a file</span>
+<span class="n">dos</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;DOS.out&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <code class="xref py py-func docutils literal"><span class="pre">get_dos()</span></code> needs in input the xml file produced by pw.x, after a proper DOS calculation. This is identified using <em>label</em> which may contain the full path to the file (.xml is automatically added). The <em>schema</em> (optional) parameter allows the code to properly parse and validate the xml file.  You must also specify the number of energy steps in the DOS (<em>npts</em>), plus the Gaussian broadening (<em>width</em>). <code class="xref py py-func docutils literal"><span class="pre">get_dos()</span></code> then returns a DOS object.</p>

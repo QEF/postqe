@@ -15,7 +15,7 @@ import time
 
 from .api import get_charge, get_potential
 
-
+# TODO: This is an old version of the parser, to be deleted eventually
 def get_cli_parser_pp():
     import argparse
 
@@ -93,32 +93,81 @@ def get_cli_parser_pp():
 
     return parser
 
-
+# New parser with submenus
 def get_cli_parser():
     import argparse
+    # all help strings are here:
+    EOS_HELP = 'Fit energy vs volume data with an equation of state.'
+    BANDS_HELP = 'Calculate energy bands.'
+    DOS_HELP = 'Calculate the electronic density of states'
+    CHARGE_HELP = 'Get the electronic charge from Espresso XML and HDF5 output.'
+    POTENTIAL_HELP = 'Get a potential from Espresso XML and HDF5 output.'
     PREFIX_HELP = 'prefix of files saved by program pw.x'
     OUTDIR_HELP = 'directory containing the input data, i.e. the same as in pw.x'
     SCHEMA_HELP = 'the XSD schema file for QE XML output file. If not provided the schema' \
                   'information is taken from xsi:schemaLocation attributes.'
+    EOS_PREFIX_HELP = 'file containing the energy/volume data.'
+    EOS_TYPE_HELP = 'type of equation of state (EOS) for fitting. Available types are:\n' \
+                    'murnaghan (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n' \
+                    'sjeos -> A third order inverse polynomial fit, PhysRevB.67.026103\n' \
+                    '\t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n' \
+                    'taylor -> A third order Taylor series expansion around the minimum volume\n' \
+                    'vinet -> Vinet EOS, PRB 70, 224107 \n' \
+                    'birch -> Birch EOS, Intermetallic compounds: Principles and Practice, Vol I: Principles, p. 195\n' \
+                    'birchmurnaghan -> Birch-Murnaghan EOS, PRB 70, 224107\n' \
+                    'pouriertarantola -> Pourier-Tarantola EOS, PRB 70, 224107\n' \
+                    'antonschmidt -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n' \
+                    'p3 -> A third order inverse polynomial fit\n'
+    EOS_FILEOUT_HELP = 'output file with fitting data and results (default='', not written)'
+    EOS_FILEPLOT_HELP = 'output plot file in png format (default=\'EOSplot\'). Other formats are available from the ' \
+                        'Matplotlib GUI.'
+    EOS_SHOW_HELP = 'True -> plot results with Matplotlib; None or False -> do nothing. Default = True'
+
+    POT_TYPE_HELP = 'type of the potential to calculate. Available types are:\n' \
+                    'v_tot (default) -> the total potential (v_bare+v_hartree+v_xc).\n' \
+                    'v_bare -> the bare potential.\n' \
+                    'v_hartree = the Hartree potential.\n' \
+                    'v_xc -> the exchange-correlation potential.\n' \
+
+    # TODO: to be finished
 
     parser = argparse.ArgumentParser(description='QE post processing')
     subparsers = parser.add_subparsers(help='sub-command help')
 
+    # create the parser for the "eos" command
+    eos_parser = subparsers.add_parser('eos', help=EOS_HELP)
+    eos_parser.add_argument('-prefix', type=str, required=True, help=EOS_PREFIX_HELP)
+    eos_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    eos_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    eos_parser.add_argument('-eos_type', type=str, default='murnaghan', help=EOS_TYPE_HELP)
+    eos_parser.add_argument('-fileout', type=str, default='', help=EOS_FILEOUT_HELP)
+    eos_parser.add_argument('-fileplot', type=str, default='EOSplot', help=EOS_FILEPLOT_HELP)
+    eos_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
+
+    # create the parser for the "bands" command
+    bands_parser = subparsers.add_parser('bands', help=BANDS_HELP)
+    bands_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    bands_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    bands_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+
+    # create the parser for the "dos" command
+    dos_parser = subparsers.add_parser('dos', help=DOS_HELP)
+    dos_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    dos_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    dos_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+
     # create the parser for the "charge" command
-    charge_parser = subparsers.add_parser(
-        'charge', help='Get the charge from Espresso XML and HDF5 output.')
+    charge_parser = subparsers.add_parser('charge', help=CHARGE_HELP)
     charge_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
     charge_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
 
     # create the parser for the "potential" command
-    potential_parser = subparsers.add_parser(
-        'potential', help='Get the potential from Espresso XML and HDF5 output.')
+    potential_parser = subparsers.add_parser('potential', help=POTENTIAL_HELP)
     potential_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
     potential_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     potential_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
-    potential_parser.add_argument(
-        '-pot_type', type=str, default=None, help="Type of the potential ('vtot', ...).")
+    potential_parser.add_argument('-pot_type', type=str, default=None, help=POT_TYPE_HELP)
 
     return parser
 
