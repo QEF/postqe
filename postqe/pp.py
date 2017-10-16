@@ -8,5 +8,8 @@ def run(pars):
     # TODO: implement submenus
     #compute_eos(pars.prefix, pars.outdir, pars.eos_type, pars.fileout, pars.fileplot, pars.show)
 
-    compute_band_structure(pars.prefix, pars.outdir, pars.schema, pars.reference_energy,
-                           pars.emin, pars.emax, pars.fileplot, pars.show)
+    #compute_band_structure(pars.prefix, pars.outdir, pars.schema, pars.reference_energy,
+    #                       pars.emin, pars.emax, pars.fileplot, pars.show)
+
+    comput_dos(pars.prefix, pars.outdir, pars.schema, pars.width, pars.window, pars.npts,
+               pars.fileout,  pars.fileplot, pars.show)

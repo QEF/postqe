@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 #encoding: UTF-8
 
+"""
+A specialization of ASE DOS class with a new get_dos_int method for computing the integral of the DOS
+and a modified  write method to write it properly.
+"""
+
 import numpy as np
 from ase.dft.dos import DOS
 

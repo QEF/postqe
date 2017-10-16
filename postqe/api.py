@@ -8,7 +8,7 @@
 # https://opensource.org/licenses/LGPL-2.1
 #
 """
-A collection of functions to be part of postqe API and exposed to the user.
+A collection of functions defining postqe API and exposed to the user.
 """
 import os
 from postqe.eos import QEEquationOfState
@@ -173,6 +173,48 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100
     dos = QEDOS(calcul, width=width, window=window, npts=npts)
 
     return dos
+
+def comput_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100,
+               fileout='', fileplot='dosplot.png', show=True):
+    """
+    This function returns an DOS object from an output xml Espresso file containing the
+    results of a DOS calculation.
+
+    :param prefix: prefix of saved output files
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param schema: the XML schema to be used to read and validate the XML output file
+    :param width: width of the gaussian to be used for the DOS (in eV)
+    :param window = emin, emax: defines the minimun and maximun energies for the DOS
+    :param npts:  number of points of the DOS
+    :param fileout: output file with DOS results (default='', not written).
+    :param fileplot: output plot file (default='dosplot') in png format.
+    :param show: True -> plot results with Matplotlib; None or False -> do nothing. Default = True
+    :return: a DOS object and a Matplotlib figure object
+    """
+
+    # get a DOS object
+    dos = get_dos(prefix, schema=schema, width=width, window=window, npts=npts)
+
+    # save DOS in a file
+    if fileout != '':
+        dos.write('DOS.out')
+
+    # get the dos and energies for further processing
+    d = dos.get_dos()
+    e = dos.get_energies()
+
+    # Plot the DOS with Matplotlib...
+    import matplotlib.pyplot as plt
+    plt.plot(e, d)
+    plt.xlabel('energy [eV]')
+    plt.ylabel('DOS')
+    plt.savefig(fileplot)
+    if show:
+        plt.show()
+
+    return dos, plt
+
 
 
 def get_charge(prefix, outdir=None, schema=None):

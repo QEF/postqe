@@ -57,7 +57,37 @@
 </div>
 <div class="section" id="module-postqe.api">
 <span id="postqe-api-module"></span><h2>postqe.api module<a class="headerlink" href="#module-postqe.api" title="Permalink to this headline">¶</a></h2>
-<p>A collection of functions to be part of postqe API and exposed to the user.</p>
+<p>A collection of functions defining postqe API and exposed to the user.</p>
+<dl class="function">
+<dt id="postqe.api.comput_dos">
+<code class="descclassname">postqe.api.</code><code class="descname">comput_dos</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>schema=None</em>, <em>width=0.01</em>, <em>window=None</em>, <em>npts=100</em>, <em>fileout=''</em>, <em>fileplot='dosplot.png'</em>, <em>show=True</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.comput_dos" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns an DOS object from an output xml Espresso file containing the
+results of a DOS calculation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>prefix</strong> &#8211; prefix of saved output files</li>
+<li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
+ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217;) otherwise</li>
+<li><strong>schema</strong> &#8211; the XML schema to be used to read and validate the XML output file</li>
+<li><strong>width</strong> &#8211; width of the gaussian to be used for the DOS (in eV)</li>
+<li><strong>= emin, emax</strong> (<em>window</em>) &#8211; defines the minimun and maximun energies for the DOS</li>
+<li><strong>npts</strong> &#8211; number of points of the DOS</li>
+<li><strong>fileout</strong> &#8211; output file with DOS results (default=&#8217;&#8216;, not written).</li>
+<li><strong>fileplot</strong> &#8211; output plot file (default=&#8217;dosplot&#8217;) in png format.</li>
+<li><strong>show</strong> &#8211; True -&gt; plot results with Matplotlib; None or False -&gt; do nothing. Default = True</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DOS object and a Matplotlib figure object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="function">
 <dt id="postqe.api.compute_band_structure">
 <code class="descclassname">postqe.api.</code><code class="descname">compute_band_structure</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>schema=None</em>, <em>reference_energy=0</em>, <em>emin=-50</em>, <em>emax=50</em>, <em>fileplot='bandsplot.png'</em>, <em>show=True</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.compute_band_structure" title="Permalink to this definition">¶</a></dt>
@@ -295,6 +325,8 @@ ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217
 </div>
 <div class="section" id="module-postqe.dos">
 <span id="postqe-dos-module"></span><h2>postqe.dos module<a class="headerlink" href="#module-postqe.dos" title="Permalink to this headline">¶</a></h2>
+<p>A specialization of ASE DOS class with a new get_dos_int method for computing the integral of the DOS
+and a modified  write method to write it properly.</p>
 <dl class="class">
 <dt id="postqe.dos.QEDOS">
 <em class="property">class </em><code class="descclassname">postqe.dos.</code><code class="descname">QEDOS</code><span class="sig-paren">(</span><em>calc</em>, <em>width=0.1</em>, <em>window=None</em>, <em>npts=201</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.dos.QEDOS" title="Permalink to this definition">¶</a></dt>

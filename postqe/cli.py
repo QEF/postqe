@@ -105,7 +105,7 @@ def get_cli_parser():
     PREFIX_HELP = 'prefix of files saved by program pw.x'
     OUTDIR_HELP = 'directory containing the input data, i.e. the same as in pw.x'
     SCHEMA_HELP = 'the XSD schema file for QE XML output file. If not provided the schema' \
-                  'information is taken from xsi:schemaLocation attributes.'
+                  'information is taken from xsi:schemaLocation attributes in the xml espresso file.'
     EOS_PREFIX_HELP = 'file containing the energy/volume data.'
     EOS_TYPE_HELP = 'type of equation of state (EOS) for fitting. Available types are:\n' \
                     'murnaghan (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n' \
@@ -118,15 +118,21 @@ def get_cli_parser():
                     'pouriertarantola -> Pourier-Tarantola EOS, PRB 70, 224107\n' \
                     'antonschmidt -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n' \
                     'p3 -> A third order inverse polynomial fit\n'
-    EOS_FILEOUT_HELP = 'output file with fitting data and results (default='', not written)'
+    EOS_FILEOUT_HELP = 'text output file with fitting data and results (default='', not written)'
     EOS_FILEPLOT_HELP = 'output plot file in png format (default=\'EOSplot\'). Other formats are available from the ' \
                         'Matplotlib GUI.'
     EOS_SHOW_HELP = 'True -> plot results with Matplotlib; None or False -> do nothing. Default = True'
 
     BANDS_REFERENCE_ENERGY_HELP = 'the Fermi level, defines the zero of the plot along y axis (default=0)'
-    BANDS_REFERENCE_EMIN_HELP = 'the minimum energy for the band plot (default=-50)'
-    BANDS_REFERENCE_EMAX_HELP = 'the maximum energy for the band plot (default=50)'
-    BANDS_REFERENCE_FILEPLOT_HELP = 'output plot file (default=\'bandsplot\') in png format.'
+    BANDS_EMIN_HELP = 'the minimum energy for the band plot (default=-50)'
+    BANDS_EMAX_HELP = 'the maximum energy for the band plot (default=50)'
+    BANDS_FILEPLOT_HELP = 'output plot file (default=\'bandsplot\') in png format.'
+
+    DOS_EMIN_HELP = 'the minimum energy for the dos plot (default=-50)'
+    DOS_EMAX_HELP = 'the maximum energy for the dos plot (default=50)'
+    DOS_NPTS_HELP = 'number of points of the DOS'
+    DOS_FILEOUT_HELP = 'text output file with dos data (default='', not written)'
+    DOS_FILEPLOT_HELP = 'output plot file (default=\'dosplot\') in png format.'
 
 
     POT_TYPE_HELP = 'type of the potential to calculate. Available types are:\n' \
@@ -156,9 +162,9 @@ def get_cli_parser():
     bands_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     bands_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
     bands_parser.add_argument('-reference_energy', type=float, default=0, help=BANDS_REFERENCE_ENERGY_HELP)
-    bands_parser.add_argument('-emin', type=float, default=-50, help=BANDS_REFERENCE_EMIN_HELP)
-    bands_parser.add_argument('-emax', type=float, default=50, help=BANDS_REFERENCE_EMAX_HELP)
-    bands_parser.add_argument('-fileplot', type=str, default='bandsplot', help=BANDS_REFERENCE_FILEPLOT_HELP)
+    bands_parser.add_argument('-emin', type=float, default=-50, help=BANDS_EMIN_HELP)
+    bands_parser.add_argument('-emax', type=float, default=50, help=BANDS_EMAX_HELP)
+    bands_parser.add_argument('-fileplot', type=str, default='bandsplot', help=BANDS_FILEPLOT_HELP)
     bands_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
     # create the parser for the "dos" command
@@ -166,6 +172,13 @@ def get_cli_parser():
     dos_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
     dos_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     dos_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    dos_parser.add_argument('-width', type=float, default=0.01, help=SCHEMA_HELP)
+    dos_parser.add_argument('-emin', type=float, default=-50, help=DOS_EMIN_HELP)
+    dos_parser.add_argument('-emax', type=float, default=50, help=DOS_EMAX_HELP)
+    dos_parser.add_argument('-npts', type=int, default=100, help=DOS_NPTS_HELP)
+    dos_parser.add_argument('-fileout', type=str, default='', help=DOS_FILEOUT_HELP)
+    dos_parser.add_argument('-fileplot', type=str, default='bandsplot', help=DOS_FILEPLOT_HELP)
+    dos_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
     # create the parser for the "charge" command
     charge_parser = subparsers.add_parser('charge', help=CHARGE_HELP)

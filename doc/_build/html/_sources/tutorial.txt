@@ -59,7 +59,9 @@ This example shows how to calculate the electronic band structure of silicon wit
    :dedent: 4
    :lines: 10-
 
-The :py:func:`get_band_structure` needs a parameter *label* which identies the system and the corresponding xml file (label.xml). *label* may contain the full path to the file. The *schema* (optional) parameter allows the code to properly parse and validate the xml file. The parameter *reference_energy* (usually the Fermi level) allows you to shift the plot accordingly. :py:func:`get_band_structure` returns a band structure object which can be further processed.
+The :py:func:`get_band_structure` needs a parameter *prefix* which identies the system and the corresponding xml file (prefix.xml). As customary in Quantum Espresso, you can optionally provide an *outdir* contain the full path to the file (and other output files). If not provided, :py:mod:`postqe` tries to get the ESPRESSO_TMPDIR environment variable. If this fails too, it assumes the output file are in the current working directory.
+The *schema* (optional) parameter allows the code to properly parse and validate the xml file. The necessary xml schema is fetched from the source specified in the xml files itself, but the user can override this default schema by setting the *schema* parameter.
+The parameter *reference_energy* (usually the Fermi level) allows you to shift the plot accordingly. :py:func:`get_band_structure` returns a band structure object which can be further processed.
 For example, the method :py:func:`plot` creates a figure and save it in a png file.
 
 .. image:: ../examples/example2/Sibands.png
