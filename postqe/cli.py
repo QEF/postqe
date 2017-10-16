@@ -123,6 +123,12 @@ def get_cli_parser():
                         'Matplotlib GUI.'
     EOS_SHOW_HELP = 'True -> plot results with Matplotlib; None or False -> do nothing. Default = True'
 
+    BANDS_REFERENCE_ENERGY_HELP = 'the Fermi level, defines the zero of the plot along y axis (default=0)'
+    BANDS_REFERENCE_EMIN_HELP = 'the minimum energy for the band plot (default=-50)'
+    BANDS_REFERENCE_EMAX_HELP = 'the maximum energy for the band plot (default=50)'
+    BANDS_REFERENCE_FILEPLOT_HELP = 'output plot file (default=\'bandsplot\') in png format.'
+
+
     POT_TYPE_HELP = 'type of the potential to calculate. Available types are:\n' \
                     'v_tot (default) -> the total potential (v_bare+v_hartree+v_xc).\n' \
                     'v_bare -> the bare potential.\n' \
@@ -149,6 +155,11 @@ def get_cli_parser():
     bands_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
     bands_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     bands_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    bands_parser.add_argument('-reference_energy', type=float, default=0, help=BANDS_REFERENCE_ENERGY_HELP)
+    bands_parser.add_argument('-emin', type=float, default=-50, help=BANDS_REFERENCE_EMIN_HELP)
+    bands_parser.add_argument('-emax', type=float, default=50, help=BANDS_REFERENCE_EMAX_HELP)
+    bands_parser.add_argument('-fileplot', type=str, default='bandsplot', help=BANDS_REFERENCE_FILEPLOT_HELP)
+    bands_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
     # create the parser for the "dos" command
     dos_parser = subparsers.add_parser('dos', help=DOS_HELP)

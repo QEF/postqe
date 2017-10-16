@@ -33,11 +33,10 @@ def get_label(prefix, outdir=None):
 
 def get_eos(prefix, outdir=None, eos_type='murnaghan'):
     """
-    Returns an EOS object from a text input file containing the volumes
-    and corresponding calculated energies.
-    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
+    Fits an Equation of state of type *eos* and returns an QEEquationOfState object.
+    Different equation of states are available (see below).
 
-    :param prefix: prefix of saved files for volumes and energies
+    :param prefix: name of the input file with volumes and energies
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n
@@ -52,7 +51,7 @@ def get_eos(prefix, outdir=None, eos_type='murnaghan'):
             'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n
             'p3' -> A third order inverse polynomial fit\n
 
-    :return: an EOS object
+    :return: an QEEquationOfState object
     """
     label = get_label(prefix, outdir)
     # Extract volumes and energies from the input file:
@@ -64,10 +63,10 @@ def get_eos(prefix, outdir=None, eos_type='murnaghan'):
 
 def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot='EOSplot', show=True, ax=None):
     """
-    This function fits an Equation of state of type *eos* and writes the results into *filename*.
-    Different equation of states are available: Murnaghan, Birch, Vinet, etc.
+    Fits an Equation of state of type *eos*, writes the results into *fileout* (optionally) and creates a Matplotlib
+    figure. Different equation of states are available (see below).
 
-    :param prefix: prefix of saved files for volumes and energies
+    :param prefix: name of the input file with volumes and energies
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n
@@ -86,7 +85,7 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot=
     :param show: True -> plot results with Matplotlib; None or False -> do nothing. Default = True
     :param ax: a Matplotlib "Axes" instance (see Matplotlib documentation for details). If ax=None (default), creates
             a new one
-    :return: an EOS object and a Matplotlib figure object
+    :return: an QEEquationOfState object and a Matplotlib figure object
     """
 
     eos = get_eos(prefix, outdir, eos_type)
@@ -106,8 +105,8 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
-    :param reference_energy: the Fermi level
-    :return: a band structure object
+    :param reference_energy: the Fermi level, defines the zero of the plot along y axis
+    :return: an ASE band structure object
     """
     label = get_label(prefix, outdir)
 
@@ -123,6 +122,28 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
 
     return bs
 
+def compute_band_structure(prefix, outdir=None, schema=None, reference_energy=0,
+                           emin=-50, emax=50, fileplot='bandsplot.png', show=True):
+    """
+    This function returns a "band structure" object from an output xml Espresso file
+    containing the results of a proper calculation along a path in the Brilluoin zone.
+
+    :param prefix: prefix of saved output files
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param schema: the XML schema to be used to read and validate the XML output file
+    :param reference_energy: the Fermi level, defines the zero of the plot along y axis
+    :param emin: the minimum energy for the band plot (default=-50)
+    :param emax: the maximum energy for the band plot (default=50)
+    :param fileplot: output plot file (default='bandsplot.png') in png format.
+    :param show: True -> plot results with Matplotlib; None or False -> do nothing. Default = True
+    :return: an ASE band structure object and a Matplotlib figure object
+    """
+
+    bs = get_band_structure(prefix, outdir, schema=schema, reference_energy=reference_energy)
+    fig = bs.plot(emin=emin, emax=emax, show=show, filename=fileplot)
+
+    return bs, fig
 
 def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100):
     """

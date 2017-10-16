@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 #encoding: UTF-8
 
+"""
+A specialization of ASE EquationOfState class with a modified default EOS type and a write method.
+"""
+
 from ase.eos import EquationOfState
 
 def create_header(eos, v0, e0, B):
@@ -12,8 +16,8 @@ def create_header(eos, v0, e0, B):
 
 class QEEquationOfState(EquationOfState):
 
-    def __init__(self, volumes, energies, eos='murnaghan'):
-        EquationOfState.__init__(self, volumes, energies, eos=eos)
+    def __init__(self, volumes, energies, eos_type='murnaghan'):
+        EquationOfState.__init__(self, volumes, energies, eos=eos_type)
 
     def write(self,filename='eos.out'):
         self.filename = filename

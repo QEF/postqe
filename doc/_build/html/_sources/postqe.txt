@@ -14,6 +14,30 @@ postqe.api module
     :undoc-members:
     :show-inheritance:
 
+postqe.eos module
+-------------------------
+
+.. automodule:: postqe.eos
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+postqe.dos module
+-------------------------
+
+.. automodule:: postqe.dos
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+postqe.charge module
+-------------------------
+
+.. automodule:: postqe.charge
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 
 

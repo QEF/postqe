@@ -4,7 +4,7 @@
 Tutorial
 *********
 
-This is a simple tutorial demonstrating the main functionalities of :py:mod:`postqe`. The examples below show how to use the package to perform the most common tasks. The code examples can be found in the directory *examples* of the package and can be run either as interactive sessions in your Python intepreter or as scripts.
+This is a simple tutorial demonstrating the main functionalities of :py:mod:`postqe`. The examples below show how to use the package to perform the most common tasks. The code examples can be found in the directory *examples* of the package and can be run either as interactive sessions in your Python interpreter or as scripts.
 The tutorial is based on the following examples:
 
 +---------------+------------------------------------------------------------------------------------------------------------------------------------------+
@@ -31,7 +31,7 @@ Fitting the total energy using Murnaghan EOS (examples 1)
 ===========================================================
 
 The simplest task you can do with :py:mod:`postqe` is to fit the total energy as a function of volume :math:`E_{tot}(V)`. You can use
-an equation of state (EOS) such as Murnaghan's or similar.  Currently you can use Murnaghan, Vinet, Birch, Birch-Murnaghan, Pourier-Tarantola and Anton-schmidt EOS and 2nd and 3rd order polynomials in :py:mod:`postqe`. 
+an equation of state (EOS) such as Murnaghan's or similar.  Currently you can use Murnaghan, Vinet, Birch, Birch-Murnaghan, Pourier-Tarantola and Anton-schmidt EOS and 3rd order (direct and inverse) polynomials in :py:mod:`postqe`. See the documentation of :py:func:`get_eos` for details.
 
 Let's see how to fit :math:`E_{tot}(V)`. This is the case of isotropic cubic systems (simple cubic, body centered cubic, face centered cubic) or systems which can be approximated as isotropic (for example an hexagonal system with nearly constant :math:`c/a` ratio).
 

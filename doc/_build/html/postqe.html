@@ -59,16 +59,45 @@
 <span id="postqe-api-module"></span><h2>postqe.api module<a class="headerlink" href="#module-postqe.api" title="Permalink to this headline">¶</a></h2>
 <p>A collection of functions to be part of postqe API and exposed to the user.</p>
 <dl class="function">
-<dt id="postqe.api.compute_eos">
-<code class="descclassname">postqe.api.</code><code class="descname">compute_eos</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>eos_type='murnaghan'</em>, <em>fileout=''</em>, <em>fileplot='EOSplot'</em>, <em>show=True</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.compute_eos" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function fits an Equation of state of type <em>eos</em> and writes the results into <em>filename</em>.
-Different equation of states are available: Murnaghan, Birch, Vinet, etc.</p>
+<dt id="postqe.api.compute_band_structure">
+<code class="descclassname">postqe.api.</code><code class="descname">compute_band_structure</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>schema=None</em>, <em>reference_energy=0</em>, <em>emin=-50</em>, <em>emax=50</em>, <em>fileplot='bandsplot.png'</em>, <em>show=True</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.compute_band_structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a &#8220;band structure&#8221; object from an output xml Espresso file
+containing the results of a proper calculation along a path in the Brilluoin zone.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>prefix</strong> &#8211; prefix of saved files for volumes and energies</li>
+<li><strong>prefix</strong> &#8211; prefix of saved output files</li>
+<li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
+ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217;) otherwise</li>
+<li><strong>schema</strong> &#8211; the XML schema to be used to read and validate the XML output file</li>
+<li><strong>reference_energy</strong> &#8211; the Fermi level, defines the zero of the plot along y axis</li>
+<li><strong>emin</strong> &#8211; the minimum energy for the band plot (default=-50)</li>
+<li><strong>emax</strong> &#8211; the maximum energy for the band plot (default=50)</li>
+<li><strong>fileplot</strong> &#8211; output plot file (default=&#8217;bandsplot.png&#8217;) in png format.</li>
+<li><strong>show</strong> &#8211; True -&gt; plot results with Matplotlib; None or False -&gt; do nothing. Default = True</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an ASE band structure object and a Matplotlib figure object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="postqe.api.compute_eos">
+<code class="descclassname">postqe.api.</code><code class="descname">compute_eos</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>eos_type='murnaghan'</em>, <em>fileout=''</em>, <em>fileplot='EOSplot'</em>, <em>show=True</em>, <em>ax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.compute_eos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits an Equation of state of type <em>eos</em>, writes the results into <em>fileout</em> (optionally) and creates a Matplotlib
+figure. Different equation of states are available (see below).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>prefix</strong> &#8211; name of the input file with volumes and energies</li>
 <li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
 ESPRESSO_TMPDIR environment variable if set, or current directory (&#8216;.&#8217;) otherwise</li>
 <li><strong>eos_type</strong> &#8211; <p>type of equation of state (EOS) for fitting. Available types are:</p>
@@ -85,14 +114,14 @@ ESPRESSO_TMPDIR environment variable if set, or current directory (&#8216;.&#821
 <p>&#8216;p3&#8217; -&gt; A third order inverse polynomial fit</p>
 </li>
 <li><strong>fileout</strong> &#8211; output file with fitting data and results (default=&#8217;&#8216;, not written).</li>
-<li><strong>fileplot</strong> &#8211; output file with fitting only data for plotting (default=&#8217;EOSplot&#8217;).</li>
+<li><strong>fileplot</strong> &#8211; output plot file (default=&#8217;EOSplot&#8217;) in png format.</li>
 <li><strong>show</strong> &#8211; True -&gt; plot results with Matplotlib; None or False -&gt; do nothing. Default = True</li>
 <li><strong>ax</strong> &#8211; a Matplotlib &#8220;Axes&#8221; instance (see Matplotlib documentation for details). If ax=None (default), creates
 a new one</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an EOS object and a Matplotlib figure object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an QEEquationOfState object and a Matplotlib figure object</p>
 </td>
 </tr>
 </tbody>
@@ -113,11 +142,11 @@ containing the results of a proper calculation along a path in the Brilluoin zon
 <li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
 ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217;) otherwise</li>
 <li><strong>schema</strong> &#8211; the XML schema to be used to read and validate the XML output file</li>
-<li><strong>reference_energy</strong> &#8211; the Fermi level</li>
+<li><strong>reference_energy</strong> &#8211; the Fermi level, defines the zero of the plot along y axis</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a band structure object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an ASE band structure object</p>
 </td>
 </tr>
 </tbody>
@@ -178,15 +207,14 @@ ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217
 <dl class="function">
 <dt id="postqe.api.get_eos">
 <code class="descclassname">postqe.api.</code><code class="descname">get_eos</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>eos_type='murnaghan'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.get_eos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an EOS object from a text input file containing the volumes
-and corresponding calculated energies.
-Different equation of states are available: Murnaghan, Birch, Vinet, etc.</p>
+<dd><p>Fits an Equation of state of type <em>eos</em> and returns an QEEquationOfState object.
+Different equation of states are available (see below).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>prefix</strong> &#8211; prefix of saved files for volumes and energies</li>
+<li><strong>prefix</strong> &#8211; name of the input file with volumes and energies</li>
 <li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
 ESPRESSO_TMPDIR environment variable if set, or current directory (&#8216;.&#8217;) otherwise</li>
 <li><strong>eos_type</strong> &#8211; <p>type of equation of state (EOS) for fitting. Available types are:</p>
@@ -205,7 +233,7 @@ ESPRESSO_TMPDIR environment variable if set, or current directory (&#8216;.&#821
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an EOS object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an QEEquationOfState object</p>
 </td>
 </tr>
 </tbody>
@@ -245,6 +273,173 @@ ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217
 </dd></dl>
 
 </div>
+<div class="section" id="module-postqe.eos">
+<span id="postqe-eos-module"></span><h2>postqe.eos module<a class="headerlink" href="#module-postqe.eos" title="Permalink to this headline">¶</a></h2>
+<p>A specialization of ASE EquationOfState class with a modified default EOS type and a write method.</p>
+<dl class="class">
+<dt id="postqe.eos.QEEquationOfState">
+<em class="property">class </em><code class="descclassname">postqe.eos.</code><code class="descname">QEEquationOfState</code><span class="sig-paren">(</span><em>volumes</em>, <em>energies</em>, <em>eos_type='murnaghan'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.eos.QEEquationOfState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ase.eos.EquationOfState</span></code></p>
+<dl class="method">
+<dt id="postqe.eos.QEEquationOfState.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>filename='eos.out'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.eos.QEEquationOfState.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="postqe.eos.create_header">
+<code class="descclassname">postqe.eos.</code><code class="descname">create_header</code><span class="sig-paren">(</span><em>eos</em>, <em>v0</em>, <em>e0</em>, <em>B</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.eos.create_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-postqe.dos">
+<span id="postqe-dos-module"></span><h2>postqe.dos module<a class="headerlink" href="#module-postqe.dos" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="postqe.dos.QEDOS">
+<em class="property">class </em><code class="descclassname">postqe.dos.</code><code class="descname">QEDOS</code><span class="sig-paren">(</span><em>calc</em>, <em>width=0.1</em>, <em>window=None</em>, <em>npts=201</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.dos.QEDOS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">ase.dft.dos.DOS</span></code></p>
+<dl class="method">
+<dt id="postqe.dos.QEDOS.get_dos_int">
+<code class="descname">get_dos_int</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#postqe.dos.QEDOS.get_dos_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get array of integral DOS values (always for the total DOS).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="postqe.dos.QEDOS.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>filename='dos.out'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.dos.QEDOS.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-postqe.charge">
+<span id="postqe-charge-module"></span><h2>postqe.charge module<a class="headerlink" href="#module-postqe.charge" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="postqe.charge.Charge">
+<em class="property">class </em><code class="descclassname">postqe.charge.</code><code class="descname">Charge</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A class for charge density.</p>
+<dl class="method">
+<dt id="postqe.charge.Charge.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>x0=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>e1=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>nx=50</em>, <em>e2=(0.0</em>, <em>1.0</em>, <em>0.0)</em>, <em>ny=50</em>, <em>e3=(0.0</em>, <em>0.0</em>, <em>1.0)</em>, <em>nz=50</em>, <em>radius=1</em>, <em>dim=1</em>, <em>ifmagn='total'</em>, <em>plot_file=''</em>, <em>method='FFT'</em>, <em>format='gnuplot'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Charge.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x0</strong> &#8211; 3D vector, origin of the line</li>
+<li><strong>e2</strong> (<em>e1,</em>) &#8211; 3D vectors which determines the plotting lines</li>
+<li><strong>ny</strong> (<em>nx,</em>) &#8211; number of points along e1, e2</li>
+<li><strong>dim</strong> &#8211; 1 for a 1D section, 2 for a 2D section</li>
+<li><strong>ifmagn</strong> &#8211; for a magnetic calculation, &#8216;total&#8217; plot the total charge, &#8216;up&#8217; plot the charge with spin up, &#8216;down&#8217; for spin down</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Matplotlib figure object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="postqe.charge.Charge.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>filename</em>, <em>nr=None</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Charge.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the charge from a HDF5 file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; HDF5 file with charge data</li>
+<li><strong>nr</strong> &#8211; a numpy array or list of length 3 containing the grid dimensions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="postqe.charge.Charge.set_calculator">
+<code class="descname">set_calculator</code><span class="sig-paren">(</span><em>calculator</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Charge.set_calculator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="postqe.charge.Charge.setvars">
+<code class="descname">setvars</code><span class="sig-paren">(</span><em>nr_temp</em>, <em>charge=None</em>, <em>charge_diff=None</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Charge.setvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="postqe.charge.Charge.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Charge.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="postqe.charge.Potential">
+<em class="property">class </em><code class="descclassname">postqe.charge.</code><code class="descname">Potential</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#postqe.charge.Charge" title="postqe.charge.Charge"><code class="xref py py-class docutils literal"><span class="pre">postqe.charge.Charge</span></code></a></p>
+<p>A class for a potential. This is derived from a Charge class and additionally contains the potential.</p>
+<dl class="method">
+<dt id="postqe.charge.Potential.compute_potential">
+<code class="descname">compute_potential</code><span class="sig-paren">(</span><em>pot_type='v_tot'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="postqe.charge.Potential.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>x0=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>e1=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>nx=50</em>, <em>e2=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>ny=50</em>, <em>dim=1</em>, <em>ifmagn='total'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x0</strong> &#8211; 3D vector, origin of the line</li>
+<li><strong>e2</strong> (<em>e1,</em>) &#8211; 3D vectors which determines the plotting lines</li>
+<li><strong>ny</strong> (<em>nx,</em>) &#8211; number of points along e1, e2</li>
+<li><strong>dim</strong> &#8211; 1 for a 1D section, 2 for a 2D section</li>
+<li><strong>ifmagn</strong> &#8211; for a magnetic calculation, &#8216;total&#8217; plot the total charge, &#8216;up&#8217; plot the charge with spin up, &#8216;down&#8217; for spin down</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Matplotlib figure object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="postqe.charge.Potential.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="postqe.charge.read_charge_file_hdf5">
+<code class="descclassname">postqe.charge.</code><code class="descname">read_charge_file_hdf5</code><span class="sig-paren">(</span><em>filename</em>, <em>nr=None</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.read_charge_file_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a charge file written with QE in HDF5 format. <em>nr = [nr1,nr2,nr3]</em> (the dimensions of
+the charge k-points grid) are given as parameter (taken for the xml output file by the caller).</p>
+<p>Notes: In the new format, the values of the charge in the reciprocal space are stored.
+Besides, only the values of the charge &gt; cutoff are stored, together with the Miller indexes.
+Hence</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="postqe.charge.write_charge">
+<code class="descclassname">postqe.charge.</code><code class="descname">write_charge</code><span class="sig-paren">(</span><em>filename</em>, <em>charge</em>, <em>header</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.write_charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the charge or another quantity calculated by postqe into a text file <em>filename</em>.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -258,6 +453,9 @@ ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217
 <li><a class="reference internal" href="#">postqe package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-postqe.api">postqe.api module</a></li>
+<li><a class="reference internal" href="#module-postqe.eos">postqe.eos module</a></li>
+<li><a class="reference internal" href="#module-postqe.dos">postqe.dos module</a></li>
+<li><a class="reference internal" href="#module-postqe.charge">postqe.charge module</a></li>
 </ul>
 </li>
 </ul>

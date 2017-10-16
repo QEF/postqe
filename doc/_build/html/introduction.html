@@ -55,16 +55,17 @@
             
   <div class="section" id="introduction">
 <span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
-<p><code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> is a Python package for postprocessing of results obtained with the Quantum Espresso (QE) code <a class="footnote-reference" href="#qe" id="id2">[1]</a>. The package provides Python API functions for example for plotting the charge density (or the bare/Hartree/total potentials) on 1D or 2D sections, fitting the total energy with an equation of state (EOS) and other tasks. The package makes available in Python some QE functionalities using the F2PY code <a class="footnote-reference" href="#f2py" id="id3">[2]</a> and wrappers to generate Python modules from QE dynamically linked libraries. Finally, it also includes an interface with the popular Atomic Simulation Environment (<em>ASE</em>) <a class="footnote-reference" href="#ase" id="id4">[3]</a>, which in fact leverages for some functionalities.</p>
-<p>It is meant to be imported in your own Python code or used from the command line (see the Tutorial part of this documentation). It is also meant for people who want to tinker with the code and adapt it to their own needs. The package is based on <em>numpy</em>, <em>scipy</em>, <em>matplotlib</em> and <em>ASE</em> libraries.</p>
-<p>It is also meant as a software framework where Quantum Espresso developers or advanced users may implement new functionalities which are needed by the community. In this respect, it offers the possibility to develop code in different languages (Python, C/C++, Fortran) and then use Python to &#8220;glue&#8221; everything together.</p>
+<p><code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> is a Python package for postprocessing of results obtained with the Quantum Espresso (<em>QE</em>) code <a class="footnote-reference" href="#qe" id="id2">[1]</a>. The package provides Python API functions for the most common tasks, such as plotting the charge density or fitting the total energy with an equation of state (EOS). It also makes available in Python some QE functionalities using the F2PY code <a class="footnote-reference" href="#f2py" id="id3">[2]</a> and wrappers to generate Python modules from QE dynamically linked libraries. Finally, it also includes an interface with the popular Atomic Simulation Environment (<em>ASE</em>) <a class="footnote-reference" href="#ase" id="id4">[3]</a>, from which in fact leverages for some functionalities.</p>
+<p>The package implents some Python classes for handling the most important quantities, such as the charge or a potential. Some classes are derived from <em>ASE</em> and adapted to the postprocessing needs of QE.</p>
+<p>It is meant to be imported into your own Python scripts or used from the command line interface (see the Tutorial for some examples). It is also meant for people who want to tinker with the code and adapt it to their own needs. The package is based on <em>numpy</em>, <em>scipy</em>, <em>matplotlib</em> and <em>ASE</em> libraries.</p>
+<p>Finally it is a software framework where Quantum Espresso developers or advanced users may implement new functionalities which are needed by the community. In this respect, it offers the possibility to develop code in different languages (Python, C/C++, Fortran) and then use Python to &#8220;glue&#8221; everything together.</p>
 <p>Current features of the package include:</p>
 <ul class="simple">
 <li>Fit the total energy <span class="math">\(E_{tot}(V)\)</span> with an equation of state (Murnaghan, Vinet, Birch, etc.)</li>
 <li>Calculate and plot the electronic band structure</li>
 <li>Calculate and plot the electronic density of states (DOS)</li>
-<li>Plot 1D or 2D sections of the charge density</li>
-<li>Plot 1D or 2D sections of different potentials (Hartree, exchange-correlation, etc.)</li>
+<li>Plot 1D, 2D or 3D sections of the charge density</li>
+<li>Plot 1D, 2D or 3D sections of different potentials (Hartree, exchange-correlation, etc.)</li>
 </ul>
 <table class="docutils footnote" frame="void" id="qe" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
