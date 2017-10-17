@@ -181,21 +181,40 @@ class Charge:
 
 
     def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), nz=50,
-             radius=1, dim=1, ifmagn='total', plot_file='', method='FFT', format='gnuplot'):
+             radius=1, dim=1, ifmagn='total', plot_file='', method='FFT', format='gnuplot', show=True):
         """
-        Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.
+        Plot a 1D, 2D or 3D section of the charge from x0 along e1 (e2, e3) direction(s) using Fourier interpolation
+        or another method (see below). For 1D or 2D sections, the code produce a Matplotlib plot. For a 3D plot, the
+        charge must be exported in 'plotfile' with a suitable format ('xsf' or 'cube') and can be visualized with
+        the corresponding external codes.
 
-        :param x0: 3D vector, origin of the line
-        :param e1, e2: 3D vectors which determines the plotting lines
-        :param nx, ny: number of points along e1, e2
-        :param dim: 1 for a 1D section, 2 for a 2D section
-        :param ifmagn: for a magnetic calculation, 'total' plot the total charge, 'up' plot the charge with spin up, 'down' for spin down
-        :return: a Matplotlib figure object
+        :param x0: 3D vector (a tuple), origin of the line
+        :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
+        :param nx, ny, nz: number of points along e1, e2, e3
+        :param radius: radious of the sphere in the polar average method
+        :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
+        :param ifmagn: for a magnetic calculation, 'total' plot the total charge, 'up' plot the charge with spin up,
+                       'down' for spin down
+        :param plotfile: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
+        :param method: interpolation method. Available choices are:\n
+                        'FFT' -> Fourier interpolation (default)
+                        'polar' -> 2D polar plot on a sphere
+                        'spherical' -> 1D plot of the spherical average
+                        'splines' -> not implemented
+        :param format: format of the (optional) exported file. Available choices are:\n
+                        'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.
+                        'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.
+                        'cube' -> cube Gaussian format. Available for 3D sections.
+                        'contour' -> format for the contour.x code of Quantum Espresso
+                        'plotrho' -> format for the plotrho.x code of Quantum Espresso
+        :param show: if True, show the Matplotlib plot (only for 1D and 2D sections)
+        :return: a Matplotlib figure object for 1D and 2D sections, None for 3D sections
         """
+        # TODO: implement a Matplotlib plot for polar 2D and spherical 1D
         try:
             self.charge
         except:
-            return
+            return None
         # Extract some structural info in a dictionary
         struct_info = {
             'a' : self.calculator.get_a_vectors(),
@@ -214,8 +233,6 @@ class Charge:
                 fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
             else:           # 3D section
                 fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format)
-            fig.show()
-            return fig
         else:  # magnetic calculation, plot as ifmagn
             if ifmagn == 'up':
                 charge_up = (self.charge + self.charge_diff) / 2.0
@@ -226,7 +243,6 @@ class Charge:
                 else:  # 3D section
                     fig = plot_3Dcharge(charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
                                         format)
-                fig.show()
             elif ifmagn == 'down':
                 charge_down = (self.charge - self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
@@ -236,7 +252,6 @@ class Charge:
                 else:  # 3D section
                     fig = plot_3Dcharge(charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
                                         format)
-                fig.show()
             else:
                 if dim == 1:  # 1D section ylab='charge', plot_file='', format='', method='FFT'
                     fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
@@ -246,8 +261,13 @@ class Charge:
                 else:  # 3D section
                     fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
                                         method, format)
+
+        if dim < 3:
+            if show == True:
                 fig.show()
             return fig
+        else:
+            return None
 
 
 class Potential(Charge):

@@ -168,17 +168,17 @@ For example, the method <code class="xref py py-func docutils literal"><span cla
 </div>
 <p>The <code class="xref py py-func docutils literal"><span class="pre">get_dos()</span></code> needs in input the xml file produced by pw.x, after a proper DOS calculation. This is identified using <em>label</em> which may contain the full path to the file (.xml is automatically added). The <em>schema</em> (optional) parameter allows the code to properly parse and validate the xml file.  You must also specify the number of energy steps in the DOS (<em>npts</em>), plus the Gaussian broadening (<em>width</em>). <code class="xref py py-func docutils literal"><span class="pre">get_dos()</span></code> then returns a DOS object.</p>
 <p>The DOS values and the corresponding energies can be obtained from the DOS object using the methods <code class="xref py py-func docutils literal"><span class="pre">get_dos()</span></code> and <code class="xref py py-func docutils literal"><span class="pre">get_energies()</span></code>. If you want you can further manipulate these values. For example you can make a plot with the Python library <em>Matplotlib</em>. The output plot looks like the following:</p>
-<a class="reference internal image-reference" href="../examples/example3/dosplot.png"><img alt="../examples/example3/dosplot.png" src="../examples/example3/dosplot.png" style="width: 500px;" /></a>
+<a class="reference internal image-reference" href="_images/figure.png"><img alt="_images/figure.png" src="_images/figure.png" style="width: 500px;" /></a>
 <p>You can of course continue to calculate other quantities in your script.</p>
 <p>The above results can be obtained from the command line typing:</p>
-<div class="highlight-bash"><div class="highlight"><pre>$ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts <span class="m">200</span> -width 0.5
+<div class="highlight-bash"><div class="highlight"><pre>$ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts <span class="m">200</span> -width 0.5 -fileplot figure.png
 </pre></div>
 </div>
 </div>
 <div class="section" id="plotting-a-1d-section-of-the-charge-density-examples-4">
 <h2>Plotting a 1D section of the charge density  (examples 4)<a class="headerlink" href="#plotting-a-1d-section-of-the-charge-density-examples-4" title="Permalink to this headline">¶</a></h2>
-<p>A common task you can do with <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> is to plot the electronic charge density along one direction. The charge is read from the HDF5
-output file create by the Quantum Espresso calculation in <em>outdir</em>. Additional information are extracted from the standard xml output file, identified by the &#8216;label&#8217; parameter in the <code class="xref py py-func docutils literal"><span class="pre">get_charge()</span></code> function. The <em>schema</em> (optional) parameter allows the code to properly parse and validate the xml file. The full code to do this is shown below:</p>
+<p>A common task you can perform with <code class="xref py py-mod docutils literal"><span class="pre">postqe</span></code> is to plot the electronic charge density along one direction. The charge is read from the HDF5
+output file create by the Quantum Espresso calculation in <em>outdir</em>. Additional information are extracted from the standard xml output file, identified by the <em>prefix</em> parameter in the <code class="xref py py-func docutils literal"><span class="pre">get_charge()</span></code> function. The <em>schema</em> (optional) parameter allows the code to properly parse and validate the xml file. The full code to do this is shown below:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postqe</span> <span class="kn">import</span> <span class="n">get_charge</span>
 
 <span class="n">charge</span> <span class="o">=</span> <span class="n">get_charge</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;Ni&#39;</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="s1">&#39;../../schemas/qes.xsd&#39;</span><span class="p">)</span>
@@ -191,6 +191,10 @@ output file create by the Quantum Espresso calculation in <em>outdir</em>. Addit
 <p>The call to <code class="xref py py-func docutils literal"><span class="pre">get_charge()</span></code> creates a <em>charge</em> object. The charge can be written in a text file using the method <code class="xref py py-func docutils literal"><span class="pre">write()</span></code>. The call to the method <code class="xref py py-func docutils literal"><span class="pre">plot()</span></code> returns a <em>Matplotlib</em> figure object containing a 1D section plot of the charge from the point <em>x0</em> along the direction <em>e1</em>.
 By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0). The <em>Matplotlib</em> figure object can be further modified with the standard methods of this library. For example, the plot can be save in a png file using the method <code class="xref py py-func docutils literal"><span class="pre">savefig()</span></code>. The result is shown below.</p>
 <a class="reference internal image-reference" href="_images/figure_1.png"><img alt="_images/figure_1.png" src="_images/figure_1.png" style="width: 500px;" /></a>
+<p>The above results can be obtained from the command line typing:</p>
+<div class="highlight-bash"><div class="highlight"><pre>$ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts <span class="m">200</span> -width 0.5 -fileplot figure.png
+</pre></div>
+</div>
 </div>
 <div class="section" id="plotting-a-2d-section-of-the-charge-density-examples-5">
 <h2>Plotting a 2D section of the charge density  (examples 5)<a class="headerlink" href="#plotting-a-2d-section-of-the-charge-density-examples-5" title="Permalink to this headline">¶</a></h2>

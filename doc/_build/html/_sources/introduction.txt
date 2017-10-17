@@ -62,3 +62,5 @@ Plotting
 ----------------------------
 
 :py:mod:`postqe` uses the *matplotlib* library for Plotting. Some functions in the package are simply useful wrappers for *matplotlib* functionalities of common uses. They return a *matplotlib* object which can be further adapted to specific needs and personal taste. Alternatively, you can of course manipulate and plot the post-procecessed data with any other Python tool of your choice.
+
+It is also possible to export the charge (and various potentials) into text files according to different available formats (XSF XCrySDen format, cube Gaussian format, Gnuplot formats, contour.x and plotrho.x formats).  

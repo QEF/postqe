@@ -102,7 +102,7 @@ The :py:func:`get_dos` needs in input the xml file produced by pw.x, after a pro
 
 The DOS values and the corresponding energies can be obtained from the DOS object using the methods :py:func:`get_dos` and :py:func:`get_energies`. If you want you can further manipulate these values. For example you can make a plot with the Python library *Matplotlib*. The output plot looks like the following:
 
-.. image:: ../examples/example3/dosplot.png
+.. image:: ../examples/example3/figure.png
    :width: 500
 
 You can of course continue to calculate other quantities in your script. 
@@ -111,14 +111,14 @@ The above results can be obtained from the command line typing:
 
 .. code-block:: bash
 
-   $ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts 200 -width 0.5
+   $ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts 200 -width 0.5 -fileplot figure.png
 
 ===========================================================
 Plotting a 1D section of the charge density  (examples 4)
 ===========================================================
 
-A common task you can do with :py:mod:`postqe` is to plot the electronic charge density along one direction. The charge is read from the HDF5 
-output file create by the Quantum Espresso calculation in *outdir*. Additional information are extracted from the standard xml output file, identified by the 'label' parameter in the :py:func:`get_charge` function. The *schema* (optional) parameter allows the code to properly parse and validate the xml file. The full code to do this is shown below:
+A common task you can perform with :py:mod:`postqe` is to plot the electronic charge density along one direction. The charge is read from the HDF5 
+output file create by the Quantum Espresso calculation in *outdir*. Additional information are extracted from the standard xml output file, identified by the *prefix* parameter in the :py:func:`get_charge` function. The *schema* (optional) parameter allows the code to properly parse and validate the xml file. The full code to do this is shown below:
 
 .. literalinclude:: ../examples/example4/example4.py
    :language: python
@@ -130,6 +130,12 @@ By default, the charge is plotted from the point (0,0,0) along the direction (1,
 
 .. image:: ../examples/example4/figure_1.png
    :width: 500
+
+The above results can be obtained from the command line typing:
+
+.. code-block:: bash
+
+   $ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts 200 -width 0.5 -fileplot figure.png
 
 ===========================================================
 Plotting a 2D section of the charge density  (examples 5)

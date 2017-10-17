@@ -63,7 +63,7 @@ def get_eos(prefix, outdir=None, eos_type='murnaghan'):
 
 def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot='EOSplot', show=True, ax=None):
     """
-    Fits an Equation of state of type *eos*, writes the results into *fileout* (optionally) and creates a Matplotlib
+    Fits an Equation of state of type *eos_type*, writes the results into *fileout* (optionally) and creates a Matplotlib
     figure. Different equation of states are available (see below).
 
     :param prefix: name of the input file with volumes and energies
@@ -101,7 +101,7 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     This function returns a "band structure" object from an output xml Espresso file
     containing the results of a proper calculation along a path in the Brilluoin zone.
 
-    :param prefix: prefix of saved output files
+    :param prefix: prefix of saved output file
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
@@ -128,7 +128,7 @@ def compute_band_structure(prefix, outdir=None, schema=None, reference_energy=0,
     This function returns a "band structure" object from an output xml Espresso file
     containing the results of a proper calculation along a path in the Brilluoin zone.
 
-    :param prefix: prefix of saved output files
+    :param prefix: prefix of saved output file
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
@@ -150,7 +150,7 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100
     This function returns an DOS object from an output xml Espresso file containing the
     results of a DOS calculation.
 
-    :param prefix: prefix of saved output files
+    :param prefix: prefix of saved output file
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
@@ -216,13 +216,12 @@ def comput_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=
     return dos, plt
 
 
-
 def get_charge(prefix, outdir=None, schema=None):
     """
-    This function returns an Charge object from an output xml Espresso file and the
+    Returns an Charge object from an output xml Espresso file and the
     corresponding HDF5 charge file containing the results of a calculation.
 
-    :param prefix: prefix of saved output files
+    :param prefix: prefix of saved output file
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
@@ -247,6 +246,54 @@ def get_charge(prefix, outdir=None, schema=None):
 
     return charge
 
+
+def compute_charge(prefix, outdir=None, schema=None, fileout='', x0 = (0., 0., 0.), e1 = (1., 0., 0.),
+                   nx = 50, e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), nz=50, radius=1, dim=1, ifmagn='total',
+                   plot_file='', method='FFT', format='gnuplot', show=True):
+    """
+    Returns an Charge object from an output xml Espresso file and the
+    corresponding HDF5 charge file containing the results of a calculation.
+    Returns also a Matplotlib figure object from a 1D or 2D section of the charge.
+    It also (optionally) exports the charge (1, 2 or 3D section) in a text file accordin to
+    different formats (XSF, cube, Gnuplot, etc.).
+
+    :param prefix: prefix of saved output file
+    :param outdir: directory containing the input data. Default to the value of
+            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param schema: the XML schema to be used to read and validate the XML output file
+    :param fileout: text file with the full charge data as in the HDF5 file. Default='', nothing is written.
+    :param x0: 3D vector (a tuple), origin of the line
+    :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
+    :param nx, ny, nz: number of points along e1, e2, e3
+    :param radius: radious of the sphere in the polar average method
+    :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
+    :param ifmagn: for a magnetic calculation, 'total' plot the total charge, 'up' plot the charge with spin up,
+                   'down' for spin down
+    :param plotfile: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
+    :param method: interpolation method. Available choices are:\n
+                    'FFT' -> Fourier interpolation (default)\n
+                    'polar' -> 2D polar plot on a sphere\n
+                    'spherical' -> 1D plot of the spherical average\n
+                    'splines' -> not implemented
+    :param format: format of the (optional) exported file. Available choices are:\n
+                    'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.\n
+                    'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.\n
+                    'cube' -> cube Gaussian format. Available for 3D sections.\n
+                    'contour' -> format for the contour.x code of Quantum Espresso.\n
+                    'plotrho' -> format for the plotrho.x code of Quantum Espresso.\n
+    :param show: if True, show the Matplotlib plot (only for 1D and 2D sections)
+    :return: a Charge object and a Matplotlib figure object for 1D and 2D sections,
+             a Charge object and None for 3D sections
+    """
+
+    charge = get_charge(prefix=prefix, outdir=outdir, schema=schema)
+    if fileout != '':
+        charge.write(fileout)
+
+    figure = charge.plot(x0=x0, e1=e1, nx = nx, e2 = e2, ny=ny, e3 = e3, nz=nz, radius=radius, dim=dim, ifmagn=ifmagn,
+                   plot_file=plot_file, method=method, format=format, show=show)
+
+    return charge, figure
 
 def get_potential(prefix, outdir=None, schema=None, pot_type='vtot'):
     """
