@@ -144,7 +144,7 @@ def get_cli_parser():
     # TODO: to be finished
 
     parser = argparse.ArgumentParser(description='QE post processing')
-    subparsers = parser.add_subparsers(help='sub-command help')
+    subparsers = parser.add_subparsers(help='sub-command help', dest='commands')
 
     # create the parser for the "eos" command
     eos_parser = subparsers.add_parser('eos', help=EOS_HELP)
@@ -177,7 +177,7 @@ def get_cli_parser():
     dos_parser.add_argument('-emax', type=float, default=50, help=DOS_EMAX_HELP)
     dos_parser.add_argument('-npts', type=int, default=100, help=DOS_NPTS_HELP)
     dos_parser.add_argument('-fileout', type=str, default='', help=DOS_FILEOUT_HELP)
-    dos_parser.add_argument('-fileplot', type=str, default='bandsplot', help=DOS_FILEPLOT_HELP)
+    dos_parser.add_argument('-fileplot', type=str, default='dosplot', help=DOS_FILEPLOT_HELP)
     dos_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
     # create the parser for the "charge" command
@@ -191,7 +191,7 @@ def get_cli_parser():
     potential_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
     potential_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     potential_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
-    potential_parser.add_argument('-pot_type', type=str, default=None, help=POT_TYPE_HELP)
+    potential_parser.add_argument('-pot_type', type=str, default='v_tot', help=POT_TYPE_HELP)
 
     return parser
 
