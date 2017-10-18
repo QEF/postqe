@@ -467,7 +467,7 @@ the corresponding external codes.</p>
 <li><strong>x0</strong> &#8211; 3D vector (a tuple), origin of the line</li>
 <li><strong>e2, e3</strong> (<em>e1,</em>) &#8211; 3D vectors (tuples) which determines the plotting lines</li>
 <li><strong>ny, nz</strong> (<em>nx,</em>) &#8211; number of points along e1, e2, e3</li>
-<li><strong>radius</strong> &#8211; radious of the sphere in the polar average method</li>
+<li><strong>radius</strong> &#8211; radius of the sphere in the polar average method</li>
 <li><strong>dim</strong> &#8211; 1, 2, 3 for a 1D, 2D or 3D section respectively</li>
 <li><strong>ifmagn</strong> &#8211; for a magnetic calculation, &#8216;total&#8217; plot the total charge, &#8216;up&#8217; plot the charge with spin up,
 &#8216;down&#8217; for spin down</li>
@@ -504,13 +504,10 @@ the corresponding external codes.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>filename</strong> &#8211; HDF5 file with charge data</li>
 <li><strong>nr</strong> &#8211; a numpy array or list of length 3 containing the grid dimensions</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
 </td>
 </tr>
 </tbody>
@@ -543,8 +540,7 @@ the corresponding external codes.</p>
 <dt id="postqe.charge.Potential.compute_potential">
 <code class="descname">compute_potential</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.compute_potential" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the potential from the electronic charge. The type of potential is defined in self.pot_type when
-an instance of the class Potential is create (default &#8216;v_tot&#8217;)
-:return:</p>
+an instance of the class Potential is create (default &#8216;v_tot&#8217;).</p>
 </dd></dl>
 
 <dl class="method">
@@ -562,7 +558,7 @@ the corresponding external codes.</p>
 <li><strong>x0</strong> &#8211; 3D vector (a tuple), origin of the line</li>
 <li><strong>e2, e3</strong> (<em>e1,</em>) &#8211; 3D vectors (tuples) which determines the plotting lines</li>
 <li><strong>ny, nz</strong> (<em>nx,</em>) &#8211; number of points along e1, e2, e3</li>
-<li><strong>radius</strong> &#8211; radious of the sphere in the polar average method</li>
+<li><strong>radius</strong> &#8211; radius of the sphere in the polar average method</li>
 <li><strong>dim</strong> &#8211; 1, 2, 3 for a 1D, 2D or 3D section respectively</li>
 <li><strong>plotfile</strong> &#8211; file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)</li>
 <li><strong>method</strong> &#8211; <p>interpolation method. Available choices are:</p>
@@ -593,8 +589,7 @@ the corresponding external codes.</p>
 <dt id="postqe.charge.Potential.write">
 <code class="descname">write</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the potential in a text file. The potential must have been calculated before.
-:param filename: name of the output file
-:return:</p>
+:param filename: name of the output file</p>
 </dd></dl>
 
 </dd></dl>

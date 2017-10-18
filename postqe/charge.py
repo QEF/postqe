@@ -153,7 +153,6 @@ class Charge:
 
         :param filename: HDF5 file with charge data
         :param nr: a numpy array or list of length 3 containing the grid dimensions
-        :return: nothing
         """
         if not nr:
             try:
@@ -191,7 +190,7 @@ class Charge:
         :param x0: 3D vector (a tuple), origin of the line
         :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
         :param nx, ny, nz: number of points along e1, e2, e3
-        :param radius: radious of the sphere in the polar average method
+        :param radius: radius of the sphere in the polar average method
         :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
         :param ifmagn: for a magnetic calculation, 'total' plot the total charge, 'up' plot the charge with spin up,
                        'down' for spin down
@@ -275,19 +274,17 @@ class Potential(Charge):
     A class for a potential. This is derived from a Charge class and additionally contains the potential.
     """
     def __init__(self, *args, pot_type='v_tot', **kwargs):
-        """Call the Charge constructor """
+        """Call the Charge constructor, define self.pot_type """
         self.setvars(*args, **kwargs)
         try:
             self.pot_type = pot_type
         except:
             self.pot_type = 'v_tot'
-        print(self.pot_type)
 
     def write(self, filename):
         """
         Write the potential in a text file. The potential must have been calculated before.
         :param filename: name of the output file
-        :return:
         """
         header='# Potential file '+self.pot_type+'\n'
         header+='# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
@@ -300,8 +297,7 @@ class Potential(Charge):
     def compute_potential(self):
         """
         Compute the potential from the electronic charge. The type of potential is defined in self.pot_type when
-        an instance of the class Potential is create (default 'v_tot')
-        :return:
+        an instance of the class Potential is create (default 'v_tot').
         """
         try:
             self.charge
@@ -344,7 +340,7 @@ class Potential(Charge):
         :param x0: 3D vector (a tuple), origin of the line
         :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
         :param nx, ny, nz: number of points along e1, e2, e3
-        :param radius: radious of the sphere in the polar average method
+        :param radius: radius of the sphere in the polar average method
         :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
         :param plotfile: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
         :param method: interpolation method. Available choices are:\n
