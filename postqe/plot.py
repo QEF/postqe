@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-A collection of wrappers for the *matplotlib* functions.
+Utility functions for Fourier and other interpolation methods and for plotting the charge.
+Some wrappers for the *matplotlib* functions.
 
-.. Note::
-  All functions return a *matplotlib* figure object which can be modified by the user.
+.. Notes::\n
+Plotting functions return a *matplotlib* figure object which can be modified by the user.\n
+Faster Cython functions are available for FFT interpolation in 'cythonextensions' directory.
 """
 
 ################################################################################
@@ -74,7 +76,6 @@ def spherical1D(charge, G, a, x0, e1, nx):
     """
 
     #TODO: this function needs some optimization...
-
     # normalize e1
     m1 = np.linalg.norm(e1)
     if abs(m1) < 1.0E-6:  # if the module is less than 1.0E-6
@@ -163,7 +164,6 @@ def FFTinterp2D(charge, G, a, x0, e1, e2, nx, ny):
                 for i in range(0, nx):
                     for j in range(0, ny):
                         Z[i, j] += fft_charge[x, y, z] * eigx[i] * eigy[j]
-
     Z = Z / (nr[0] * nr[1] * nr[2])
 
     return X, Y, Z

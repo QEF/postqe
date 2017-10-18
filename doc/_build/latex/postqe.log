@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.8.24)  31 AUG 2017 13:47
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2017.8.24)  18 OCT 2017 11:51
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1071,193 +1071,226 @@ LaTeX Font Info:    Try loading font information for T1+pcr on input line 143.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
-LaTeX Font Info:    Try loading font information for TS1+ptm on input line 157.
+LaTeX Font Info:    Try loading font information for TS1+ptm on input line 159.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <9> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 186.
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 188.
+ [3]
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
-(Font)              Font shape `T1/phv/b/n' tried instead on input line 197.
- [3] [4]
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 199.
+ [4]
 Chapter 2.
-LaTeX Font Info:    Try loading font information for TS1+pcr on input line 226.
+LaTeX Font Info:    Try loading font information for TS1+pcr on input line 272.
 
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1pcr.fd
 File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
 )
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <9> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 228.
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 274.
+ [5
 
-<Ni-eos.png, id=154, 578.16pt x 433.62pt>
+]
+<Ni-eos.png, id=181, 578.16pt x 433.62pt>
 File: Ni-eos.png Graphic file (type png)
  <use Ni-eos.png>
-Package pdftex.def Info: Ni-eos.png used on input line 243.
+Package pdftex.def Info: Ni-eos.png used on input line 289.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: Ni-eos.png Graphic file (type png)
  <use Ni-eos.png>
-Package pdftex.def Info: Ni-eos.png used on input line 243.
+Package pdftex.def Info: Ni-eos.png used on input line 289.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
 
-[5
+[6 <./Ni-eos.png>] <bandsplot.png, id=189, 578.16pt x 433.62pt>
+File: bandsplot.png Graphic file (type png)
 
-] <Sibands.png, id=163, 578.16pt x 433.62pt>
-File: Sibands.png Graphic file (type png)
- <use Sibands.png>
-Package pdftex.def Info: Sibands.png used on input line 259.
+<use bandsplot.png>
+Package pdftex.def Info: bandsplot.png used on input line 320.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
-File: Sibands.png Graphic file (type png)
-
-<use Sibands.png>
-Package pdftex.def Info: Sibands.png used on input line 259.
+File: bandsplot.png Graphic file (type png)
+ <use bandsplot.png>
+Package pdftex.def Info: bandsplot.png used on input line 320.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- [6 <./Ni-eos.png>] [7 <./Sibands.png>]
-<figure.png, id=174, 578.16pt x 433.62pt>
+ [7 <./bandsplot.png>]
+<figure.png, id=195, 578.16pt x 433.62pt>
 File: figure.png Graphic file (type png)
  <use figure.png>
-Package pdftex.def Info: figure.png used on input line 291.
+Package pdftex.def Info: figure.png used on input line 359.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure.png Graphic file (type png)
  <use figure.png>
-Package pdftex.def Info: figure.png used on input line 291.
+Package pdftex.def Info: figure.png used on input line 359.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
 
-[8 <./figure.png>] <figure_1.png, id=180, 578.16pt x 433.62pt>
+[8] [9 <./figure.png>] <figure_1.png, id=206, 578.16pt x 433.62pt>
 File: figure_1.png Graphic file (type png)
 
 <use figure_1.png>
-Package pdftex.def Info: figure_1.png used on input line 314.
+Package pdftex.def Info: figure_1.png used on input line 388.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_1.png Graphic file (type png)
  <use figure_1.png>
-Package pdftex.def Info: figure_1.png used on input line 314.
+Package pdftex.def Info: figure_1.png used on input line 388.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- [9 <./figure_1.png>]
-<figure_11.png, id=187, 578.16pt x 433.62pt>
+
+<figure_11.png, id=207, 578.16pt x 433.62pt>
 File: figure_11.png Graphic file (type png)
  <use figure_11.png>
-Package pdftex.def Info: figure_11.png used on input line 334.
+Package pdftex.def Info: figure_11.png used on input line 414.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_11.png Graphic file (type png)
 
 <use figure_11.png>
-Package pdftex.def Info: figure_11.png used on input line 334.
+Package pdftex.def Info: figure_11.png used on input line 414.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- [10 <./figure_11.png>]
-<figure_v_bare.png, id=193, 578.16pt x 433.62pt>
+ [10 <./figure_1.png>] [11 <./figure_11.png>]
+<figure_v_bare.png, id=218, 578.16pt x 433.62pt>
 File: figure_v_bare.png Graphic file (type png)
  <use figure_v_bare.png>
-Package pdftex.def Info: figure_v_bare.png used on input line 369.
+Package pdftex.def Info: figure_v_bare.png used on input line 455.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_bare.png Graphic file (type png)
 
 <use figure_v_bare.png>
-Package pdftex.def Info: figure_v_bare.png used on input line 369.
+Package pdftex.def Info: figure_v_bare.png used on input line 455.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- <figure_v_h.png, id=194, 578.16pt x 433.62pt>
+ <figure_v_h.png, id=219, 578.16pt x 433.62pt>
 File: figure_v_h.png Graphic file (type png)
 
 <use figure_v_h.png>
-Package pdftex.def Info: figure_v_h.png used on input line 371.
+Package pdftex.def Info: figure_v_h.png used on input line 457.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_h.png Graphic file (type png)
  <use figure_v_h.png>
-Package pdftex.def Info: figure_v_h.png used on input line 371.
+Package pdftex.def Info: figure_v_h.png used on input line 457.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
 
-<figure_v_xc.png, id=195, 578.16pt x 433.62pt>
+<figure_v_xc.png, id=220, 578.16pt x 433.62pt>
 File: figure_v_xc.png Graphic file (type png)
  <use figure_v_xc.png>
-Package pdftex.def Info: figure_v_xc.png used on input line 373.
+Package pdftex.def Info: figure_v_xc.png used on input line 459.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_xc.png Graphic file (type png)
 
 <use figure_v_xc.png>
-Package pdftex.def Info: figure_v_xc.png used on input line 373.
+Package pdftex.def Info: figure_v_xc.png used on input line 459.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- [11 <./figure_v_bare.png>]
-<figure_v_tot.png, id=201, 578.16pt x 433.62pt>
+ [12 <./figure_v_bare.png>]
+<figure_v_tot.png, id=226, 578.16pt x 433.62pt>
 File: figure_v_tot.png Graphic file (type png)
  <use figure_v_tot.png>
-Package pdftex.def Info: figure_v_tot.png used on input line 375.
+Package pdftex.def Info: figure_v_tot.png used on input line 461.
 (pdftex.def)             Requested size: 578.15858pt x 433.61894pt.
 File: figure_v_tot.png Graphic file (type png)
 
 <use figure_v_tot.png>
-Package pdftex.def Info: figure_v_tot.png used on input line 375.
+Package pdftex.def Info: figure_v_tot.png used on input line 461.
 (pdftex.def)             Requested size: 469.755pt x 352.31538pt.
- [12 <./figure_v_h.png>] [13 <./figure_v_xc.png>]
-[14 <./figure_v_tot.png>]
-Chapter 3.
-LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
-(Font)              Font shape `T1/pcr/b/n' tried instead on input line 392.
-
-Underfull \hbox (badness 10000) in paragraph at lines 401--402
-[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
-ata. De-fault to the value of
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 430--431
-[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
-ata. De-fault to the value of
- []
-
-[15
+ [13 <./figure_v_h.png>] [14 <./figure_v_xc.png>]
+[15 <./figure_v_tot.png>] [16
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 455--456
+Chapter 3.
+LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
+(Font)              Font shape `T1/pcr/b/n' tried instead on input line 493.
+
+Underfull \hbox (badness 10000) in paragraph at lines 502--504
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <10> not available
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 512.
+
+Underfull \hbox (badness 10000) in paragraph at lines 547--549
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[17]
+Underfull \hbox (badness 10000) in paragraph at lines 592--594
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[18]
+Underfull \hbox (badness 10000) in paragraph at lines 676--678
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[19]
+Underfull \hbox (badness 10000) in paragraph at lines 743--745
 []\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
 ata. De-fault to the value of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 488--489
+Underfull \hbox (badness 10000) in paragraph at lines 823--825
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[20]
+Underfull \hbox (badness 10000) in paragraph at lines 853--855
 []\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
 ata. De-fault to the value of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 522--523
+Underfull \hbox (badness 10000) in paragraph at lines 880--882
 []\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
 ata. De-fault to the value of
  []
 
-[16]
+
+Underfull \hbox (badness 10000) in paragraph at lines 916--918
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[21]
+Underfull \hbox (badness 10000) in paragraph at lines 975--977
+[]\T1/pcr/b/n/10 outdir \T1/ptm/m/n/10 -- di-rec-tory con-tain-ing the in-put d
+ata. De-fault to the value of
+ []
+
+[22] [23] [24]
 Chapter 4.
-[17
+[25
 
-] [18
+] [26
 
-] [19
-
-
-] (./postqe.ind [20
+] [27
 
 
-] [21
+] (./postqe.ind [28
 
+
+] [29
 
 ])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 563.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 563.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1299.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1299.
  (./postqe.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 563.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 563.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1299.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1299.
+
 Package rerunfilecheck Info: File `postqe.out' has not changed.
-(rerunfilecheck)             Checksum: 91B8423D635A3B8B60CC552B9D7D15D6;1302.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 563.
+(rerunfilecheck)             Checksum: 4728695F51013B708D009222D0BA6679;1574.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1299.
  ) 
 Here is how much of TeX's memory you used:
- 9749 strings out of 494953
- 136175 string characters out of 6180977
- 233516 words of memory out of 5000000
- 12645 multiletter control sequences out of 15000+600000
- 75201 words of font info for 99 fonts, out of 8000000 for 9000
+ 9828 strings out of 494953
+ 137699 string characters out of 6180977
+ 235919 words of memory out of 5000000
+ 12686 multiletter control sequences out of 15000+600000
+ 77092 words of font info for 102 fonts, out of 8000000 for 9000
  15 hyphenation exceptions out of 8191
- 36i,11n,49p,605b,563s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36i,12n,45p,605b,567s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/
@@ -1270,10 +1303,10 @@ ve/texmf-dist/fonts/type1/urw/helvetic/uhvbo8a.pfb></usr/share/texlive/texmf-di
 st/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/typ
 e1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/ut
 mr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on postqe.pdf (25 pages, 708266 bytes).
+Output written on postqe.pdf (33 pages, 748021 bytes).
 PDF statistics:
- 321 PDF objects out of 1000 (max. 8388607)
- 255 compressed objects within 3 object streams
- 55 named destinations out of 1000 (max. 500000)
- 210 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 434 PDF objects out of 1000 (max. 8388607)
+ 359 compressed objects within 4 object streams
+ 90 named destinations out of 1000 (max. 500000)
+ 242 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -8,12 +8,16 @@
 \contentsline {section}{\numberline {2.1}Fitting the total energy using Murnaghan EOS (examples 1)}{5}{section.2.1}
 \contentsline {section}{\numberline {2.2}Calculate and plot the band structure of silicon (examples 2)}{6}{section.2.2}
 \contentsline {section}{\numberline {2.3}Calculate and plot the density of states (DOS) of silicon (examples 3)}{7}{section.2.3}
-\contentsline {section}{\numberline {2.4}Plotting a 1D section of the charge density (examples 4)}{8}{section.2.4}
-\contentsline {section}{\numberline {2.5}Plotting a 2D section of the charge density (examples 5)}{9}{section.2.5}
-\contentsline {section}{\numberline {2.6}Plotting 1D sections of different potentials (examples 6)}{10}{section.2.6}
-\contentsline {chapter}{\numberline {3}postqe package}{15}{chapter.3}
-\contentsline {section}{\numberline {3.1}Submodules}{15}{section.3.1}
-\contentsline {section}{\numberline {3.2}postqe.api module}{15}{section.3.2}
-\contentsline {chapter}{\numberline {4}Indices and tables}{17}{chapter.4}
-\contentsline {chapter}{Python Module Index}{19}{section*.9}
-\contentsline {chapter}{Index}{21}{section*.10}
+\contentsline {section}{\numberline {2.4}Plotting a 1D section of the charge density (examples 4)}{9}{section.2.4}
+\contentsline {section}{\numberline {2.5}Plotting a 2D section of the charge density (examples 5)}{10}{section.2.5}
+\contentsline {section}{\numberline {2.6}Plotting 1D sections of different potentials (examples 6)}{11}{section.2.6}
+\contentsline {section}{\numberline {2.7}Export formats (examples 7)}{15}{section.2.7}
+\contentsline {chapter}{\numberline {3}postqe package}{17}{chapter.3}
+\contentsline {section}{\numberline {3.1}Submodules}{17}{section.3.1}
+\contentsline {section}{\numberline {3.2}postqe.api module}{17}{section.3.2}
+\contentsline {section}{\numberline {3.3}postqe.eos module}{22}{section.3.3}
+\contentsline {section}{\numberline {3.4}postqe.dos module}{22}{section.3.4}
+\contentsline {section}{\numberline {3.5}postqe.charge module}{22}{section.3.5}
+\contentsline {chapter}{\numberline {4}Indices and tables}{25}{chapter.4}
+\contentsline {chapter}{Python Module Index}{27}{section*.32}
+\contentsline {chapter}{Index}{29}{section*.33}
