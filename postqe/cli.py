@@ -12,24 +12,29 @@ Command line interface for postqe.
 """
 import sys
 import time
+import argparse
 
-from .api import get_charge, get_potential
-
+def vector(s):
+    try:
+        x, y, z = map(int, s.split(','))
+        return x, y, z
+    except:
+        raise argparse.ArgumentTypeError("Vectors must be x,y,z")
 
 def get_cli_parser():
-    import argparse
+
     # all help strings are here:
     EOS_HELP = 'Fit energy vs volume data with an equation of state.'
     BANDS_HELP = 'Calculate energy bands.'
     DOS_HELP = 'Calculate the electronic density of states'
     CHARGE_HELP = 'Extract the charge from an output xml Espresso file and the corresponding HDF5 charge file' \
                   ' containing the results of a calculation. Create also a Matplotlib figure object from a 1D or 2D' \
-                  ' section of the charge. (optionally) Export the charge (1, 2 or 3D section) in a text file' \
+                  ' section of the charge. (optional) Export the charge (1, 2 or 3D section) in a text file' \
                   ' according to different formats (XSF, cube, Gnuplot, etc.).'
     POTENTIAL_HELP = 'Compute the potential specified in \'pot_type\' from an output xml Espresso file and the ' \
                      'corresponding HDF5 charge file containing the results of a calculation. ' \
                      'Create also a Matplotlib figure object from a 1D or 2D' \
-                     ' section of the charge. (optionally) Export the charge (1, 2 or 3D section) in a text file' \
+                     ' section of the charge. (optional) Export the charge (1, 2 or 3D section) in a text file' \
                      ' according to different formats (XSF, cube, Gnuplot, etc.).'
     PREFIX_HELP = 'prefix of files saved by program pw.x'
     OUTDIR_HELP = 'directory containing the input data, i.e. the same as in pw.x'
@@ -46,56 +51,55 @@ def get_cli_parser():
                     'birchmurnaghan -> Birch-Murnaghan EOS, PRB 70, 224107\n' \
                     'pouriertarantola -> Pourier-Tarantola EOS, PRB 70, 224107\n' \
                     'antonschmidt -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n' \
-                    'p3 -> A third order inverse polynomial fit\n'
-    EOS_FILEOUT_HELP = 'text output file with fitting data and results (default='', not written)'
+                    'p3 -> A third order inverse polynomial fit.\n'
+    EOS_FILEOUT_HELP = 'text output file with fitting data and results (default='', not written).'
     EOS_FILEPLOT_HELP = 'output plot file in png format (default=\'EOSplot\'). Other formats are available from the ' \
                         'Matplotlib GUI.'
-    EOS_SHOW_HELP = 'True -> plot results with Matplotlib; None or False -> do nothing. Default = True'
+    EOS_SHOW_HELP = 'True -> plot results with Matplotlib; None or False -> do nothing. Default = True.'
 
-    BANDS_REFERENCE_ENERGY_HELP = 'the Fermi level, defines the zero of the plot along y axis (default=0)'
-    BANDS_EMIN_HELP = 'the minimum energy for the band plot (default=-50)'
-    BANDS_EMAX_HELP = 'the maximum energy for the band plot (default=50)'
+    BANDS_REFERENCE_ENERGY_HELP = 'the Fermi level, defines the zero of the plot along y axis (default=0).'
+    BANDS_EMIN_HELP = 'the minimum energy for the band plot (default=-50).'
+    BANDS_EMAX_HELP = 'the maximum energy for the band plot (default=50).'
     BANDS_FILEPLOT_HELP = 'output plot file (default=\'bandsplot\') in png format.'
 
-    DOS_EMIN_HELP = 'the minimum energy for the dos plot (default=-50)'
-    DOS_EMAX_HELP = 'the maximum energy for the dos plot (default=50)'
-    DOS_NPTS_HELP = 'number of points of the DOS'
-    DOS_FILEOUT_HELP = 'text output file with dos data (default='', not written)'
+    DOS_EMIN_HELP = 'the minimum energy for the dos plot (default=-50).'
+    DOS_EMAX_HELP = 'the maximum energy for the dos plot (default=50).'
+    DOS_NPTS_HELP = 'number of points of the DOS.'
+    DOS_FILEOUT_HELP = 'text output file with dos data (default='', not written).'
     DOS_FILEPLOT_HELP = 'output plot file (default=\'dosplot\') in png format.'
 
+    VECTOR_HELP = ' Enter the vector as components separated by commas, ex. 1,0,0'
     CHARGE_FILEOUT_HELP = 'text file with the full charge data as in the HDF5 file. Default='', nothing is written.'
-    CHARGE_X0_HELP = '3D vector (a tuple), origin of the line or plane of the section'
-    CHARGE_E1_HELP = '1st 3D vector (a tuple) which determines the plotting section'
-    CHARGE_E2_HELP = '2nd 3D vector (a tuple) which determines the plotting section'
-    CHARGE_E3_HELP = '3rd 3D vector (a tuple) which determines the plotting section'
-    CHARGE_NX_HELP = 'number of points along e1 direction'
-    CHARGE_NY_HELP = 'number of points along e2 direction'
-    CHARGE_NZ_HELP = 'number of points along e3 direction'
-    CHARGE_RADIUS_HELP = 'radious of the sphere in the polar average method'
-    CHARGE_DIM_HELP = '1, 2, 3 for a 1D, 2D or 3D section respectively'
+    CHARGE_X0_HELP = '3D vector (a tuple), origin of the line or plane of the section.'+VECTOR_HELP
+    CHARGE_E1_HELP = '1st 3D vector (a tuple) which determines the plotting section.'+VECTOR_HELP
+    CHARGE_E2_HELP = '2nd 3D vector (a tuple) which determines the plotting section.'+VECTOR_HELP
+    CHARGE_E3_HELP = '3rd 3D vector (a tuple) which determines the plotting section.'+VECTOR_HELP
+    CHARGE_NX_HELP = 'number of points along e1 direction.'
+    CHARGE_NY_HELP = 'number of points along e2 direction.'
+    CHARGE_NZ_HELP = 'number of points along e3 direction.'
+    CHARGE_RADIUS_HELP = 'radious of the sphere in the polar average method.'
+    CHARGE_DIM_HELP = '1, 2, 3 for a 1D, 2D or 3D section respectively.'
     CHARGE_IFMAGN_HELP = 'for a magnetic calculation, \'total\' plot the total charge, \'up\' ' \
-                         'plot the charge with spin up, \'down\' for spin down'
-    CHARGE_EXPORTFILE_HELP = 'file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)'
+                         'plot the charge with spin up, \'down\' for spin down.'
+    CHARGE_EXPORTFILE_HELP = 'file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.).'
     CHARGE_METHOD_HELP = 'interpolation method. Available choices are:\n' \
                         ' \'FFT\' -> Fourier interpolation (default)\n' \
                         ' \'polar\' -> 2D polar plot on a sphere\n' \
                         ' \'spherical\' -> 1D plot of the spherical average\n' \
-                        ' \'splines\' -> not implemented'
+                        ' \'splines\' -> not implemented.'
     CHARGE_FORMAT_HELP = 'format of the (optional) exported file. Available choices are:\n' \
                         ' \'gnuplot\' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.\n' \
                         ' \'xsf\' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.\n' \
                         ' \'cube\' -> cube Gaussian format. Available for 3D sections.\n' \
                         ' \'contour\' -> format for the contour.x code of Quantum Espresso.\n' \
                         ' \'plotrho\' -> format for the plotrho.x code of Quantum Espresso.\n'
-    CHARGE_SHOW_HELP = 'if True, show the Matplotlib plot (only for 1D and 2D sections)'
+    CHARGE_SHOW_HELP = 'if True, show the Matplotlib plot (only for 1D and 2D sections).'
 
     POT_TYPE_HELP = 'type of the potential to calculate. Available types are:\n' \
-                    'v_tot (default) -> the total potential (v_bare+v_hartree+v_xc).\n' \
-                    'v_bare -> the bare potential.\n' \
-                    'v_hartree = the Hartree potential.\n' \
-                    'v_xc -> the exchange-correlation potential.\n' \
-
-    # TODO: to be finished
+                    ' \'v_tot\' (default) -> the total potential (v_bare+v_hartree+v_xc).\n' \
+                    ' \'v_bare\' -> the bare potential.\n' \
+                    ' \'v_hartree\' = the Hartree potential.\n' \
+                    ' \'v_xc\' -> the exchange-correlation potential.\n' \
 
     parser = argparse.ArgumentParser(description='QE post processing')
     subparsers = parser.add_subparsers(help='sub-command help', dest='commands')
@@ -140,10 +144,10 @@ def get_cli_parser():
     charge_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
     charge_parser.add_argument('-fileout', type=str, default='', help=CHARGE_FILEOUT_HELP)
-    charge_parser.add_argument('-x0', type=tuple, default=(0.,0.,0.), help=CHARGE_X0_HELP)
-    charge_parser.add_argument('-e1', type=tuple, default=(1.,0.,0.), help=CHARGE_E1_HELP)
-    charge_parser.add_argument('-e2', type=tuple, default=(0.,1.,0.), help=CHARGE_E2_HELP)
-    charge_parser.add_argument('-e3', type=tuple, default=(0.,0.,1.), help=CHARGE_E3_HELP)
+    charge_parser.add_argument('-x0', type=vector, default=(0.,0.,0.), help=CHARGE_X0_HELP)
+    charge_parser.add_argument('-e1', type=vector, default=(1.,0.,0.), help=CHARGE_E1_HELP)
+    charge_parser.add_argument('-e2', type=vector, default=(0.,1.,0.), help=CHARGE_E2_HELP)
+    charge_parser.add_argument('-e3', type=vector, default=(0.,0.,1.), help=CHARGE_E3_HELP)
     charge_parser.add_argument('-nx', type=int, default=20, help=CHARGE_NX_HELP)
     charge_parser.add_argument('-ny', type=int, default=20, help=CHARGE_NY_HELP)
     charge_parser.add_argument('-nz', type=int, default=20, help=CHARGE_NZ_HELP)
@@ -162,16 +166,15 @@ def get_cli_parser():
     potential_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
     potential_parser.add_argument('-pot_type', type=str, default='v_tot', help=POT_TYPE_HELP)
     potential_parser.add_argument('-fileout', type=str, default='', help=CHARGE_FILEOUT_HELP)
-    potential_parser.add_argument('-x0', type=tuple, default=(0.,0.,0.), help=CHARGE_X0_HELP)
-    potential_parser.add_argument('-e1', type=tuple, default=(1.,0.,0.), help=CHARGE_E1_HELP)
-    potential_parser.add_argument('-e2', type=tuple, default=(0.,1.,0.), help=CHARGE_E2_HELP)
-    potential_parser.add_argument('-e3', type=tuple, default=(0.,0.,1.), help=CHARGE_E3_HELP)
+    potential_parser.add_argument('-x0', type=vector, default=(0.,0.,0.), help=CHARGE_X0_HELP)
+    potential_parser.add_argument('-e1', type=vector, default=(1.,0.,0.), help=CHARGE_E1_HELP)
+    potential_parser.add_argument('-e2', type=vector, default=(0.,1.,0.), help=CHARGE_E2_HELP)
+    potential_parser.add_argument('-e3', type=vector, default=(0.,0.,1.), help=CHARGE_E3_HELP)
     potential_parser.add_argument('-nx', type=int, default=20, help=CHARGE_NX_HELP)
     potential_parser.add_argument('-ny', type=int, default=20, help=CHARGE_NY_HELP)
     potential_parser.add_argument('-nz', type=int, default=20, help=CHARGE_NZ_HELP)
     potential_parser.add_argument('-radius', type=float, default=1, help=CHARGE_RADIUS_HELP)
     potential_parser.add_argument('-dim', type=int, default=1, help=CHARGE_DIM_HELP)
-    potential_parser.add_argument('-ifmagn', type=str, default='total', help=CHARGE_IFMAGN_HELP)
     potential_parser.add_argument('-exportfile', type=str, default='', help=CHARGE_EXPORTFILE_HELP)
     potential_parser.add_argument('-method', type=str, default='FFT', help=CHARGE_METHOD_HELP)
     potential_parser.add_argument('-format', type=str, default='gnuplot', help=CHARGE_FORMAT_HELP)
@@ -189,6 +192,7 @@ def main():
     cli_parser = get_cli_parser()
     pars = cli_parser.parse_args()
 
+    # TODO: remove this when cli is tested
     print(pars)
 
     from . import pp

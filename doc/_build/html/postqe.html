@@ -123,7 +123,7 @@ ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217
 <dd><p>Returns an Charge object from an output xml Espresso file and the
 corresponding HDF5 charge file containing the results of a calculation.
 Returns also a Matplotlib figure object from a 1D or 2D section of the charge.
-It also (optionally) exports the charge (1, 2 or 3D section) in a text file accordin to
+It also (optionally) exports the charge (1, 2 or 3D section) in a text file according to
 different formats (XSF, cube, Gnuplot, etc.).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -203,6 +203,55 @@ a new one</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">an QEEquationOfState object and a Matplotlib figure object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="postqe.api.compute_potential">
+<code class="descclassname">postqe.api.</code><code class="descname">compute_potential</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>schema=None</em>, <em>pot_type='v_tot'</em>, <em>fileout=''</em>, <em>x0=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>e1=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>nx=50</em>, <em>e2=(0.0</em>, <em>1.0</em>, <em>0.0)</em>, <em>ny=50</em>, <em>e3=(0.0</em>, <em>0.0</em>, <em>1.0)</em>, <em>nz=50</em>, <em>radius=1</em>, <em>dim=1</em>, <em>plot_file=''</em>, <em>method='FFT'</em>, <em>format='gnuplot'</em>, <em>show=True</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an Potential object from an output xml Espresso file and the
+corresponding HDF5 charge file containing the results of a calculation.
+Returns also a Matplotlib figure object from a 1D or 2D section of the charge.
+It also (optionally) exports the charge (1, 2 or 3D section) in a text file according to
+different formats (XSF, cube, Gnuplot, etc.).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>prefix</strong> &#8211; prefix of saved output file</li>
+<li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
+ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217;) otherwise</li>
+<li><strong>schema</strong> &#8211; the XML schema to be used to read and validate the XML output file</li>
+<li><strong>fileout</strong> &#8211; text file with the calculate potential data. Default=&#8217;&#8216;, nothing is written.</li>
+<li><strong>x0</strong> &#8211; 3D vector (a tuple), origin of the line</li>
+<li><strong>e2, e3</strong> (<em>e1,</em>) &#8211; 3D vectors (tuples) which determines the plotting lines</li>
+<li><strong>ny, nz</strong> (<em>nx,</em>) &#8211; number of points along e1, e2, e3</li>
+<li><strong>radius</strong> &#8211; radious of the sphere in the polar average method</li>
+<li><strong>dim</strong> &#8211; 1, 2, 3 for a 1D, 2D or 3D section respectively</li>
+<li><strong>plotfile</strong> &#8211; file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)</li>
+<li><strong>method</strong> &#8211; <p>interpolation method. Available choices are:</p>
+<p>&#8216;FFT&#8217; -&gt; Fourier interpolation (default)</p>
+<p>&#8216;polar&#8217; -&gt; 2D polar plot on a sphere</p>
+<p>&#8216;spherical&#8217; -&gt; 1D plot of the spherical average</p>
+<p>&#8216;splines&#8217; -&gt; not implemented</p>
+</li>
+<li><strong>format</strong> &#8211; <p>format of the (optional) exported file. Available choices are:</p>
+<p>&#8216;gnuplot&#8217; -&gt; plain text format for Gnuplot (default). Available for 1D and 2D sections.</p>
+<p>&#8216;xsf&#8217; -&gt; XSF format for the XCrySDen program. Available for 2D and 3D sections.</p>
+<p>&#8216;cube&#8217; -&gt; cube Gaussian format. Available for 3D sections.</p>
+<p>&#8216;contour&#8217; -&gt; format for the contour.x code of Quantum Espresso.</p>
+<p>&#8216;plotrho&#8217; -&gt; format for the plotrho.x code of Quantum Espresso.</p>
+</li>
+<li><strong>show</strong> &#8211; if True, show the Matplotlib plot (only for 1D and 2D sections)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Potential object and a Matplotlib figure object for 1D and 2D sections,
+a Potential object and None for 3D sections</p>
 </td>
 </tr>
 </tbody>
@@ -328,7 +377,7 @@ ESPRESSO_TMPDIR environment variable if set, or current directory (&#8216;.&#821
 
 <dl class="function">
 <dt id="postqe.api.get_potential">
-<code class="descclassname">postqe.api.</code><code class="descname">get_potential</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>schema=None</em>, <em>pot_type='vtot'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.get_potential" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">postqe.api.</code><code class="descname">get_potential</code><span class="sig-paren">(</span><em>prefix</em>, <em>outdir=None</em>, <em>schema=None</em>, <em>pot_type='v_tot'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.api.get_potential" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function returns an Potential object from an output xml Espresso file and
 the corresponding HDF5 charge file containing the results of a calculation.
 The available potentials are the bare (pot_type=&#8217;v_bare&#8217;), Hartree (pot_type=&#8217;v_h&#8217;),
@@ -342,7 +391,7 @@ exchange-correlation (pot_type=&#8217;v_xc&#8217;) and total (pot_type=&#8217;v_
 <li><strong>outdir</strong> &#8211; directory containing the input data. Default to the value of
 ESPRESSO_TMPDIR environment variable if set or current directory (&#8216;.&#8217;) otherwise</li>
 <li><strong>schema</strong> &#8211; the XML schema to be used to read and validate the XML output file</li>
-<li><strong>pot_type</strong> &#8211; type of the Potential (&#8216;vtot&#8217;, ....)</li>
+<li><strong>pot_type</strong> &#8211; type of the Potential (&#8216;v_tot&#8217;, ....)</li>
 </ul>
 </td>
 </tr>
@@ -487,32 +536,53 @@ the corresponding external codes.</p>
 
 <dl class="class">
 <dt id="postqe.charge.Potential">
-<em class="property">class </em><code class="descclassname">postqe.charge.</code><code class="descname">Potential</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">postqe.charge.</code><code class="descname">Potential</code><span class="sig-paren">(</span><em>*args</em>, <em>pot_type='v_tot'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#postqe.charge.Charge" title="postqe.charge.Charge"><code class="xref py py-class docutils literal"><span class="pre">postqe.charge.Charge</span></code></a></p>
 <p>A class for a potential. This is derived from a Charge class and additionally contains the potential.</p>
 <dl class="method">
 <dt id="postqe.charge.Potential.compute_potential">
-<code class="descname">compute_potential</code><span class="sig-paren">(</span><em>pot_type='v_tot'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.compute_potential" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">compute_potential</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the potential from the electronic charge. The type of potential is defined in self.pot_type when
+an instance of the class Potential is create (default &#8216;v_tot&#8217;)
+:return:</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="postqe.charge.Potential.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>x0=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>e1=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>nx=50</em>, <em>e2=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>ny=50</em>, <em>dim=1</em>, <em>ifmagn='total'</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot a 1D or 2D section of the charge from x0 along e1 (e2) direction(s) using Fourier interpolation.</p>
+<code class="descname">plot</code><span class="sig-paren">(</span><em>x0=(0.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>e1=(1.0</em>, <em>0.0</em>, <em>0.0)</em>, <em>nx=50</em>, <em>e2=(0.0</em>, <em>1.0</em>, <em>0.0)</em>, <em>ny=50</em>, <em>e3=(0.0</em>, <em>0.0</em>, <em>1.0)</em>, <em>nz=50</em>, <em>radius=1</em>, <em>dim=1</em>, <em>plot_file=''</em>, <em>method='FFT'</em>, <em>format='gnuplot'</em>, <em>show=True</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a 1D, 2D or 3D section of the potential from x0 along e1 (e2, e3) direction(s) using Fourier interpolation
+or another method (see below). For 1D or 2D sections, the code produce a Matplotlib plot. For a 3D plot, the
+charge must be exported in &#8216;plotfile&#8217; with a suitable format (&#8216;xsf&#8217; or &#8216;cube&#8217;) and can be visualized with
+the corresponding external codes.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x0</strong> &#8211; 3D vector, origin of the line</li>
-<li><strong>e2</strong> (<em>e1,</em>) &#8211; 3D vectors which determines the plotting lines</li>
-<li><strong>ny</strong> (<em>nx,</em>) &#8211; number of points along e1, e2</li>
-<li><strong>dim</strong> &#8211; 1 for a 1D section, 2 for a 2D section</li>
-<li><strong>ifmagn</strong> &#8211; for a magnetic calculation, &#8216;total&#8217; plot the total charge, &#8216;up&#8217; plot the charge with spin up, &#8216;down&#8217; for spin down</li>
+<li><strong>x0</strong> &#8211; 3D vector (a tuple), origin of the line</li>
+<li><strong>e2, e3</strong> (<em>e1,</em>) &#8211; 3D vectors (tuples) which determines the plotting lines</li>
+<li><strong>ny, nz</strong> (<em>nx,</em>) &#8211; number of points along e1, e2, e3</li>
+<li><strong>radius</strong> &#8211; radious of the sphere in the polar average method</li>
+<li><strong>dim</strong> &#8211; 1, 2, 3 for a 1D, 2D or 3D section respectively</li>
+<li><strong>plotfile</strong> &#8211; file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)</li>
+<li><strong>method</strong> &#8211; <p>interpolation method. Available choices are:</p>
+<p>&#8216;FFT&#8217; -&gt; Fourier interpolation (default)
+&#8216;polar&#8217; -&gt; 2D polar plot on a sphere
+&#8216;spherical&#8217; -&gt; 1D plot of the spherical average
+&#8216;splines&#8217; -&gt; not implemented</p>
+</li>
+<li><strong>format</strong> &#8211; <p>format of the (optional) exported file. Available choices are:</p>
+<p>&#8216;gnuplot&#8217; -&gt; plain text format for Gnuplot (default). Available for 1D and 2D sections.
+&#8216;xsf&#8217; -&gt; XSF format for the XCrySDen program. Available for 2D and 3D sections.
+&#8216;cube&#8217; -&gt; cube Gaussian format. Available for 3D sections.
+&#8216;contour&#8217; -&gt; format for the contour.x code of Quantum Espresso
+&#8216;plotrho&#8217; -&gt; format for the plotrho.x code of Quantum Espresso</p>
+</li>
+<li><strong>show</strong> &#8211; if True, show the Matplotlib plot (only for 1D and 2D sections)</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Matplotlib figure object</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Matplotlib figure object for 1D and 2D sections, None for 3D sections</p>
 </td>
 </tr>
 </tbody>
@@ -522,7 +592,10 @@ the corresponding external codes.</p>
 <dl class="method">
 <dt id="postqe.charge.Potential.write">
 <code class="descname">write</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#postqe.charge.Potential.write" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Write the potential in a text file. The potential must have been calculated before.
+:param filename: name of the output file
+:return:</p>
+</dd></dl>
 
 </dd></dl>
 

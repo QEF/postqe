@@ -135,7 +135,7 @@ The above results can be obtained from the command line typing:
 
 .. code-block:: bash
 
-   $ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts 200 -width 0.5 -fileplot figure.png
+   $ postqe charge -prefix Ni -schema ../../schemas/qes.xsd -fileout outputcharge.dat -x0 0,0,0 -e1 1,0,0 -nx 50
 
 ===========================================================
 Plotting a 2D section of the charge density  (examples 5)
@@ -153,6 +153,12 @@ The resulting *Matplotlib* plot is
 
 .. image:: ../examples/example5/figure_1.png
    :width: 500
+
+The above results can be obtained from the command line typing:
+
+.. code-block:: bash
+
+   $ postqe charge -prefix Ni -schema ../../schemas/qes.xsd -fileout outputcharge.dat -dim 2 -x0 0,0,0 -e1 1,0,0 -e2 0,1,0 -nx 50 -ny=50
 
 
 ===========================================================
@@ -182,3 +188,11 @@ The output figures are as follows:
 .. image:: ../examples/example6/figure_v_tot.png
    :width: 500
 
+The above results can be obtained from the command line typing:
+
+.. code-block:: bash
+
+   $ postqe potential -pot_type v_bare -prefix Ni -schema ../../schemas/qes.xsd -fileout v_bare.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+   $ postqe potential -pot_type v_h -prefix Ni -schema ../../schemas/qes.xsd -fileout v_h.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+   $ postqe potential -pot_type v_xc -prefix Ni -schema ../../schemas/qes.xsd -fileout v_xc.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+   $ postqe potential -pot_type v_tot -prefix Ni -schema ../../schemas/qes.xsd -fileout v_tot.dat -x0 0,0,0 -e1 1,0,0 -nx 50

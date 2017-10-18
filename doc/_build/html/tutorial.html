@@ -192,7 +192,7 @@ output file create by the Quantum Espresso calculation in <em>outdir</em>. Addit
 By default, the charge is plotted from the point (0,0,0) along the direction (1,0,0). The <em>Matplotlib</em> figure object can be further modified with the standard methods of this library. For example, the plot can be save in a png file using the method <code class="xref py py-func docutils literal"><span class="pre">savefig()</span></code>. The result is shown below.</p>
 <a class="reference internal image-reference" href="_images/figure_1.png"><img alt="_images/figure_1.png" src="_images/figure_1.png" style="width: 500px;" /></a>
 <p>The above results can be obtained from the command line typing:</p>
-<div class="highlight-bash"><div class="highlight"><pre>$ postqe dos -prefix Si -schema ../../schemas/qes.xsd -npts <span class="m">200</span> -width 0.5 -fileplot figure.png
+<div class="highlight-bash"><div class="highlight"><pre>$ postqe charge -prefix Ni -schema ../../schemas/qes.xsd -fileout outputcharge.dat -x0 0,0,0 -e1 1,0,0 -nx 50
 </pre></div>
 </div>
 </div>
@@ -211,6 +211,10 @@ by an initial point <em>x0</em> and two vectors, <em>e1</em> and <em>e2</em> whi
 </div>
 <p>The resulting <em>Matplotlib</em> plot is</p>
 <a class="reference internal image-reference" href="_images/figure_11.png"><img alt="_images/figure_11.png" src="_images/figure_11.png" style="width: 500px;" /></a>
+<p>The above results can be obtained from the command line typing:</p>
+<div class="highlight-bash"><div class="highlight"><pre>$ postqe charge -prefix Ni -schema ../../schemas/qes.xsd -fileout outputcharge.dat -dim <span class="m">2</span> -x0 0,0,0 -e1 1,0,0 -e2 0,1,0 -nx <span class="m">50</span> -ny<span class="o">=</span>50
+</pre></div>
+</div>
 </div>
 <div class="section" id="plotting-1d-sections-of-different-potentials-examples-6">
 <h2>Plotting 1D sections of different potentials  (examples 6)<a class="headerlink" href="#plotting-1d-sections-of-different-potentials-examples-6" title="Permalink to this headline">¶</a></h2>
@@ -244,6 +248,13 @@ by an initial point <em>x0</em> and two vectors, <em>e1</em> and <em>e2</em> whi
 <a class="reference internal image-reference" href="_images/figure_v_h.png"><img alt="_images/figure_v_h.png" src="_images/figure_v_h.png" style="width: 500px;" /></a>
 <a class="reference internal image-reference" href="_images/figure_v_xc.png"><img alt="_images/figure_v_xc.png" src="_images/figure_v_xc.png" style="width: 500px;" /></a>
 <a class="reference internal image-reference" href="_images/figure_v_tot.png"><img alt="_images/figure_v_tot.png" src="_images/figure_v_tot.png" style="width: 500px;" /></a>
+<p>The above results can be obtained from the command line typing:</p>
+<div class="highlight-bash"><div class="highlight"><pre>$ postqe potential -pot_type v_bare -prefix Ni -schema ../../schemas/qes.xsd -fileout v_bare.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+$ postqe potential -pot_type v_h -prefix Ni -schema ../../schemas/qes.xsd -fileout v_h.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+$ postqe potential -pot_type v_xc -prefix Ni -schema ../../schemas/qes.xsd -fileout v_xc.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+$ postqe potential -pot_type v_tot -prefix Ni -schema ../../schemas/qes.xsd -fileout v_tot.dat -x0 0,0,0 -e1 1,0,0 -nx 50
+</pre></div>
+</div>
 </div>
 </div>
 
