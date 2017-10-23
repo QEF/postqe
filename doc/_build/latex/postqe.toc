@@ -6,8 +6,8 @@
 \contentsline {subsection}{\numberline {1.2.2}Plotting}{4}{subsection.1.2.2}
 \contentsline {chapter}{\numberline {2}Tutorial}{5}{chapter.2}
 \contentsline {section}{\numberline {2.1}Fitting the total energy using Murnaghan EOS (examples 1)}{5}{section.2.1}
-\contentsline {section}{\numberline {2.2}Calculate and plot the band structure of silicon (examples 2)}{6}{section.2.2}
-\contentsline {section}{\numberline {2.3}Calculate and plot the density of states (DOS) of silicon (examples 3)}{7}{section.2.3}
+\contentsline {section}{\numberline {2.2}Calculate and plot the band structure of silicon (examples 2)}{7}{section.2.2}
+\contentsline {section}{\numberline {2.3}Calculate and plot the density of states (DOS) of silicon (examples 3)}{8}{section.2.3}
 \contentsline {section}{\numberline {2.4}Plotting a 1D section of the charge density (examples 4)}{9}{section.2.4}
 \contentsline {section}{\numberline {2.5}Plotting a 2D section of the charge density (examples 5)}{10}{section.2.5}
 \contentsline {section}{\numberline {2.6}Plotting 1D sections of different potentials (examples 6)}{11}{section.2.6}

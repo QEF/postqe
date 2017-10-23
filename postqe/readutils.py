@@ -149,7 +149,7 @@ def read_pseudo_file(xmlfile):
 
     return pseudo
 
-    
+
 def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_species, atomic_positions):
     """
     Creates the header lines for the output charge (or potential) text file as in pp.x.

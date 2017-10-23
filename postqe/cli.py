@@ -169,7 +169,7 @@ def get_cli_parser():
     potential_parser.add_argument('-x0', type=vector, default=(0.,0.,0.), help=CHARGE_X0_HELP)
     potential_parser.add_argument('-e1', type=vector, default=(1.,0.,0.), help=CHARGE_E1_HELP)
     potential_parser.add_argument('-e2', type=vector, default=(0.,1.,0.), help=CHARGE_E2_HELP)
-    potential_parser.add_argument('-e3', type=vector, default=(0.,0.,1.), help=CHARGE_E3_HELP)
+    potential_parser.add_argument('-e3', type=vector default=(0.,0.,1.), help=CHARGE_E3_HELP)
     potential_parser.add_argument('-nx', type=int, default=20, help=CHARGE_NX_HELP)
     potential_parser.add_argument('-ny', type=int, default=20, help=CHARGE_NY_HELP)
     potential_parser.add_argument('-nz', type=int, default=20, help=CHARGE_NZ_HELP)
