@@ -192,9 +192,6 @@ def main():
     cli_parser = get_cli_parser()
     pars = cli_parser.parse_args()
 
-    # TODO: remove this when cli is tested
-    print(pars)
-
     from . import pp
     pp.run(pars)
 

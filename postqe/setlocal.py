@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Internazionale Superiore di Studi Avanzati). All rights reserved.
+# This file is distributed under the terms of the LGPL-2.1 license. See the
+# file 'LICENSE' in the root directory of the present distribution, or
+# https://opensource.org/licenses/LGPL-2.1
+#
+
 import numpy as np
 import os
 from .readutils import read_pseudo_file
@@ -5,10 +15,7 @@ from .readutils import read_pseudo_file
 # f2py module
 from .pyqe import pyqe_getcelldms, pyqe_recips, pyqe_latgen
 from .pyqe import pyqe_get_gg_list, pyqe_get_gl, pyqe_get_igtongl
-try:
-    from .pyqe2 import pyqe_vloc_of_g, pyqe_struct_fact
-except ImportError:
-    from .pyqe import pyqe_vloc_of_g, pyqe_struct_fact
+from .pyqe import pyqe_vloc_of_g, pyqe_struct_fact
 
 
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):

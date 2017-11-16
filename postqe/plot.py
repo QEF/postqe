@@ -1,5 +1,12 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Internazionale Superiore di Studi Avanzati). All rights reserved.
+# This file is distributed under the terms of the LGPL-2.1 license. See the
+# file 'LICENSE' in the root directory of the present distribution, or
+# https://opensource.org/licenses/LGPL-2.1
+#
 
 """
 Utility functions for Fourier and other interpolation methods and for plotting the charge.
@@ -18,8 +25,6 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import axes3d
 from .writecharge import write_1Dcharge_file, write_2Dcharge_file, write_3Dcharge_file
-from .oldeos import calculate_fitted_points
-from .oldbands import set_high_symmetry_points, compute_kx
 from .constants import pi
 
 
@@ -191,14 +196,14 @@ def plot_1Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, yla
     """
     if (method == 'FFT'):
         try:
-            from cythonfn import FFTinterp1D_Cython
+            from compute_vs_cython import FFTinterp1D_Cython
             X, Y = FFTinterp1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
         except ImportError:
             X, Y = FFTinterp1D(charge, G, struct_info['a'], x0, e1, nx)
     elif (method == 'spherical'):
         try:
             #TODO: Cython function to be implemented
-            from cythonfn import spherical1D_Cython
+            from compute_vs_cython import spherical1D_Cython
             X, Y = spherical1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
         except ImportError:
             X, Y = spherical1D(charge, G, struct_info['a'], x0, e1, nx)
@@ -288,14 +293,14 @@ def plot_2Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 
 
     if (method == 'FFT'):
         try:
-            from cythonfn import FFTinterp2D_Cython
+            from compute_vs_cython import FFTinterp2D_Cython
             X, Y, Z = FFTinterp2D_Cython(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
         except ImportError:
             X, Y, Z = FFTinterp2D(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
     elif (method == 'polar'):
         try:
             #TODO: Cython function to be implemented
-            from cythonfn import polar2D_Cython
+            from compute_vs_cython import polar2D_Cython
             X, Y, Z = polar2D_Cython(charge, G, nx, ny, radius, struct_info['alat'])
         except ImportError:
             X, Y, Z = polar2D(charge, G, nx, ny, radius, struct_info['alat'])
@@ -405,8 +410,7 @@ def FFTinterp3D(charge, G, a, x0, e1, e2, e3, nx, ny, nz):
 def plot_3Dcharge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1, 0), e3=(0, 0, 1), nx=20, ny=20, nz=20,
                   zlab='charge', plot_file='', method='FFT', format=''):
     try:
-        # TODO: to be implemented
-        from cythonfn import FFTinterp3D_Cython
+        from compute_vs_cython import FFTinterp3D_Cython
         X, Y, Z, W = FFTinterp3D_Cython(charge, G, struct_info['a'], x0, e1, e2, e3, nx, ny, nz)
     except ImportError:
         X, Y, Z, W = FFTinterp3D(charge, G, struct_info['a'], x0, e1, e2, e3, nx, ny, nz)
@@ -463,70 +467,6 @@ def multiple_plot_xy(x, y, xlabel="", ylabel="", labels=""):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-    plt.show()
-
-    return fig
-
-
-def plot_EV(V, E, a=(0., 0., 0., 0.), labely="Etot"):
-    """
-    This function plots with matplotlib E(V) data and if a is given it also plot
-    the fitted results
-    """
-
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)  # create an axes object in the figure
-
-    ax.plot(V, E, 'o', label=labely + " data", markersize=10)
-    if (a.all() != 0):
-        Vdense, Edensefitted = calculate_fitted_points(V, a)
-        ax.plot(Vdense, Edensefitted, 'r', label='Fitted EOS')
-    ax.legend()
-    ax.set_xlabel('V (a.u.^3)')
-    ax.set_ylabel('E (Ry)')
-    plt.show()
-
-    return fig
-
-
-def plot_bands(kpoints, bands, fileplot='fileplot', e_min='', e_max=''):
-    """"""
-
-    # if not set in input, determine e_min and e_max
-    if e_min=='':
-        e_min = np.min(bands)
-    if e_max=='':
-        e_max = np.max(bands)
-
-    high_sym = set_high_symmetry_points(kpoints)
-    kx = compute_kx(kpoints)
-
-    nks = bands.shape[0]
-    nbnd = bands.shape[1]
-
-    fout = open(fileplot, "w")
-    for i in range(0,nks):
-        if high_sym[i]:
-            fout.write("# high-symmetry point: "+str(kpoints[i])+"   x coordinate   "+str(kx[i])+"\n")
-
-    bands_to_plot = np.zeros((nbnd,nks))
-    fout.write("#\n# kx           E (eV) \n")
-    for j in range(0,nbnd):
-        bands_to_plot[j, :] = bands[:, j]
-        for i in range(0,nks):
-            fout.write('   {:.3E}'.format(kx[i])+'   {:.3E}'.format(bands[i,j])+'\n')
-        fout.write('\n')
-
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)  # create an axes object in the figure
-
-    for i in range(0,nbnd):
-        ax.plot(kx, bands[:,i], 'x', label="band "+str(i+1), markersize=10)
-        ax.plot(kx, bands[:,i], '')
-    ax.legend()
-    ax.set_xlabel('kx')
-    ax.set_ylabel('E (eV)')
     plt.show()
 
     return fig
