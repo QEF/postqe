@@ -18,3 +18,4 @@ build/
 doc/_*
 postqe/__pycache__/
 tests/__pycache__/
+localfiles/
