@@ -61,7 +61,9 @@ def read_pseudo_file(xmlfile):
             fake_root = None
             for line in f:
                 if fake_root is not None:
-                    yield line.replace('&input','&amp;input')
+                    line = line.replace('&input','&amp;input')
+                    line = line.replace('&inputp','&amp;inputp')
+                    yield line
                 else:
                     line = line.strip()
                     if line.startswith("<UPF") and line[4] in ('>', ' '):

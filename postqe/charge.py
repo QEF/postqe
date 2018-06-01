@@ -14,8 +14,64 @@ import h5py
 from .plot import plot_1Dcharge, plot_2Dcharge, plot_3Dcharge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
+def read_charge_file_hdf5(filename ):
+    """
+    Reads a PW charge file in HDF5 format. 
+    :param filename: 
+    :param nr: 
+    :return: a dictionary describing the content of file 
+        keys=[nr, ngm_g, gamma_only, rhog_, MillerIndexes]
+    """
+    with h5py.File(filename, "r") as h5f:
+        MI = h5f.get('MillerIndices')[:]
+        nr1 = 2*max(abs(MI[:,0]))+1
+        nr2 = 2*max(abs(MI[:,1]))+1
+        nr3 = 2*max(abs(MI[:,2]))+1
+        nr = np.array([nr1,nr2,nr3])
+        res = dict(h5f.attrs.items())
+        res.update({'MillInd':MI,'nr_min': nr})
+        rhog = h5f['rhotot_g'][:].reshape(res['ngm_g'],2).dot([1.e0,1.e0j])
+        res.update({'rhotot_g':rhog})
+        if 'rhodiff_g' in h5f.keys():
+            rhog = h5f['rhodiff_g'][:].reshape(res['ngm_g'],2).dot([1.e0,1.e0j])
+            res.update({'rhodiff_g':rhog})
+        return res
 
-def read_charge_file_hdf5(filename, nr = None):
+def get_minus_indexes(g1,g2,g3):
+    """
+    Used for getting the corresponding minus Miller Indexes. It is meant to be used 
+    for convertin Gamma Trick grids and is defined only for the for i >=0, in the i =0 plan
+     is defined only for j >=0 and when i=0 j=0 k must be >=0. Out of this domain returns 
+     None. 
+    :param g1: rank 1 array containing firt Miller Index
+    :param g2: rank 1 array containing second Miller Index
+    :param g3: rank 1 array containing third Miller Index 
+    :return: a rank 2 array with dimension (ngm/2,3) containing mirrored Miller indexes
+    """
+
+    def scalar_func(i,j,k):
+        """
+        scalar function to be vectorized
+        :param i: 1st Miller Index
+        :param j: 2nd 
+        :param k: 3rd
+        :return: the mirrored mirror indexes
+        """
+        if i > 0:
+            return (-i,j,k)
+        elif i == 0 and j > 0:
+            return (0,-j,k)
+        elif i == 0 and j == 0 and k > 0:
+            return (0,0,-k)
+        else:
+            return (i,j,k)
+
+    vector_func = np.vectorize(scalar_func)
+
+    res = np.array(vector_func(g1,g2,g3))
+    return res.transpose()
+
+def get_charge_r(filename, nr = None):
     """
     Reads a charge file written with QE in HDF5 format. *nr = [nr1,nr2,nr3]* (the dimensions of
     the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
@@ -25,84 +81,50 @@ def read_charge_file_hdf5(filename, nr = None):
     Hence
     """
 
-    with h5py.File(filename, "r") as h5f:
-        MI = h5f.get('MillerIndices')
-        if nr is None:
-            nr1 = 2*max(abs(MI[:,0]))+1
-            nr2 = 2*max(abs(MI[:,1]))+1
-            nr3 = 2*max(abs(MI[:,2]))+1
-        else:
-            nr1,nr2,nr3 = nr
-
-        ngm_g = h5f.attrs.get('ngm_g')
-        gamma_only = h5f.attrs.get('gamma_only')
-        gamma_only = 'TRUE' in str(gamma_only).upper()
-        # Read the total charge
-        aux = np.array(h5f['rhotot_g']).reshape([ngm_g,2])
-        rhotot_g = aux.dot([1.e0,1.e0j])
-        rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
-        for el in zip( MI,rhotot_g):
-            (i,j,k), rho = el
+    cdata = read_charge_file_hdf5(filename)
+    if nr is None:
+        nr1,nr2,nr3 = cdata['nrmin']
+    else:
+        nr1,nr2,nr3 = nr
+    gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
+    # Load the total charge
+    rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
+    for (i,j,k),rho in zip( cdata['MillInd'],cdata['rhotot_g']):
+        try:
+            rho_temp[i,j,k]=rho
+        except IndexError:
+            pass
+    if gamma_only:
+        rhotot_g = cdata['rhotot_g'].conjugate()
+        MI = get_minus_indexes(cdata['MillInd'][:,0],cdata['MillInd'][:,1],cdata['MillInd'][:,2])
+        for (i,j,k), rho  in zip(MI, rhotot_g):
             try:
-                rho_temp[i,j,k]=rho
+                rho_temp[i, j, k] = rho
             except IndexError:
                 pass
-        if gamma_only:
-            rhotot_g = aux.dot([1.e0,-1.e0j])
-            for el in zip(MI, rhotot_g):
-                (i,j,k), rho = el
-                if i > 0:
-                    try:
-                        rho_temp[-i, j, k] = rho
-                    except IndexError:
-                        pass
-                elif j > 0:
-                    try:
-                        rho_temp[0, -j, k] = rho
-                    except IndexError:
-                        pass
-                elif k > 0:
-                    try:
-                        rho_temp[0, 0, -k] = rho
-                    except IndexError:
-                        pass
 
-        rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+    rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
-        # Read the charge difference spin up - spin down if present (for magnetic calculations)
-        if not h5f.get('rhodiff_g') is None:
-            aux = np.array(h5f['rhodiff_g']).reshape([ngm_g, 2])
-            rhodiff_g = aux.dot([1.0e0,1.0e0j])
-            rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-            for el in zip(h5f['MillerIndices'], rhodiff_g):
-                (i, j, k), rho = el
+    # Read the charge difference spin up - spin down if present (for magnetic calculations)
+    if 'rhodiff_g' in cdata.keys():
+        rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+        for (i,j,k), rho  in zip(cdata['MillInd'], cdata['rhodiff_g']):
                 try:
                     rho_temp[i, j, k] = rho
                 except IndexError:
                     pass
-            if gamma_only:
-                rhodiff_g = aux.dot([1.e0, -1.e0j])
-                for el in zip(MI, rhodiff_g):
-                    (i, j, k), rho = el
-                    if i > 0:
-                        try:
-                            rho_temp[-i, j, k] = rho
-                        except IndexError:
-                            pass
-                    elif j > 0:
-                        try:
-                            rho_temp[0, -j, k] = rho
-                        except IndexError:
-                            pass
-                    elif k > 0:
-                        try:
-                            rho_temp[0, 0, -k] = rho
-                        except IndexError:
-                            pass
-            rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-            return rhotot_r.real, rhodiff_r.real
-        else:
-            return rhotot_r.real, None
+        if gamma_only:
+            rhodiff_g = cdata['rhodiff_g'].conjugate()
+            for (i,j,k),rho in zip(MI, rhodiff_g):
+                try:
+                    rho_temp[i, j, k] = rho
+                except IndexError:
+                    pass
+
+        rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+        return rhotot_r.real, rhodiff_r.real
+    else:
+        return rhotot_r.real, None
 
 
 def write_charge(filename, charge, header):
@@ -128,9 +150,11 @@ def write_charge(filename, charge, header):
     fout.close()
 
 
+
+
 class Charge:
     """
-    A class for charge density.
+    A class for charge density (and data in real 3D grids) 
     """
     # TODO: include the Miller index as in HDF5 file?
     def __init__(self, *args, **kwargs):
@@ -167,7 +191,7 @@ class Charge:
                 nr = self.nr
             except:
                 raise AttributeError("nr not defined in this Charge object")
-        charge, charge_diff = read_charge_file_hdf5(filename, np.array(nr))
+        charge, charge_diff = get_charge_r(filename, np.array(nr))
         self.charge = charge
         self.charge_diff = charge_diff
 
@@ -275,6 +299,8 @@ class Charge:
             return fig
         else:
             return None
+
+
 
 
 class Potential(Charge):
