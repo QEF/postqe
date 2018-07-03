@@ -37,7 +37,7 @@ setup(
     version='0.2',
     packages=['postqe', 'postqe.ase'],
     package_data={'postqe': [
-        'schemas/*.xsd'
+        'schemas/*.xsd','pyqe.so'
     ]},
     install_requires=[
         'numpy>=1.10.1', 'ase>=3.10', 'scipy', 'h5py', 'matplotlib',

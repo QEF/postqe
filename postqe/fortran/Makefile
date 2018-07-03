@@ -10,7 +10,7 @@
 QE_DIR = `pwd`/build/q-e
 PY2_LAPACK_LIB = `python2 -c "import numpy.linalg.lapack_lite; print(numpy.linalg.lapack_lite.__file__)"`
 PY3_LAPACK_LIB = `python3 -c "import numpy.linalg.lapack_lite; print(numpy.linalg.lapack_lite.__file__, end='')"`
-
+PY3_LAPACK_LIB = -llapack
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90
 

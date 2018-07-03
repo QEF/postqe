@@ -10,8 +10,8 @@
 # https://opensource.org/licenses/LGPL-2.1
 #
 
-QE_SOURCE_COMMIT="585716d6435014dfc493abcd08294cd9f02eee30"
-QE_SOURCE_MD5SUM="05dede6dd93e4d69109062aa429161c9"
+QE_SOURCE_COMMIT="8693f23037bdee531470bcbef1db1f991ab503eb"
+QE_SOURCE_MD5SUM="433df3b608b7bde214ef6ad1a4966b1e"
 
 # Move into build/ directory
 if [ -d build ]

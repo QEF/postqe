@@ -1,9 +1,11 @@
 include MANIFEST.in
 include LICENSE
 include README.rst
-include postqe *.py
-include postqe/ase *.py
-include postqe *.so
-include postqe/fortran *.f90
+include postqe/*.py
+include postqe/pyqe.cpython-*.so
+include postqe/pyqe.so
+include postqe/ase/*.py
+include postqe/*.so
+include postqe/fortran/*.f90
 recursive-include tests *
 recursive-include examples *

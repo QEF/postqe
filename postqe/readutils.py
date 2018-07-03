@@ -47,6 +47,7 @@ def read_wavefunction_file_hdf5(filename):
     
 
 def read_pseudo_file(xmlfile):
+    #TODO: add support for UPF-schema files
     """
     This function reads a pseudopotential XML-like file in the QE UPF format (text),
     returning the content of each tag in a dictionary. The file is read in strings

@@ -35,7 +35,7 @@ def get_atoms_from_xml_output(filename, schema=None, output=None):
     """
     if output is None:
         output = xmlschema.to_dict(
-            filename, schema=schema, path="./qes:espresso/output"
+            filename, schema=schema, path=".//output"
         )
     a1 = np.array(output["atomic_structure"]["cell"]["a1"])
     a2 = np.array(output["atomic_structure"]["cell"]["a2"])
