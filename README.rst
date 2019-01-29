@@ -37,6 +37,9 @@ You can download all package files from GitHub  and then install it with the com
    sudo python setup.py install
 
 
+To install a Fortran
+The setup script take care to install a fresh installation of Quantum ESPRESSO on source subdirectory.
+
 Usage
 -----
 
