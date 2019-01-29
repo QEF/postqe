@@ -12,33 +12,34 @@ from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.command.sdist import sdist
 from setuptools.command.install import install
+from setuptools.command.develop import develop
 
 
-class MyBuildExt(build_ext):
+
+class BuildExtCommand(build_ext):
 
     def run(self):
+        print("Use custom class for build !!!")
         os.system('make -C postqe/fortran all')
         build_ext.run(self)
 
 
-class MySDist(sdist):
+class SDistCommand(sdist):
 
     def run(self):
         sdist.run(self)
 
 
-class MyInstall(install):
+class PostqeInstall(install):
 
     def run(self):
         install.run(self)
 
 setup(
     name='postqe',
-    version='0.2',
-    packages=['postqe', 'postqe.ase'],
-    package_data={'postqe': [
-        'schemas/*.xsd','pyqe.so'
-    ]},
+    version='0.3',
+    packages=['postqe'],
+    package_data={'postqe': ['schemas/*.xsd', 'pyqe.so']},
     install_requires=[
         'numpy>=1.10.1', 'ase>=3.10', 'scipy', 'h5py', 'matplotlib',
         'xmlschema>=0.9.10', 'colormath', 'natsort', 'moviepy'
@@ -58,13 +59,12 @@ setup(
         ]
     },
     cmdclass={
-        'build_ext': MyBuildExt,
-        'sdist': MySDist,
-        'install': MyInstall
+        'build_ext': BuildExtCommand,
+        'sdist': SDistCommand,
+        'install': PostqeInstall
     },
-
-    author='Mauro Palumbo',
-    author_email='mpalumbo@sissa.it',
+    author='Mauro Palumbo, Pietro Delugas, Davide Brunato',
+    author_email='pdelugas@sissa.it, brunato@sissa.it',
     license='LGPL-2.1',
     long_description='Post processing tools for Quantum Espresso',
     classifiers=[
@@ -73,11 +73,10 @@ setup(
         'Intended Audience :: Science/Research',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Fortran',
         'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
         'Natural Language :: English',

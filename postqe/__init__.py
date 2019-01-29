@@ -5,8 +5,6 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-from __future__ import absolute_import
-
 from ase import units
 from .compute_vs import compute_v_bare, compute_v_h, compute_v_xc
 from .api import get_eos, get_band_structure, get_dos, get_charge, get_potential

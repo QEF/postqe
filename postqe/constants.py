@@ -7,7 +7,6 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-
 """
 Some useful constants
 """
