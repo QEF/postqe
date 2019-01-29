@@ -7,7 +7,8 @@ with the Murnaghan EOS.
 """
     
 if __name__ == "__main__":
-    from postqe import units, get_eos
+    from ase import units
+    from postqe import get_eos
 
     eos = get_eos(prefix='Nienergies.dat', eos_type='murnaghan')
     v0, e0, B = eos.fit()

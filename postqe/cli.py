@@ -214,4 +214,4 @@ def main():
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print ("Finished. Elapsed time: " + str(elapsed_time) + " s.")
+    print("Finished. Elapsed time: " + str(elapsed_time) + " s.")
