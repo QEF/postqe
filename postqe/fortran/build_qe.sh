@@ -3,17 +3,50 @@
 # Script for download and build a local copy Quantum ESPRESSO suite, with
 # Position Independent Code shared relocatable libraries.
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
 
+# QE repository settings
+QE_REPOSITORY_URL="https://github.com/QEF/q-e"
 QE_SOURCE_COMMIT="8693f23037bdee531470bcbef1db1f991ab503eb"
 QE_SOURCE_MD5SUM="433df3b608b7bde214ef6ad1a4966b1e"
 
-# Move into build/ directory
+replace=false
+rebuild=false
+
+### Argument parsing ###
+usage() {
+    echo "usage: $0 [-h] [--replace][--rebuild]"
+    echo
+    echo "optional arguments:"
+    echo "  -h, --help  show this help message and exit"
+    echo "  --replace   replace an existing source and build"
+    echo "  --rebuild   rebuild an existing source"
+}
+
+while [ "$1" != "" ]; do
+    case $1 in
+        --replace )     shift
+                        replace=true
+                        ;;
+        --rebuild )     shift
+                        rebuild=true
+                        ;;
+        -h | --help )   usage
+                        exit
+                        ;;
+        * )             usage
+                        exit 1
+    esac
+    shift
+done
+
+echo "+++ Build a Quantum Espresso installation for postqe +++"
+
 if [ -d build ]
 then
     echo "Directory build/ exists ..."
@@ -26,44 +59,35 @@ else
 fi
 cd build
 
-if [ -e q-e.zip ]
+if [ ! -e q-e.zip ] || [ "$replace" = true ]
 then
-   echo "QE source code already downloaded ..."
+    echo "Download QE source code ..."
+    curl -SL $QE_REPOSITORY_URL/archive/$QE_SOURCE_COMMIT.zip -o q-e.zip
+    rebuild=true
 else
-   echo "Download QE source code ..."
-   curl -SL https://github.com/QEF/q-e/archive/$QE_SOURCE_COMMIT.zip -o q-e.zip
+    echo "QE source code already downloaded ..."
 fi
 
 echo -n "Checks MD5SUM of source archive ... "
 echo `md5sum q-e.zip` | grep --quiet "^${QE_SOURCE_MD5SUM}[[:blank:]]"
 if [ $? -eq 0 ]
 then
-   echo "OK"
+    echo "OK"
 else
-   echo "no match!! exit ..."
-   exit 1
+    echo "wrong checksum!! exit ..."
+    exit 1
 fi
 
-if [ -e q-e ] && [ -d q-e ]
+if [ ! "$rebuild" = true ]
 then
-    # Checks the optional argument
-    if [[ $1 =~ ^[YyNn]$ ]]
-    then
-        REPLACE=$1
-    else
-        # No or wrong argument: arks for a choice
-        read -p "Replace QE source files and rebuild? [Y/N] " -n 1 -r
-        echo
-        REPLACE=$REPLY
-    fi
+    echo "Nothing to build, exit ..."
+    exit
+fi
 
-    if [[ $REPLACE =~ ^[Yy]$ ]]
-    then
-        echo "Remove existing source files ..."
-        rm -Rf q-e
-    else
-        exit 0
-    fi
+if [ -d q-e ]
+then
+    echo "Remove existing source files ..."
+    rm -Rf q-e
 fi
 
 echo "Extract source files from archive ..."
