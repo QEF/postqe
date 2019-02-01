@@ -27,18 +27,33 @@ Current features of the package include:
 .. [#F2PY]  https://docs.scipy.org/doc/numpy-dev/f2py/
 
 
+Package requirements
+--------------------
+There are some non-Python packages required to be installed in your system before installing *postqe*:
+
+Fortran compiler:
+    Maybe *gfortran* on a Gnu Linux platform for free or another commercial package, like PGI or Intel Fortran.
+
+Lapack development libraries:
+    the basename of this package should be *lapack-devel* on a RHEL-based system or *liblapack-dev*
+    on a Debian-based system).
+
+Tkinter graphical interface:
+    maybe *python3-tkinter* on a RHEL-based system or *python3-tk* on a Debian-based system.
+
+
 Installation
 ------------
-
-You can download all package files from GitHub  and then install it with the command:
+You can download all package files from GitHub and then install it with the command:
 
 .. code-block:: bash
 
    sudo python setup.py install
 
 
-To install a Fortran
-The setup script take care to install a fresh installation of Quantum ESPRESSO on source subdirectory.
+The setup script takes care to install a fresh installation of Quantum ESPRESSO on source subdirectory.
+You can provide the ``--qeprefix`` option with a filepath to an existing compatible ESPRESSO installation.
+
 
 Usage
 -----

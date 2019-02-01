@@ -8,32 +8,54 @@
 
 import os
 import glob
+import platform
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
-from setuptools.command.sdist import sdist
 from setuptools.command.install import install
-from setuptools.command.develop import develop
 
+
+def find_pyqe_module():
+    """
+    Returns the absolute pathname of the pyqe module build for the running platform.
+
+    :return: A pathname string or `None` if no suitable module is found.
+    """
+    project_dir = os.path.dirname(__file__)
+    python_version = ''.join(platform.python_version_tuple()[:2])
+    platform.python_implementation()
+    pyqe_modules = glob.glob(os.path.join(project_dir, 'postqe/pyqe.*.so'))
+
+    for filename in pyqe_modules:
+        if '{}m'.format(python_version) not in filename:
+            continue
+        elif platform.python_implementation().lower() not in filename:
+            continue
+        elif platform.system().lower() not in filename:
+            continue
+        elif platform.machine() not in filename:
+            continue
+        return filename
 
 
 class BuildExtCommand(build_ext):
 
     def run(self):
-        print("Use custom class for build !!!")
-        os.system('make -C postqe/fortran all')
+        print(self.__class__.__name__)
+        import pdb
+        pdb.set_trace()
+        os.system('make -C postqe/fortran all')  # Build f2py extension modules
         build_ext.run(self)
 
 
-class SDistCommand(sdist):
+class InstallCommand(install):
 
     def run(self):
-        sdist.run(self)
-
-
-class PostqeInstall(install):
-
-    def run(self):
+        print(self.__class__.__name__)
+        if find_pyqe_module():
+            print("A suitable pyqe module not found, invoke build_ext ...")
+            self.run_command('build_ext')
         install.run(self)
+
 
 setup(
     name='postqe',
@@ -60,8 +82,7 @@ setup(
     },
     cmdclass={
         'build_ext': BuildExtCommand,
-        'sdist': SDistCommand,
-        'install': PostqeInstall
+        'install': InstallCommand,
     },
     author='Mauro Palumbo, Pietro Delugas, Davide Brunato',
     author_email='pdelugas@sissa.it, brunato@sissa.it',

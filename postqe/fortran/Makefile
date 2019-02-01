@@ -1,15 +1,14 @@
 #
 # Makefile for building pyqe modules for postqe.
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
 QE_DIR = `pwd`/build/q-e
-PY2_LAPACK_LIB = `python2 -c "import numpy.linalg.lapack_lite; print(numpy.linalg.lapack_lite.__file__)"`
-PY3_LAPACK_LIB = `python3 -c "import numpy.linalg.lapack_lite; print(numpy.linalg.lapack_lite.__file__, end='')"`
+#PY3_LAPACK_LIB = `python -c "import numpy.linalg.lapack_lite; print(numpy.linalg.lapack_lite.__file__, end='')"`
 PY3_LAPACK_LIB = -llapack
 .SUFFIXES :
 .SUFFIXES : .o .c .f .f90
@@ -23,7 +22,7 @@ generate_gg_list.o\
 struct_fact.o
 
 qe:
-	./build_qe.sh y
+	./build_qe.sh
 
 copy:
 	mkdir -p clib/
@@ -39,21 +38,14 @@ copy:
 libpostqe: $(LIBFILES)
 	ar -r ./flib/$@.a $?
 
-pyqe2: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
-	f2py2 -c wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90 -m pyqe \
-	-I./Modules/ -L./flib/ -lqemod -lqefft -lutil \
-	./clib/*.o ./flib/libpw.a $(PY2_LAPACK_LIB) ./flib/libpostqe.a
-
-pyqe3: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
+pyqe: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
 	f2py3 -c wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90 -m pyqe \
 	-I./Modules/ -L./flib/ -lqemod -lqefft -lutil \
 	./clib/*.o ./flib/libpw.a $(PY3_LAPACK_LIB) ./flib/libpostqe.a
 
-module2: copy libpostqe pyqe2 move
+module: copy libpostqe pyqe move
 
-module3: copy libpostqe pyqe3 move
-
-all: qe module3
+all: qe module
 
 move :
 	mv *.so ../
