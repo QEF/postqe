@@ -41,8 +41,8 @@ class BuildExtCommand(build_ext):
 
     def run(self):
         print(self.__class__.__name__)
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         os.system('make -C postqe/fortran all')  # Build f2py extension modules
         build_ext.run(self)
 
@@ -70,10 +70,10 @@ setup(
         # ('/usr/share/doc/postqe/example1', glob.glob('examples/example1/*')),
         # ('/usr/share/doc/postqe/example2', glob.glob('examples/example2/*')),
         # ('/usr/share/doc/postqe/example3', glob.glob('examples/example3/*')),
-        ('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
-        ('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
-        ('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
-        ('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
+        #('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
+        #('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
+        #('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
+        #('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
     ],
     entry_points={
         'console_scripts': [
