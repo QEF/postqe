@@ -12,8 +12,13 @@
 
 # QE repository settings
 QE_REPOSITORY_URL="https://github.com/QEF/q-e"
+QE_REPOSITORY_NAME="q-e"
 QE_SOURCE_COMMIT="8693f23037bdee531470bcbef1db1f991ab503eb"
 QE_SOURCE_MD5SUM="433df3b608b7bde214ef6ad1a4966b1e"
+QE_REPOSITORY_URL="https://github.com/pietrodelugas/q-e-1" 
+QE_SOURCE_COMMIT="ade962727f70632d677a59e0a162c502d28839cf"
+QE_SOURCE_MD5SUM="713860006475948555a078a65fd048f5" 
+QE_REPOSITORY_NAME="q-e-1" 
 
 replace=false
 rebuild=false
@@ -91,9 +96,9 @@ then
 fi
 
 echo "Extract source files from archive ..."
-unzip q-e.zip && mv q-e-$QE_SOURCE_COMMIT/ q-e/
+unzip q-e.zip && mv $QE_REPOSITORY_NAME-$QE_SOURCE_COMMIT/ q-e/
 
 echo "Build Quantum Espresso modules ..."
 cd q-e
-./configure DFLAGS="-D__FFTW" MPIF90=gfortran CFLAGS=-fPIC FFLAGS="-g -fPIC"
-make pw
+./postqeconf.sh 
+make postqe_libs
