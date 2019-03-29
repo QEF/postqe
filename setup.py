@@ -40,17 +40,14 @@ def find_pyqe_module():
 class BuildExtCommand(build_ext):
 
     def run(self):
-        print(self.__class__.__name__)
-        import pdb
-        pdb.set_trace()
-        os.system('make -C postqe/fortran all')  # Build f2py extension modules
+        print("Build f2py extension module ...")
+        os.system('make -C postqe/fortran all')
         build_ext.run(self)
 
 
 class InstallCommand(install):
 
     def run(self):
-        print(self.__class__.__name__)
         if find_pyqe_module():
             print("A suitable pyqe module not found, invoke build_ext ...")
             self.run_command('build_ext')

@@ -69,8 +69,8 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot=
     :param prefix: name of the input file with volumes and energies
     :param outdir: directory containing the input data. Default to the value of
             ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
-    :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n
-            'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n
+    :param eos_type: type of equation of state (EOS) for fitting. Available types are: \
+    'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983); \
             'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n
             \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n
             'taylor' -> A third order Taylor series expansion around the minimum volume\n
