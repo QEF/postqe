@@ -51,7 +51,7 @@ class InstallCommand(install):
 
     def run(self):
         print(self.__class__.__name__)
-        if find_pyqe_module():
+        if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
             self.run_command('build_ext')
         install.run(self)
@@ -60,8 +60,8 @@ class InstallCommand(install):
 setup(
     name='postqe',
     version='0.3',
-    packages=['postqe'],
-    package_data={'postqe': ['schemas/*.xsd', 'pyqe.so']},
+    packages=['postqe', 'postqe/ase'],
+    package_data={'postqe': ['schemas/*.xsd', 'pyqe.*.so']},
     install_requires=[
         'numpy>=1.10.1', 'ase>=3.10', 'scipy', 'h5py', 'matplotlib',
         'xmlschema>=0.9.10', 'colormath', 'natsort', 'moviepy'
