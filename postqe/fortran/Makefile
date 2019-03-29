@@ -25,23 +25,15 @@ qe:
 	./build_qe.sh
 
 copy:
-	mkdir -p clib/
-	cp -pu $(QE_DIR)/clib/*.o clib/
-	mkdir -p flib/
-	cp -pu $(QE_DIR)/Modules/libqemod.a flib/
-	cp -pu $(QE_DIR)/FFTXlib/libqefft.a flib/
-	cp -pu $(QE_DIR)/PW/src/libpw.a flib/
-	cp -pu $(QE_DIR)/UtilXlib/libutil.a flib/
-	mkdir -p Modules/
-	cp -pu $(QE_DIR)/Modules/funct.mod Modules/
+	cp -pur $(QE_DIR)/POSTQE_LIBS  ./
 
 libpostqe: $(LIBFILES)
-	ar -r ./flib/$@.a $?
+	ar -r ./POSTQE_LIBS/$@.a $?
 
 pyqe: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
 	f2py3 -c wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90 -m pyqe \
-	-I./Modules/ -L./flib/ -lqemod -lqefft -lutil \
-	./clib/*.o ./flib/libpw.a $(PY3_LAPACK_LIB) ./flib/libpostqe.a
+	-I./POSTQE_LIBS -L./POSTQE_LIBS/ -lqemod -lqefft -lutil \
+	./POSTQE_LIBS/*.o ./POSTQE_LIBS/libpw.a $(PY3_LAPACK_LIB) ./POSTQE_LIBS/libpostqe.a
 
 module: copy libpostqe pyqe move
 
@@ -51,6 +43,7 @@ move :
 	mv *.so ../
 
 clean:
+	rm -Rf ./POSTQE_LIBS
 	rm -Rf ./build/
 	rm -Rf ./clib/
 	rm -Rf ./flib/

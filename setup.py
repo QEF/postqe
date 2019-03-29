@@ -48,7 +48,7 @@ class BuildExtCommand(build_ext):
 class InstallCommand(install):
 
     def run(self):
-        if find_pyqe_module():
+        if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
             self.run_command('build_ext')
         install.run(self)
@@ -57,8 +57,8 @@ class InstallCommand(install):
 setup(
     name='postqe',
     version='0.3',
-    packages=['postqe'],
-    package_data={'postqe': ['schemas/*.xsd', 'pyqe.so']},
+    packages=['postqe', 'postqe/ase'],
+    package_data={'postqe': ['schemas/*.xsd', 'pyqe.*.so']},
     install_requires=[
         'numpy>=1.10.1', 'ase>=3.10', 'scipy', 'h5py', 'matplotlib',
         'xmlschema>=0.9.10', 'colormath', 'natsort', 'moviepy'
@@ -67,10 +67,10 @@ setup(
         # ('/usr/share/doc/postqe/example1', glob.glob('examples/example1/*')),
         # ('/usr/share/doc/postqe/example2', glob.glob('examples/example2/*')),
         # ('/usr/share/doc/postqe/example3', glob.glob('examples/example3/*')),
-        ('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
-        ('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
-        ('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
-        ('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
+        #('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
+        #('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
+        #('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
+        #('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
     ],
     entry_points={
         'console_scripts': [
