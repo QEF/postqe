@@ -1,31 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-import os, subprocess
+import os
+import re
+import subprocess
 import numpy as np
-import xmlschema
+import qeschema
+
+from ase.atoms import Atoms, Atom
 from ase.data import chemical_symbols, atomic_masses
 from ase.dft.band_structure import BandStructure
 from ase.calculators.calculator import all_changes, FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
-from .io import get_atoms_from_xml_output
 
 
-# Fix python3 types
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str, bytes)
+def split_atomic_symbol(x):
+    regex = r"([a-zA-Z]{1,2})([1-9]?\d?)"
+    match = re.match(regex, x)
+    if match:
+        return match.groups()
+    else:
+        return False
 
 
 def get_band_structure(atoms=None, calc=None, ref=0):
@@ -47,6 +48,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
                          for k in range(len(kpts))])
     energies = np.array(energies)
 
+    # FIXME: the BandStructure API is changed! #!$?&
     return BandStructure(cell=atoms.cell,
                          kpts=kpts,
                          energies=energies,
@@ -81,9 +83,9 @@ class PostqeCalculator(Calculator):
         """
         self.species = None
         self.schema = schema
-        self.output = None
         self.outdir = outdir
-        Calculator.__init__(self, restart, ignore_bad_restart_file, label, atoms, **kwargs)
+        self.xml_document = qeschema.PwDocument(schema=schema)
+        Calculator.__init__(self, restart, ignore_bad_restart_file, label, atoms, command=command, **kwargs)
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=()):
         """
@@ -102,16 +104,25 @@ class PostqeCalculator(Calculator):
         if changed_parameters:
             self.reset()
 
+    @property
+    def input(self):
+        return self.xml_document.to_dict(preserve_root=False)['input']
+
+    @property
+    def output(self):
+        return self.xml_document.to_dict(preserve_root=False)['output']
+
     def read_results(self):
         filename = self.label + '.xml'
-        self.input = xmlschema.to_dict(filename, schema=self.schema, path=None)['input']
-        self.output = xmlschema.to_dict(filename, schema=self.schema, path=None)['output']
-        self.atoms = get_atoms_from_xml_output(filename, output=self.output)
+        self.xml_document.read(filename)
+        self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 
     def band_structure(self, reference=0):
-        """Create band-structure object for plotting.
-        This method is redefined here to allow the user to set the reference energy (relying on the method get_fermi_level() is not safe.
+        """
+        Create band-structure object for plotting. This method is redefined here to allow
+        the user to set the reference energy (relying on the method get_fermi_level()
+        is not safe).
         """
         return get_band_structure(calc=self, ref=reference)
 
@@ -120,14 +131,11 @@ class PostqeCalculator(Calculator):
         return int(self.output["band_structure"]["nbnd"])
 
     def get_xc_functional(self):
-        """Return the XC-functional identifier.
-
-        'LDA', 'PBE', ..."""
+        """Returns the XC-functional identifier ('LDA', 'PBE', ...)."""
         return self.output["dft"]["functional"]
 
     def get_k_points(self):
-        """Return all the k-points exactely as in the calculation.
-        """
+        """Returns all the k-points exactly as in the calculation."""
         nks = int(self.output["band_structure"]["nks"])  # get the number of k-points
         kpoints = np.zeros((nks, 3))
         ks_energies = self.output["band_structure"]["ks_energies"]
@@ -137,6 +145,38 @@ class PostqeCalculator(Calculator):
                 kpoints[i, j] = float(ks_energies[i]['k_point']['$'][j])
 
         return kpoints
+
+    def get_atoms_from_xml_output(self):
+        """
+        Returns an Atoms object constructed from an XML QE file (according to the schema).
+
+        :return: An Atoms object.
+        """
+        atomic_structure = self.output['atomic_structure']
+        a1 = np.array(atomic_structure["cell"]["a1"])
+        a2 = np.array(atomic_structure["cell"]["a2"])
+        a3 = np.array(atomic_structure["cell"]["a3"])
+        a_p = (atomic_structure["atomic_positions"]["atom"])
+
+        atoms = Atoms()
+
+        # First define the unit cell from a1, a2, a3 and alat
+        cell = np.zeros((3, 3))
+        cell[0] = a1
+        cell[1] = a2
+        cell[2] = a3
+        atoms.set_cell(cell)
+
+        # Now the atoms in the unit cell
+        for atomx in a_p:
+            # TODO: extend to all possible cases the symbol splitting (for now, only numbering up to 9 work). Not a very common case...
+            symbol = split_atomic_symbol(atomx['@name'])[0]
+            x = float(atomx['$'][0])
+            y = float(atomx['$'][1])
+            z = float(atomx['$'][2])
+            atoms.append(Atom(symbol, (x, y, z)))
+
+        return atoms
 
     def get_number_of_spins(self):
         """Return the number of spins in the calculation.
@@ -376,7 +416,7 @@ def write_type(f, key, value):
         f.write('    %s = %g,\n' % (key, value))
     elif isinstance(value, int):
         f.write('    %s = %d,\n' % (key, value))
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
         f.write("    %s = '%s',\n" % (key, value))
 
 
@@ -563,6 +603,6 @@ class EspressoCalculator(PostqeCalculator):
     def read_results(self):
         # FIXME: compose XML output filename from parameters
         filename = self.directory + '/temp/pwscf.xml'
-        self.output = xmlschema.to_dict(filename, schema=self.schema, path="./output")
-        self.atoms = get_atoms_from_xml_output(filename, output=self.output)
+        self.xml_document.read(filename)
+        self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry

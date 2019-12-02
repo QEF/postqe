@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -16,8 +16,7 @@ from postqe.dos import QEDOS
 
 from .charge import Charge, Potential
 from .readutils import read_EtotV
-from .ase.io import get_atoms_from_xml_output
-from .ase.calculator import PostqeCalculator
+from .calculator import PostqeCalculator
 
 
 def get_label(prefix, outdir=None):
@@ -87,14 +86,13 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot=
             a new one
     :return: an QEEquationOfState object and a Matplotlib figure object
     """
-
     eos = get_eos(prefix, outdir, eos_type)
-    v0, e0, B = eos.fit()
+    eos.fit()
     if fileout !='':
         eos.write(fileout)
-    fig = eos.plot(fileplot, show=show, ax=ax)
 
-    return eos, fig
+    return eos, eos.plot(fileplot, show=show, ax=ax)
+
 
 def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     """
@@ -109,18 +107,15 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     :return: an ASE band structure object
     """
     label = get_label(prefix, outdir)
+    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc.read_results()
 
-    # set a simple calculator, only to read the xml file results
-    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
-    # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
-    atoms.set_calculator(calcul)
-    # read the results
+    atoms = calc.get_atoms_from_xml_output()
+    atoms.set_calculator(calc)
     atoms.calc.read_results()
 
-    bs = atoms.calc.band_structure(reference=reference_energy)
+    return atoms.calc.band_structure(reference=reference_energy)
 
-    return bs
 
 def compute_band_structure(prefix, outdir=None, schema=None, reference_energy=0,
                            emin=-50, emax=50, fileplot='bandsplot.png', show=True):
@@ -139,11 +134,11 @@ def compute_band_structure(prefix, outdir=None, schema=None, reference_energy=0,
     :param show: True -> plot results with Matplotlib; None or False -> do nothing. Default = True
     :return: an ASE band structure object and a Matplotlib figure object
     """
-
     bs = get_band_structure(prefix, outdir, schema=schema, reference_energy=reference_energy)
     fig = bs.plot(emin=emin, emax=emax, show=show, filename=fileplot)
 
     return bs, fig
+
 
 def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100):
     """
@@ -155,24 +150,23 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100
             ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param width: width of the gaussian to be used for the DOS (in eV)
-    :param window = emin, emax: defines the minimun and maximun energies for the DOS
+    :param window = emin, emax: defines the minimum and maximum energies for the DOS
     :param npts:  number of points of the DOS
     :return: a DOS object
     """
     label = get_label(prefix, outdir)
+    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc.read_results()
 
-    # set a simple calculator, only to read the xml file results
-    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
-    # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
-    atoms.set_calculator(calcul)
-    # read the results
+    atoms = calc.get_atoms_from_xml_output()
+    atoms.set_calculator(calc)
     atoms.calc.read_results()
 
     # Create a DOS object with width= eV and npts points
-    dos = QEDOS(calcul, width=width, window=window, npts=npts)
+    dos = QEDOS(calc, width=width, window=window, npts=npts)
 
     return dos
+
 
 def comput_dos(prefix, outdir=None, schema=None, width=0.01, window= None, npts=100,
                fileout='', fileplot='dosplot.png', show=True):
@@ -228,21 +222,19 @@ def get_charge(prefix, outdir=None, schema=None):
     :return: a Charge object
     """
     label = get_label(prefix, outdir)
+    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc.read_results()
 
-    # set a simple calculator, only to read the xml file results
-    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
-    # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
-    atoms.set_calculator(calcul)
-    # read the results
+    atoms = calc.get_atoms_from_xml_output()
+    atoms.set_calculator(calc)
     atoms.calc.read_results()
 
-    nr = calcul.get_nr()
-    charge_file = calcul.label + ".save/charge-density.hdf5"
+    nr = calc.get_nr()
+    charge_file = calc.label + ".save/charge-density.hdf5"
 
     charge = Charge(nr)
     charge.read(charge_file)
-    charge.set_calculator(calcul)
+    charge.set_calculator(calc)
 
     return charge
 
@@ -295,6 +287,7 @@ def compute_charge(prefix, outdir=None, schema=None, fileout='', x0 = (0., 0., 0
 
     return charge, figure
 
+
 def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     """
     This function returns an Potential object from an output xml Espresso file and
@@ -310,24 +303,23 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     :return: a Potential object
     """
     label = get_label(prefix, outdir)
+    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc.read_results()
 
-    # set a simple calculator, only to read the xml file results
-    calcul = PostqeCalculator(atoms=None, label=label, schema=schema)
-    # define the Atoms structure reading the xml file
-    atoms = get_atoms_from_xml_output(calcul.label + ".xml", schema=schema)
-    atoms.set_calculator(calcul)
-    # read the results
+    atoms = calc.get_atoms_from_xml_output()
+    atoms.set_calculator(calc)
     atoms.calc.read_results()
 
-    nr = calcul.get_nr()
-    charge_file = calcul.label + ".save/charge-density.hdf5"
+    nr = calc.get_nr()
+    charge_file = calc.label + ".save/charge-density.hdf5"
 
     potential = Potential(nr, pot_type=pot_type)
     potential.read(charge_file)
-    potential.set_calculator(calcul)
+    potential.set_calculator(calc)
     potential.compute_potential()
 
     return potential
+
 
 def compute_potential(prefix, outdir=None, schema=None, pot_type='v_tot', fileout='', x0 = (0., 0., 0.), e1 = (1., 0., 0.),
                       nx = 50, e2 = (0., 1., 0.), ny = 50, e3 = (0., 0., 1.), nz = 50, radius = 1, dim = 1,

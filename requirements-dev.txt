@@ -1,0 +1,15 @@
+numpy>=1.17.0
+ase>=3.10
+# qeschema>=1.0
+-e ../qeschema
+scipy
+h5py
+matplotlib
+colormath
+natsort
+moviepy
+tox
+coverage
+Sphinx
+sphinx_rtd_theme
+-e .

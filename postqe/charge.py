@@ -7,8 +7,6 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-
-
 import numpy as np
 import h5py
 from .plot import plot_1Dcharge, plot_2Dcharge, plot_3Dcharge

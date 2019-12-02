@@ -51,11 +51,18 @@ def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
 
 class TestPostQE(unittest.TestCase):
 
+    def abspath(self, rel_path):
+        return os.path.join(os.path.abspath(os.path.dirname(__file__)), rel_path)
+
     def test_get_band_structure(self):
         from postqe import get_band_structure
-        import pdb
-        pdb.set_trace()
-        bs = get_band_structure(label="./examples/Si", schema='../schemas/qes.xsd', reference_energy=0)
+        breakpoint()
+        bs = get_band_structure(
+            prefix=self.abspath('examples/Si'),
+            schema="releases/qes-20180510.xsd",
+            reference_energy=0
+        )
+        print(bs)
         self.assertTrue(True)
 
 

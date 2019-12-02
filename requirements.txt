@@ -1,9 +1,0 @@
-numpy>=1.10.1
-ase>=3.10
-scipy
-h5py
-matplotlib
-xmlschema>=1.0.0
-colormath
-natsort
-moviepy

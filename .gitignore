@@ -12,9 +12,12 @@
 *~
 *.swp
 *.egg-info
+.coverage*
+!.coveragerc
 dist/
 build/
 .idea/
+.tox/
 doc/_*
 postqe/__pycache__/
 tests/__pycache__/

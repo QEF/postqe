@@ -56,21 +56,12 @@ class InstallCommand(install):
 
 setup(
     name='postqe',
-    version='0.3',
+    version='0.5.0b',
     packages=['postqe', 'postqe/ase'],
-    package_data={'postqe': ['schemas/*.xsd', 'pyqe.*.so']},
+    package_data={'postqe': ['pyqe.*.so']},
     install_requires=[
-        'numpy>=1.10.1', 'ase>=3.10', 'scipy', 'h5py', 'matplotlib',
-        'xmlschema>=0.9.10', 'colormath', 'natsort', 'moviepy'
-    ],
-    data_files=[
-        # ('/usr/share/doc/postqe/example1', glob.glob('examples/example1/*')),
-        # ('/usr/share/doc/postqe/example2', glob.glob('examples/example2/*')),
-        # ('/usr/share/doc/postqe/example3', glob.glob('examples/example3/*')),
-        #('/usr/share/doc/postqe/RGB', [fn for fn in glob.glob('examples/RGB/*') if os.path.isfile(fn)]),
-        #('/usr/share/doc/postqe/RGB/EIG', glob.glob('examples/RGB/EIG/*')),
-        #('/usr/share/doc/postqe/RGB/plot', glob.glob('examples/RGB/plot/*')),
-        #('/usr/share/doc/postqe/RGB/spectra', glob.glob('examples/RGB/spectra/*')),
+        'numpy>=1.17.0', 'ase>=3.10', 'qeschema>=1.0', 'scipy',
+        'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
     ],
     entry_points={
         'console_scripts': [
@@ -86,16 +77,15 @@ setup(
     license='LGPL-2.1',
     long_description='Post processing tools for Quantum Espresso',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Science/Research',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Fortran',
+        'Programming Language :: Python :: 3.8',
         'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
         'Natural Language :: English',
         'Topic :: Scientific/Engineering :: Physics'
