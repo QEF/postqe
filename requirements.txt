@@ -1,5 +1,5 @@
 numpy>=1.10.1
-ase>=3.10
+ase>=3.17
 scipy
 h5py
 matplotlib

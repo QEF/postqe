@@ -47,8 +47,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
                          for k in range(len(kpts))])
     energies = np.array(energies)
 
-    return BandStructure(cell=atoms.cell,
-                         kpts=kpts,
+    return BandStructure(path=atoms.cell.bandpath(path=kpts),
                          energies=energies,
                          reference=ref)
 
