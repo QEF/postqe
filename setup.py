@@ -60,7 +60,7 @@ setup(
     packages=['postqe', 'postqe/ase'],
     package_data={'postqe': ['pyqe.*.so']},
     install_requires=[
-        'numpy>=1.17.0', 'ase>=3.10', 'qeschema>=1.0', 'scipy',
+        'numpy>=1.17.0', 'ase>=3.17', 'qeschema>=1.0', 'scipy',
         'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
     ],
     entry_points={
