@@ -12,4 +12,4 @@ tox
 coverage
 Sphinx
 sphinx_rtd_theme
--e .
+#-e .

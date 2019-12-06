@@ -56,8 +56,8 @@ class InstallCommand(install):
 
 setup(
     name='postqe',
-    version='0.5.0b',
-    packages=['postqe', 'postqe/ase'],
+    version='0.5.0b0',
+    packages=['postqe'],
     package_data={'postqe': ['pyqe.*.so']},
     install_requires=[
         'numpy>=1.17.0', 'ase>=3.17', 'qeschema>=1.0', 'scipy',

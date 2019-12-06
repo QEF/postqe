@@ -55,15 +55,15 @@ class TestPostQE(unittest.TestCase):
         return os.path.join(os.path.abspath(os.path.dirname(__file__)), rel_path)
 
     def test_get_band_structure(self):
+        from ase.dft.band_structure import BandStructure
         from postqe import get_band_structure
-        breakpoint()
+
         bs = get_band_structure(
             prefix=self.abspath('examples/Si'),
             schema="releases/qes-20180510.xsd",
             reference_energy=0
         )
-        print(bs)
-        self.assertTrue(True)
+        self.assertIsInstance(bs, BandStructure)
 
 
 if __name__ == '__main__':
