@@ -1,5 +1,5 @@
 numpy>=1.17.0
-ase>=3.10
+ase>=3.17
 qeschema>=1.0
 scipy
 h5py
