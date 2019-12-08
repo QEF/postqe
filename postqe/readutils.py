@@ -18,33 +18,55 @@ from xml.etree import ElementTree as ET
 
 
 # TODO update to the new format
-def read_wavefunction_file_hdf5(filename):
+def get_wf_attributes(filename):
     """
-    Reads an hdf5 wavefunction file written with QE. Returns a dictionary with
-    the data structure in the hdf5 file. 
+    Read attributes from a wfc file name
+    :param filename"  the path to the wfc file 
+    :return: a dictionaty with all attributes included reciprocal vectors
     """
-
-    f = h5py.File(filename, "r")
-    nkpoints = len(f["KPOINT1"].attrs.values())
-    #print ("nkpoints = ",nkpoints)
-
-    wavefunctions = {}
-
-    for i in range(0,nkpoints):
-        temp = {}
-        kpoint_label = "KPOINT"+str(i+1)
-        # read the attributes at each kpoint
-        attrs_to_read = ["gamma_only", "igwx", "ik", "ispin","ngw","nk","nbnd","nspin","scale_factor"]
-        for attr in attrs_to_read:
-            temp[attr] = f[kpoint_label].attrs.get(attr)
-        for iband in range(0,temp["nbnd"]):
-            band_label = "BAND"+str(iband+1)
-            temp[band_label] = np.array(f[kpoint_label][band_label])
+    with h5py.File(filename, "r") as f:
+        res = dict(f.attrs)
+        MIattrs = f.get('MillerIndices').attrs 
+        bg = np.array( [MIattrs.get(_) for _ in  ['bg1', 'bg2', 'bg3']])
+        res.update({'bg': bg})
+    return res 
         
-        wavefunctions[kpoint_label] = temp
-        
-    return wavefunctions
-    
+
+def get_wavefunctions(filename, start_band=None, stop_band=None):
+    """
+    returns a numpy array with the wave functions for bands from start_band to
+    stop_band. If not specified starts from 1st band and ends with last one.
+    Band numbering is python style starts from 0.abs
+    :param filename:  path to the wfc file; 
+    :param start_band: first band to read, default first band in the file;
+    :param stop_band:  last band to read, default last band in the file 
+    :return: a numpy array with shape [nbnd,npw]
+    """ 
+    with h5py.File(filename,"r") as f:
+        igwx = f.attrs.get('igwx') 
+        if start_band is None:
+            start_band=0
+        if stop_band is None:
+            stop_band = f.attrs.get('nbnd')
+        if stop_band == start_band:
+            stop_band = start_band + 1 
+        res = f.get('evc')[start_band:stop_band,:]
+
+    res = np.asarray([_.reshape([igwx,2]).dot([1.e0,1.e0j]) for _ in res[:]])
+    return res 
+
+
+def  get_wfc_miller_indices(filename):
+    """
+    reads miller indices from the  wfc file
+    :param filename: path to the wfc file
+    :return: a np.array of integers with shape [igwx,3]
+    """
+    with h5py.File(filename,"r") as f:
+        res = f.get("MillerIndices")[:,:]
+    return res
+
+
 
 def read_pseudo_file(xmlfile):
     #TODO: add support for UPF-schema files
