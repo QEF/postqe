@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -13,25 +13,23 @@ import os
 from .readutils import read_pseudo_file
 
 # f2py module
-from .pyqe import pyqe_getcelldms, pyqe_recips, pyqe_latgen
-from .pyqe import pyqe_get_gg_list, pyqe_get_gl, pyqe_get_igtongl
-from .pyqe import pyqe_vloc_of_g, pyqe_struct_fact
+from . import pyqe
 
 
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
     nrrr = nr1 * nr2 * nr3
     tpiba = 2 * np.pi / alat
     tpiba2 = tpiba**2
-    bg1, bg2, bg3 = pyqe_recips(at1 / alat, at2 / alat, at3 / alat)
-    g, gg, mill = pyqe_get_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
+    bg1, bg2, bg3 = pyqe.pyqe_recips(at1 / alat, at2 / alat, at3 / alat)
+    g, gg, mill = pyqe.pyqe_get_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
     gzip = zip(gg, g, mill)
     gzip = (el for el in gzip if el[0] <= ecutrho / tpiba2)
     gzip = sorted(gzip, key=lambda el: el[0])
     mill_cut = [el[2] for el in gzip]
     g_cut = [el[1] for el in gzip]
-    gg_cut =[el[0] for el in gzip]
-    igtongl, ngl = pyqe_get_igtongl(gg_cut)
-    gl = pyqe_get_gl(gg_cut, ngl)
+    gg_cut = [el[0] for el in gzip]
+    igtongl, ngl = pyqe.pyqe_get_igtongl(gg_cut)
+    gl = pyqe.pyqe_get_gl(gg_cut, ngl)
     return g_cut, gg_cut, mill_cut, igtongl, gl
 
 
@@ -47,7 +45,7 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     """
     msh = len(rab)
     tpiba2 = (np.pi * 2.e0 / alat) ** 2
-    return pyqe_vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp, tpiba2=tpiba2, gl=gl, omega=omega)
+    return pyqe.pyqe_vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp, tpiba2=tpiba2, gl=gl, omega=omega)
 
 
 def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
@@ -58,12 +56,12 @@ def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
             i = int(ijk[0])
             j = int(ijk[1])
             k = int(ijk[2])
-            aux[i, j, k] += strct_facs[nt][ig ] * vlocs[nt][igtongl[ig]-1]
+            aux[i, j, k] += strct_facs[nt][ig] * vlocs[nt][igtongl[ig]-1]
     return np.fft.ifftn(aux)*(nr1*nr2*nr3)
 
 
 def compute_struct_fact(tau, alat, g):
-    str_fact, checkgg, check_tau = pyqe_struct_fact(tau / alat, g)
+    str_fact, checkgg, check_tau = pyqe.pyqe_struct_fact(tau / alat, g)
     return str_fact
 
 
@@ -80,8 +78,8 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         name = typ["@name"]
         for pos in atomic_positions:
             if pos["@name"] == name:
-                coords = [float(x) for x in pos['$'] ]
-                new_atomic_positions = np.array(coords  )*alat
+                coords = [float(x) for x in pos['$']]
+                new_atomic_positions = np.array(coords) * alat
                 tau_spec.append(new_atomic_positions)
         tau_spec = np.array(tau_spec)
         str_fact = compute_struct_fact(tau_spec, alat, g)
@@ -95,17 +93,17 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         r = pseudo["PP_MESH"]["PP_R"]
         rab = pseudo["PP_MESH"]["PP_RAB"]
         #
-        if ( "PP_HEADER" in pseudo.keys()):
+        if "PP_HEADER" in pseudo.keys():
             try:
                 header = pseudo["PP_HEADER"].split('\n')
-                my_line = [l for l in header if 'Z valence' in l][0]
-                zp = float(my_line.split()[0])
+                line = [s for s in header if 'Z valence' in s][0]
+                zp = float(line.split()[0])
             except AttributeError:
                 zp = pseudo['PP_HEADER']['z_valence']
         else:
-            with open (filename, 'r') as f:
-                my_line = [ l for l in f.readlines() if 'z_valence=' in l][0]
-                zp = float(my_line.split('"')[1])
+            with open(filename, 'r') as f:
+                line = [s for s in f.readlines() if 'z_valence=' in s][0]
+                zp = float(line.split('"')[1])
 
         vloc_g = vloc_of_g(rab, r, vloc_r, zp, alat, omega,  gl)
 

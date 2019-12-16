@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -12,42 +12,45 @@ import h5py
 from .plot import plot_1Dcharge, plot_2Dcharge, plot_3Dcharge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
-def read_charge_file_hdf5(filename ):
+
+def read_charge_file_hdf5(filename):
     """
-    Reads a PW charge file in HDF5 format. 
+    Reads a PW charge file in HDF5 format.
+
     :param filename: 
-    :param nr: 
-    :return: a dictionary describing the content of file 
-        keys=[nr, ngm_g, gamma_only, rhog_, MillerIndexes]
+    :return: a dictionary describing the content of file \
+    keys=[nr, ngm_g, gamma_only, rhog_, MillerIndexes]
     """
     with h5py.File(filename, "r") as h5f:
         MI = h5f.get('MillerIndices')[:]
-        nr1 = 2*max(abs(MI[:,0]))+1
-        nr2 = 2*max(abs(MI[:,1]))+1
-        nr3 = 2*max(abs(MI[:,2]))+1
-        nr = np.array([nr1,nr2,nr3])
+        nr1 = 2*max(abs(MI[:, 0]))+1
+        nr2 = 2*max(abs(MI[:, 1]))+1
+        nr3 = 2*max(abs(MI[:, 2]))+1
+        nr = np.array([nr1, nr2, nr3])
         res = dict(h5f.attrs.items())
         res.update({'MillInd':MI,'nr_min': nr})
         rhog = h5f['rhotot_g'][:].reshape(res['ngm_g'],2).dot([1.e0,1.e0j])
         res.update({'rhotot_g':rhog})
         if 'rhodiff_g' in h5f.keys():
-            rhog = h5f['rhodiff_g'][:].reshape(res['ngm_g'],2).dot([1.e0,1.e0j])
+            rhog = h5f['rhodiff_g'][:].reshape(res['ngm_g'], 2).dot([1.e0,1.e0j])
             res.update({'rhodiff_g':rhog})
         return res
 
-def get_minus_indexes(g1,g2,g3):
+
+def get_minus_indexes(g1, g2, g3):
     """
     Used for getting the corresponding minus Miller Indexes. It is meant to be used 
-    for convertin Gamma Trick grids and is defined only for the for i >=0, in the i =0 plan
+    for converting Gamma Trick grids and is defined only for the for i >=0, in the i =0 plan
      is defined only for j >=0 and when i=0 j=0 k must be >=0. Out of this domain returns 
-     None. 
-    :param g1: rank 1 array containing firt Miller Index
+     None.
+
+    :param g1: rank 1 array containing first Miller Index
     :param g2: rank 1 array containing second Miller Index
     :param g3: rank 1 array containing third Miller Index 
     :return: a rank 2 array with dimension (ngm/2,3) containing mirrored Miller indexes
     """
 
-    def scalar_func(i,j,k):
+    def scalar_func(i, j, k):
         """
         scalar function to be vectorized
         :param i: 1st Miller Index
@@ -56,20 +59,21 @@ def get_minus_indexes(g1,g2,g3):
         :return: the mirrored mirror indexes
         """
         if i > 0:
-            return (-i,j,k)
+            return -i, j, k
         elif i == 0 and j > 0:
-            return (0,-j,k)
+            return 0, -j, k
         elif i == 0 and j == 0 and k > 0:
-            return (0,0,-k)
+            return 0, 0, -k
         else:
-            return (i,j,k)
+            return i, j, k
 
     vector_func = np.vectorize(scalar_func)
 
-    res = np.array(vector_func(g1,g2,g3))
+    res = np.array(vector_func(g1, g2, g3))
     return res.transpose()
 
-def get_charge_r(filename, nr = None):
+
+def get_charge_r(filename, nr=None):
     """
     Reads a charge file written with QE in HDF5 format. *nr = [nr1,nr2,nr3]* (the dimensions of
     the charge k-points grid) are given as parameter (taken for the xml output file by the caller).
@@ -81,21 +85,23 @@ def get_charge_r(filename, nr = None):
 
     cdata = read_charge_file_hdf5(filename)
     if nr is None:
-        nr1,nr2,nr3 = cdata['nrmin']
+        nr1, nr2, nr3 = cdata['nrmin']
     else:
-        nr1,nr2,nr3 = nr
+        nr1, nr2, nr3 = nr
     gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
     # Load the total charge
-    rho_temp = np.zeros([nr1,nr2,nr3],dtype=np.complex128)
-    for (i,j,k),rho in zip( cdata['MillInd'],cdata['rhotot_g']):
+    rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+    for (i, j, k),rho in zip( cdata['MillInd'],cdata['rhotot_g']):
         try:
-            rho_temp[i,j,k]=rho
+            rho_temp[i, j, k]=rho
         except IndexError:
             pass
+
     if gamma_only:
         rhotot_g = cdata['rhotot_g'].conjugate()
-        MI = get_minus_indexes(cdata['MillInd'][:,0],cdata['MillInd'][:,1],cdata['MillInd'][:,2])
-        for (i,j,k), rho  in zip(MI, rhotot_g):
+        MI = get_minus_indexes(cdata['MillInd'][:,0], cdata['MillInd'][:,1], cdata['MillInd'][:,2])
+        print("MI", MI)
+        for (i, j, k), rho  in zip(MI, rhotot_g):
             try:
                 rho_temp[i, j, k] = rho
             except IndexError:
@@ -107,13 +113,13 @@ def get_charge_r(filename, nr = None):
     if 'rhodiff_g' in cdata.keys():
         rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
         for (i,j,k), rho  in zip(cdata['MillInd'], cdata['rhodiff_g']):
-                try:
-                    rho_temp[i, j, k] = rho
-                except IndexError:
-                    pass
+            try:
+                rho_temp[i, j, k] = rho
+            except IndexError:
+                pass
         if gamma_only:
             rhodiff_g = cdata['rhodiff_g'].conjugate()
-            for (i,j,k),rho in zip(MI, rhodiff_g):
+            for (i, j, k),rho in zip(MI, rhodiff_g):
                 try:
                     rho_temp[i, j, k] = rho
                 except IndexError:
@@ -142,12 +148,10 @@ def write_charge(filename, charge, header):
             for x in range(0, nr[0]):
                 fout.write("  {:.9E}".format(charge[x, y, z]))
                 count += 1
-                if (count % 5 == 0):
+                if count % 5 == 0:
                     fout.write("\n")
 
     fout.close()
-
-
 
 
 class Charge:
@@ -160,6 +164,7 @@ class Charge:
         self.setvars(*args, **kwargs)
 
     def setvars(self, nr_temp, charge=None, charge_diff=None):
+        breakpoint()
         nr = np.array(nr_temp)
         assert nr.shape[0] == 3
         self.nr = nr
@@ -192,7 +197,6 @@ class Charge:
         charge, charge_diff = get_charge_r(filename, np.array(nr))
         self.charge = charge
         self.charge_diff = charge_diff
-
 
     def write(self, filename):
         header='# Charge file\n'
@@ -246,11 +250,11 @@ class Charge:
             return None
         # Extract some structural info in a dictionary
         struct_info = {
-            'a' : self.calculator.get_a_vectors(),
-            'b' : self.calculator.get_b_vectors(),
-            'alat' : self.calculator.get_alat(),
-            'nat'  : len(self.calculator.get_atomic_positions()),
-            'atomic_positions' : self.calculator.get_atomic_positions(),
+            'a': self.calculator.get_a_vectors(),
+            'b': self.calculator.get_b_vectors(),
+            'alat': self.calculator.get_alat(),
+            'nat': len(self.calculator.get_atomic_positions()),
+            'atomic_positions': self.calculator.get_atomic_positions(),
             'atomic_species': self.calculator.get_atomic_species(),
         }
         G = compute_G(struct_info['b'], self.nr)
@@ -259,34 +263,51 @@ class Charge:
             if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
                 fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
             elif dim == 2:  # 2D section
-                fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
+                fig = plot_2Dcharge(
+                    self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
+                )
             else:           # 3D section
-                fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format)
+                fig = plot_3Dcharge(
+                    self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
+                )
         else:  # magnetic calculation, plot as ifmagn
             if ifmagn == 'up':
                 charge_up = (self.charge + self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(charge_up, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                    fig = plot_1Dcharge(
+                        charge_up, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
+                    )
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(charge_up, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
+                    fig = plot_2Dcharge(
+                        charge_up, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
+                    )
                 else:  # 3D section
-                    fig = plot_3Dcharge(charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
-                                        format)
+                    fig = plot_3Dcharge(
+                        charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
+                    )
             elif ifmagn == 'down':
                 charge_down = (self.charge - self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(charge_down, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                    fig = plot_1Dcharge(
+                        charge_down, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
+                    )
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(charge_down, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format)
+                    fig = plot_2Dcharge(
+                        charge_down, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
+                    )
                 else:  # 3D section
-                    fig = plot_3Dcharge(charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method,
-                                        format)
+                    fig = plot_3Dcharge(
+                        charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
+                    )
             else:
                 if dim == 1:  # 1D section ylab='charge', plot_file='', format='', method='FFT'
-                    fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                    fig = plot_1Dcharge(
+                        self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
+                    )
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method,
-                                        format)
+                    fig = plot_2Dcharge(
+                        self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
+                    )
                 else:  # 3D section
                     fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
                                         method, format)
@@ -297,8 +318,6 @@ class Charge:
             return fig
         else:
             return None
-
-
 
 
 class Potential(Charge):
@@ -345,7 +364,9 @@ class Potential(Charge):
         pseudodir = self.calculator.get_pseudodir()
 
         if self.pot_type=='v_bare':
-            self.v = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir)
+            self.v = compute_v_bare(
+                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+            )
         elif self.pot_type=='v_h':
             self.v = compute_v_h(self.charge, ecutrho, alat, b)
         elif self.pot_type=='v_xc':
@@ -353,7 +374,9 @@ class Potential(Charge):
             charge_core = np.zeros(self.nr)
             self.v = compute_v_xc(self.charge, charge_core, str(functional))
         elif self.pot_type=='v_tot':
-            v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir)
+            v_bare = compute_v_bare(
+                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+            )
             v_h =  compute_v_h(self.charge, ecutrho, alat, b)
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
@@ -361,7 +384,7 @@ class Potential(Charge):
             self.v = v_bare + v_h + v_xc
 
 
-    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), nz=50,
+    def plot(self, x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.), ny=50, e3=(0., 0., 1.), nz=50,
              radius=1, dim=1, plot_file='', method='FFT', format='gnuplot', show=True):
         """
         Plot a 1D, 2D or 3D section of the potential from x0 along e1 (e2, e3) direction(s) using Fourier interpolation
@@ -374,7 +397,7 @@ class Potential(Charge):
         :param nx, ny, nz: number of points along e1, e2, e3
         :param radius: radius of the sphere in the polar average method
         :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
-        :param plotfile: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
+        :param plot_file: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
         :param method: interpolation method. Available choices are:\n
                         'FFT' -> Fourier interpolation (default)
                         'polar' -> 2D polar plot on a sphere
@@ -397,11 +420,11 @@ class Potential(Charge):
 
         # Extract some structural info in a dictionary
         struct_info = {
-            'a' : self.calculator.get_a_vectors(),
-            'b' : self.calculator.get_b_vectors(),
-            'alat' : self.calculator.get_alat(),
-            'nat'  : len(self.calculator.get_atomic_positions()),
-            'atomic_positions' : self.calculator.get_atomic_positions(),
+            'a': self.calculator.get_a_vectors(),
+            'b': self.calculator.get_b_vectors(),
+            'alat': self.calculator.get_alat(),
+            'nat': len(self.calculator.get_atomic_positions()),
+            'atomic_positions': self.calculator.get_atomic_positions(),
             'atomic_species': self.calculator.get_atomic_species(),
         }
         G = compute_G(struct_info['b'], self.nr)
@@ -409,12 +432,16 @@ class Potential(Charge):
         if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
             fig = plot_1Dcharge(self.v, G, struct_info, x0, e1, nx, self.pot_type, plot_file, method, format)
         elif dim == 2:  # 2D section
-            fig = plot_2Dcharge(self.v, G, struct_info, x0, e1, e2, nx, ny, radius, self.pot_type, plot_file, method, format)
+            fig = plot_2Dcharge(
+                self.v, G, struct_info, x0, e1, e2, nx, ny, radius, self.pot_type, plot_file, method, format
+            )
         else:           # 3D section
-            fig = plot_3Dcharge(self.v, G, struct_info, x0, e1, e2, e3, nx, ny, nz, self.pot_type, plot_file, method, format)
+            fig = plot_3Dcharge(
+                self.v, G, struct_info, x0, e1, e2, e3, nx, ny, nz, self.pot_type, plot_file, method, format
+            )
 
         if dim < 3:
-            if show == True:
+            if show is True:
                 fig.show()
             return fig
         else:

@@ -14,22 +14,21 @@ from .constants import pi
 from .setlocal import wrap_setlocal
 
 # f2py created modules
-from .pyqe import pyqe_xc as xc
+from . import pyqe
 
 
 # Compute the volume from a1, a2, a3 vectors in direct space.  
-def compute_volume(at1,at2,at3):
+def compute_volume(at1, at2, at3):
     """
     This function computes the cell volume per atom given the a1, a2, a3 vectors.
     As in QE.
     """
-    V = abs ( at1[0]*at2[1]*at3[2]+ at1[1]*at2[2]*at3[0]+ at1[2]*at2[0]*at3[1]-\
-                  at3[0]*at2[1]*at1[2]-at3[1]*at2[2]*at1[0]- at3[2]*at2[0]*at3[1] )
-        
+    V = abs(at1[0] * at2[1] * at3[2] + at1[1] * at2[2] * at3[0] + at1[2] * at2[0] * at3[1] -
+            at3[0] * at2[1] * at1[2] - at3[1] * at2[2] * at1[0] - at3[2] * at2[0] * at3[1])
     return V 
 
 
-def compute_G(b,nr):
+def compute_G(b, nr):
     """
     This function computes a matrix nr[0]*nr[1]*nr[2] containing the G vectors at each point
     of the mesh points defined by nr. G are the vectors in the reciprocal lattice vector.
@@ -47,7 +46,7 @@ def compute_G(b,nr):
     return G
 
 
-def compute_G_squared(b,nr,ecutrho,alat):
+def compute_G_squared(b, nr, ecutrho, alat):
     """
     This function computes a matrix nr[0]*nr[1]*nr[2] containing G^2 at each point, G is the 
     corresponding reciprocal lattice vector. Also apply a proper cut-off 
@@ -71,7 +70,7 @@ def compute_G_squared(b,nr,ecutrho,alat):
     return G2
 
 
-def compute_Gs(b,nr,ecutrho,alat):
+def compute_Gs(b, nr, ecutrho, alat):
     """
     This function computes both a matrix nr[0]*nr[1]*nr[2] containing the G vectors at each point
     of the mesh points defined by nr and the G^2 moduli. G are the vectors in the
@@ -107,7 +106,7 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, 
     return v_F
 
 
-def get_v_h_from_hdf5(filename, nr, dataset = 'rhotot_g'):
+def get_v_h_from_hdf5(filename, nr, dataset='rhotot_g'):
     """
     computes the Hartree potential, reading the data from the hdf5 charge-density file.
     :param filename: name of the hdf5 containing the charge density in reciprocal space 
@@ -120,29 +119,28 @@ def get_v_h_from_hdf5(filename, nr, dataset = 'rhotot_g'):
     with h5py.File(filename) as h5f:
         h5d = h5f[dataset]
         ngm = h5f.attrs.get('ngm_g')
-        rho_g = np.array(h5d).reshape([ngm,2])
-        h5mill =h5f['MillerIndices']
+        rho_g = np.array(h5d).reshape([ngm, 2])
+        h5mill = h5f['MillerIndices']
         b1 = h5mill.attrs.get('bg1')
         b2 = h5mill.attrs.get('bg2')
         b3 = h5mill.attrs.get('bg3')
-        aux = np.zeros(list(nr),dtype=np.complex128)
-        my_zip = zip(h5mill,rho_g)
+        aux = np.zeros(list(nr), dtype=np.complex128)
+        my_zip = zip(h5mill, rho_g)
         next(my_zip)
         for el in my_zip:
             m = el[0]
-            rhog = el[1].dot((1.e0,1.j))
-            g = m.dot((b1,b2,b3))
+            rhog = el[1].dot((1.e0, 1.j))
+            g = m.dot((b1, b2, b3))
             gg = g.dot(g)
             try:
-                aux[m[0],m[1],m[2]] = rhog/gg
+                aux[m[0], m[1], m[2]] = rhog/gg
             except IndexError:
                 pass
 
     return np.fft.ifftn(aux).real*8.e0*np.pi*nrrr
 
 
-
-def compute_v_h(charge,ecutrho,alat,b):
+def compute_v_h(charge, ecutrho, alat, b):
     """
     This function computes the hartree potential from the charge and
     the cut off energy "ecutrho" on the charge. The charge is a numpy matrix nr1*nr2*nr3.
@@ -154,7 +152,7 @@ def compute_v_h(charge,ecutrho,alat,b):
         
     # Compute G^2 values for the mesh, applying the proper cutoff from ecutrho
     # and alat
-    G2 = compute_G_squared(b,nr,ecutrho,alat)
+    G2 = compute_G_squared(b, nr, ecutrho, alat)
     
     conv_fact = 2.0 / pi * alat**2
     v = np.fft.ifftn(fft_charge / G2) * conv_fact
@@ -162,26 +160,23 @@ def compute_v_h(charge,ecutrho,alat,b):
     return v.real
 
 
-def compute_v_xc(charge,charge_core,functional):
+def compute_v_xc(charge, charge_core, functional):
     """
     This function computes the exchange-correlation potential from the charge and
     the type of functional given in input. The charge is a numpy matrix nr1*nr2*nr3.
     The functional is a string identifying the functional as in QE convention.
-    
-    """    
-        
+    """
     vanishing_charge = 1.0E-10
-    rhoneg = 0.0
     nr = charge.shape
     v = np.zeros(nr)
 
-    for x in range(0,nr[0]):
-        for y in range(0,nr[1]):
-            for z in range(0,nr[2]):
-                rhox = charge[x,y,z] + charge_core[x,y,z]
+    for x in range(0, nr[0]):
+        for y in range(0, nr[1]):
+            for z in range(0, nr[2]):
+                rhox = charge[x, y, z] + charge_core[x, y, z]
                 arhox = abs(rhox)
-                if (arhox > vanishing_charge):
-                    ex, ec, vx, vc = xc (arhox, functional)
-                    v[x,y,z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
+                if arhox > vanishing_charge:
+                    ex, ec, vx, vc = pyqe.pyqe_xc(arhox, functional)
+                    v[x, y, z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
 
     return v

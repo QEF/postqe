@@ -53,7 +53,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
                          reference=ref)
 
 
-class PostqeCalculator(Calculator):
+class PostqeCalculator(FileIOCalculator):
     """
     This is a limited implementation of an ASE calculator for postqe.
 
@@ -67,7 +67,7 @@ class PostqeCalculator(Calculator):
     command = None
 
     def __init__(self, restart=None, ignore_bad_restart_file=False, label=None,
-                 atoms=None, command=None, schema=None, outdir=None, **kwargs):
+                 atoms=None, command=None, outdir=None, schema=None, **kwargs):
         """
         File-IO calculator.
 
@@ -76,11 +76,14 @@ class PostqeCalculator(Calculator):
         :param label:
         :param atoms:
         :param command: Command used to start calculation.
+
         :param schema:
         :param kwargs:
         """
         self.species = None
         self.schema = schema
+        if outdir and not os.path.isdir(outdir):
+            raise ValueError("{!r} is not a directory path".format(outdir))
         self.outdir = outdir
         self.xml_document = qeschema.PwDocument(schema=schema)
         Calculator.__init__(self, restart, ignore_bad_restart_file, label, atoms, command=command, **kwargs)
@@ -111,7 +114,7 @@ class PostqeCalculator(Calculator):
         return self.xml_document.to_dict(preserve_root=False)['output']
 
     def read_results(self):
-        filename = self.label + '.xml'
+        filename = os.path.join(self.outdir or '', self.label + '.xml')
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry

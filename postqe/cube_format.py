@@ -7,10 +7,9 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-
 """
-A tentative collection of functions for the cube Gaussian format. See http://paulbourke.net/dataformats/cube/ or
- http://gaussian.com/cubegen/ for more info.
+A tentative collection of functions for the cube Gaussian format.
+See http://paulbourke.net/dataformats/cube/ or http://gaussian.com/cubegen/ for more info.
 
 Note that this is different from Fortran routines written by Axel Kohlmeyer (file cube.f90 in Quantum
 Espresso) and still untested! Use at your own risk.

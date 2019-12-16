@@ -1,25 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2018, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-"""
-Tests for postqe.
-"""
 import unittest
-import sys
 import os
+import numpy as np
 
-# Adds the the package directory to sys.path, in order to make
-# the development module loadable also without set PYTHONPATH.
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-PACKAGE_DIR = os.path.dirname(TEST_DIR)
-if sys.path[0] != PACKAGE_DIR:
-    sys.path.insert(0, PACKAGE_DIR)
+from ase.calculators.calculator import kpts2ndarray
+from postqe import PostqeCalculator
 
 
 def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
@@ -64,6 +57,48 @@ class TestPostQE(unittest.TestCase):
             reference_energy=0
         )
         self.assertIsInstance(bs, BandStructure)
+
+    def test_get_atoms_from_xml_output(self):
+        system = 'Ni'
+        outdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples/Ni_pz_nc')
+        calc = PostqeCalculator(label=system, outdir=outdir, schema='qes-20180510.xsd')
+        calc.read_results()
+
+        ni_atoms = calc.get_atoms_from_xml_output()
+        result = [[-0.25, -0.25, -0.25],
+                  [-0.25, -0.25,  0.25],
+                  [-0.25,  0.25, -0.25],
+                  [-0.25,  0.25,  0.25],
+                  [+0.25, -0.25, -0.25],
+                  [+0.25, -0.25,  0.25],
+                  [+0.25,  0.25, -0.25],
+                  [+0.25,  0.25,  0.25]]
+        self.assertListEqual(kpts2ndarray([2, 2, 2], ni_atoms).tolist(), result)
+
+    def test_get_atomic_numbers(self):
+        system = 'Ni'
+        outdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples/Ni_pbe_us')
+        calc = PostqeCalculator(label=system, outdir=outdir, schema='qes-20180510.xsd')
+        calc.read_results()
+
+        ni_atoms = calc.get_atoms_from_xml_output()
+        print(ni_atoms.get_atomic_numbers())
+        print(ni_atoms.get_cell(True))
+        print(ni_atoms.get_positions())
+        print(ni_atoms.get_volume())
+
+        print(calc.get_potential_energy())
+        print(calc.get_xc_functional())
+        print(calc.get_number_of_spins())
+        print(calc.get_spin_polarized())
+        print(calc.get_fermi_level())
+        print(calc.get_number_of_bands())
+        print(calc.get_bz_k_points())
+        print(calc.get_k_point_weights())
+        print(calc.get_eigenvalues(0, 0))
+        print(calc.get_occupation_numbers(0, 0))
+        print(calc.get_eigenvalues(0, 1))
+        print(calc.get_occupation_numbers(0, 1))
 
 
 if __name__ == '__main__':

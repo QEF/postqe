@@ -201,6 +201,8 @@ def get_cli_parser():
 
 
 def main():
+    from . import api
+
     if sys.version_info < (3, 4, 0):
         sys.stderr.write("You need python 3.4 or later to run this program\n")
         sys.exit(1)
@@ -209,8 +211,36 @@ def main():
     cli_parser = get_cli_parser()
     pars = cli_parser.parse_args()
 
-    from . import pp
-    pp.run(pars)
+    if pars.commands == 'eos':
+        api.compute_eos(pars.prefix, pars.outdir, pars.eos_type, pars.fileout, pars.fileplot, pars.show)
+    elif pars.commands == 'bands':
+        api.compute_band_structure(
+            pars.prefix, pars.outdir, pars.schema, pars.reference_energy, pars.emin,
+            pars.emax, pars.fileplot, pars.show
+        )
+    elif pars.commands == 'dos':
+        if pars.emin is None or pars.max is None:
+            window = None
+        else:
+            window = (pars.emin, pars.emax)
+        api.comput_dos(
+            pars.prefix, pars.outdir, pars.schema, pars.width, window, pars.npts, pars.fileout,
+            pars.fileplot, pars.show
+        )
+    elif pars.commands == 'charge':
+        api.compute_charge(
+            pars.prefix, pars.outdir, pars.schema, pars.fileout, pars.x0, pars.e1, pars.nx,
+            pars.e2, pars.ny, pars.e3, pars.nz, pars.radius, pars.dim, pars.ifmagn, pars.exportfile,
+            pars.method, pars.format, pars.show
+        )
+    elif pars.commands == 'potential':
+        api.compute_potential(
+            pars.prefix, pars.outdir, pars.schema, pars.pot_type, pars.fileout, pars.x0,
+            pars.e1, pars.nx, pars.e2, pars.ny, pars.e3, pars.nz, pars.radius, pars.dim,
+            pars.exportfile, pars.method, pars.format, pars.show
+        )
+    else:
+        print('Command not implemented! Exiting...')
 
     end_time = time.time()
     elapsed_time = end_time - start_time

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -23,7 +23,6 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from mpl_toolkits.mplot3d import axes3d
 from .writecharge import write_1Dcharge_file, write_2Dcharge_file, write_3Dcharge_file
 from .constants import pi
 
@@ -70,7 +69,7 @@ def spherical1D(charge, G, a, x0, e1, nx):
     input point x0 and along the direction given by the vector e1. The G vectors
     in the reciprocal space must also be given in input. nx is the number of
     points where the spherically averaged charge is calculated (rho0(|r|) = int rho(r) dOmega
-    rho0(r) = 4pi \sum_G rho(G) j_0(|G||r|)).
+    rho0(r) = 4pi / sum_G rho(G) j_0(|G||r|)).
 
     :param charge:  eletronic charge density (or other quantity) to be plotted
     :param G:  G vectors in the reciprocal space
@@ -79,7 +78,6 @@ def spherical1D(charge, G, a, x0, e1, nx):
     :param e1: 3D vector which determines the plotting line
     :param nx: number of points in the line
     """
-
     #TODO: this function needs some optimization...
     # normalize e1
     m1 = np.linalg.norm(e1)
