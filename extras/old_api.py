@@ -39,73 +39,17 @@ def get_label(prefix='pwscf', outdir=None):
     label = os.path.join(outdir, '{}.save'.format(prefix))
     return label
 
-
 ## New CLI-API interfaces ###
 
-def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
-    """
-    Get plot
-
-    :param plot_num:
-    :param filplot: if `None` returns the computed plot object, otherwise save \
-    it to the specified file.
-    :param prefix:
-    :param output:
-    :param kwargs: additional arguments for plot computation.
-    """
+def new_get_charge(prefix=None, output=None, filplot=None):
     plot = []
-
-    print(plot_num, prefix, output, filplot, kwargs)
-
-    if plot_num == '0':
-        spin = kwargs.get('spin', 0)
-        pass
-    elif plot_num == '1':
-        pass
-    elif plot_num == '2':
-        pass
-    elif plot_num == '3':
-        pass
-    elif plot_num == '4':
-        pass
-    elif plot_num == '5':
-        pass
-    elif plot_num == '6':
-        pass
-    elif plot_num == '7':
-        pass
-    elif plot_num == '8':
-        pass
-    elif plot_num == '9':
-        pass
-    elif plot_num == '10':
-        pass
-    elif plot_num == '11':
-        pass
-    elif plot_num == '12':
-        pass
-    elif plot_num == '13':
-        pass
-    elif plot_num == '17':
-        pass
-    elif plot_num == '18':
-        pass
-    elif plot_num == '19':
-        pass
-    elif plot_num == '20':
-        pass
-    elif plot_num == '21':
-        pass
-    elif plot_num == '22':
-        pass
-    else:
-        raise ValueError("Wrong value {!r} for 'plot_num' argument".format(plot_num))
-
+    # ...
     if filplot is not None:
         with open(filplot, 'bw') as f:
             f.write(plot)
-        return
     return plot
+
+
 
 
 

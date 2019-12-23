@@ -83,6 +83,7 @@ class TestPostQE(unittest.TestCase):
 
         ni_atoms = calc.get_atoms_from_xml_output()
         print(ni_atoms.get_atomic_numbers())
+
         print(ni_atoms.get_cell(True))
         print(ni_atoms.get_positions())
         print(ni_atoms.get_volume())

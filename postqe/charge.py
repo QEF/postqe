@@ -365,7 +365,7 @@ class Potential(Charge):
 
         if self.pot_type=='v_bare':
             self.v = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+                ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
             )
         elif self.pot_type=='v_h':
             self.v = compute_v_h(self.charge, ecutrho, alat, b)
