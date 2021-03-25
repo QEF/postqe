@@ -20,6 +20,5 @@ pqenv/
 .idea/
 .tox/
 doc/_*
-postqe/__pycache__/
-tests/__pycache__/
+__pycache__/
 localfiles/

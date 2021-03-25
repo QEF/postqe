@@ -56,11 +56,11 @@ class InstallCommand(install):
 
 setup(
     name='postqe',
-    version='0.5.0b0',
+    version='1.0.0',
     packages=['postqe'],
     package_data={'postqe': ['pyqe.*.so']},
     install_requires=[
-        'numpy>=1.17.0', 'ase>=3.17', 'qeschema>=1.0', 'scipy',
+        'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy',
         'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
     ],
     entry_points={
@@ -77,15 +77,18 @@ setup(
     license='LGPL-2.1',
     long_description='Post processing tools for Quantum Espresso',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Science/Research',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
         'Natural Language :: English',
         'Topic :: Scientific/Engineering :: Physics'

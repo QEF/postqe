@@ -11,7 +11,8 @@ potentials) on 1D or 2D sections, fitting the total energy with Murnaghan Equati
 
 It is meant to be imported in your own Python code or used from the command line (see the
 Tutorial part of this documentation). It is also meant for people who want to tinker with
-the code and adapt it to their own needs. The package is based on numpy, scipy and matplotlib libraries.
+the code and adapt it to their own needs. The package is based on numpy, scipy and
+matplotlib libraries.
 
 
 Current features of the package include:
@@ -51,8 +52,9 @@ You can download all package files from GitHub and then install it with the comm
    sudo python setup.py install
 
 
-The setup script takes care to install a fresh installation of Quantum ESPRESSO on source subdirectory.
-You can provide the ``--qeprefix`` option with a filepath to an existing compatible ESPRESSO installation.
+The setup script takes care to install a fresh installation of Quantum ESPRESSO
+on source subdirectory. You can provide the ``--qeprefix`` option with a filepath
+to an existing compatible ESPRESSO installation.
 
 
 Usage
@@ -72,7 +74,16 @@ Note, however, that most of these functions are less well documented and are mea
 users or if you want to tinker with the code.
 
 
-Status
-------
+Authors
+-------
+Mauro Palumbo
+Davide Brunato
+Pietro Delugas
 
-Development(Alpha)
+
+License
+-------
+This software is distributed under the terms of the LGPL-2.1 license. See
+the file 'LICENSE' in the root directory of the present distribution, or
+https://opensource.org/licenses/LGPL-2.1 .
+

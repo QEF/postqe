@@ -13,3 +13,6 @@ from .api import get_eos, get_band_structure, get_dos, get_charge, get_potential
     compute_eos, compute_band_structure, compute_dos, compute_charge, compute_potential
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge, simple_plot_xy, multiple_plot_xy
 from .calculator import PostqeCalculator
+
+
+__version__ = '1.0.0'

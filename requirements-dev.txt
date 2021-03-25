@@ -1,6 +1,6 @@
 numpy>=1.17.0
-ase>=3.10
-# qeschema>=1.0
+ase~=3.20.0
+# qeschema~=1.1
 -e ../qeschema
 scipy
 h5py
@@ -12,4 +12,4 @@ tox
 coverage
 Sphinx
 sphinx_rtd_theme
-#-e .
+# -e .
