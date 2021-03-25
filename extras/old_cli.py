@@ -15,6 +15,11 @@ import time
 import argparse
 
 
+
+
+
+
+
 ##
 # CLI parser help messages
 #
@@ -100,8 +105,12 @@ CHARGE_FORMAT_HELP = """format of the (optional) exported file. Available choice
 """
 CHARGE_SHOW_HELP = "if True, show the Matplotlib plot (only for 1D and 2D sections)."
 
-SPIN_CHOICES = [0, 1, 2]
-FERMI_LEVEL = 1.0  # FIXME: put in constants.py with an appropriate value
+POT_TYPE_HELP = """type of the potential to calculate. Available types are:
+'v_tot' (default) -> the total potential (v_bare+v_hartree+v_xc).
+'v_bare' -> the bare potential.
+'v_hartree' = the Hartree potential.
+'v_xc' -> the exchange-correlation potential.
+"""
 
 
 def vector(s):
@@ -116,82 +125,83 @@ def vector(s):
 
 def get_cli_parser():
     parser = argparse.ArgumentParser(description='QE post processing')
-    subparsers = parser.add_subparsers(metavar="plot_num", dest='plot_num', required=True,
-                                       help='Selects what to save in filplot')
+    subparsers = parser.add_subparsers(help='sub-command help', dest='commands')
 
-    plot_num_parser = subparsers.add_parser(
-        '0', aliases=['charge'], help="electron (pseudo-)charge density")
-    plot_num_parser.add_argument(
-        '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of charge")
+    # create the parser for the "eos" command
+    eos_parser = subparsers.add_parser('eos', help=EOS_HELP)
+    eos_parser.add_argument('-prefix', type=str, required=True, help=EOS_PREFIX_HELP)
+    eos_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    eos_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    eos_parser.add_argument('-eos_type', type=str, default='murnaghan', help=EOS_TYPE_HELP)
+    eos_parser.add_argument('-fileout', type=str, default='', help=EOS_FILEOUT_HELP)
+    eos_parser.add_argument('-fileplot', type=str, default='EOSplot', help=EOS_FILEPLOT_HELP)
+    eos_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
-    plot_num_parser = subparsers.add_parser(
-        '1', help="total potential V_bare + V_H + V_xc")
-    plot_num_parser.add_argument(
-        '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of potential")
+    # create the parser for the "bands" command
+    bands_parser = subparsers.add_parser('bands', help=BANDS_HELP)
+    bands_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    bands_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    bands_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    bands_parser.add_argument('-reference_energy', type=float, default=0, help=BANDS_REFERENCE_ENERGY_HELP)
+    bands_parser.add_argument('-emin', type=float, default=-50, help=BANDS_EMIN_HELP)
+    bands_parser.add_argument('-emax', type=float, default=50, help=BANDS_EMAX_HELP)
+    bands_parser.add_argument('-fileplot', type=str, default='bandsplot', help=BANDS_FILEPLOT_HELP)
+    bands_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
-    subparsers.add_parser('2', help="local ionic potential V_bare")
+    # create the parser for the "dos" command
+    dos_parser = subparsers.add_parser('dos', help=DOS_HELP)
+    dos_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    dos_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    dos_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    dos_parser.add_argument('-width', type=float, default=0.01, help=SCHEMA_HELP)
+    dos_parser.add_argument('-emin', type=float, default=None, help=DOS_EMIN_HELP)
+    dos_parser.add_argument('-emax', type=float, default=None, help=DOS_EMAX_HELP)
+    dos_parser.add_argument('-npts', type=int, default=100, help=DOS_NPTS_HELP)
+    dos_parser.add_argument('-fileout', type=str, default='', help=DOS_FILEOUT_HELP)
+    dos_parser.add_argument('-fileplot', type=str, default='dosplot', help=DOS_FILEPLOT_HELP)
+    dos_parser.add_argument('-show', type=bool, default=True, help=EOS_SHOW_HELP)
 
-    plot_num_parser = subparsers.add_parser(
-        '3', help="local density of states at specific energy or grid of energies")
-    plot_num_parser.add_argument(
-        '-emin', type=float, default=FERMI_LEVEL, help="lower boundary of energy grid (in eV)")
-    plot_num_parser.add_argument(
-        '-emax', type=float, default=None, help="upper boundary of energy grid (in eV)")
-    plot_num_parser.add_argument(
-        '-delta_e', type=float, default=0.1, help="spacing of energy grid (in eV)")
-    plot_num_parser.add_argument(
-        '-degauss_ldos', type=float, default=None, help="broadening of energy levels for LDOS (in eV)")
+    # create the parser for the "charge" command
+    charge_parser = subparsers.add_parser('charge', help=CHARGE_HELP)
+    charge_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    charge_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    charge_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    charge_parser.add_argument('-fileout', type=str, default='', help=CHARGE_FILEOUT_HELP)
+    charge_parser.add_argument('-x0', type=vector, default=(0., 0., 0.), help=CHARGE_X0_HELP)
+    charge_parser.add_argument('-e1', type=vector, default=(1., 0., 0.), help=CHARGE_E1_HELP)
+    charge_parser.add_argument('-e2', type=vector, default=(0., 1., 0.), help=CHARGE_E2_HELP)
+    charge_parser.add_argument('-e3', type=vector, default=(0., 0., 1.), help=CHARGE_E3_HELP)
+    charge_parser.add_argument('-nx', type=int, default=20, help=CHARGE_NX_HELP)
+    charge_parser.add_argument('-ny', type=int, default=20, help=CHARGE_NY_HELP)
+    charge_parser.add_argument('-nz', type=int, default=20, help=CHARGE_NZ_HELP)
+    charge_parser.add_argument('-radius', type=float, default=1, help=CHARGE_RADIUS_HELP)
+    charge_parser.add_argument('-dim', type=int, default=1, help=CHARGE_DIM_HELP)
+    charge_parser.add_argument('-ifmagn', type=str, default='total', help=CHARGE_IFMAGN_HELP)
+    charge_parser.add_argument('-exportfile', type=str, default='', help=CHARGE_EXPORTFILE_HELP)
+    charge_parser.add_argument('-method', type=str, default='FFT', help=CHARGE_METHOD_HELP)
+    charge_parser.add_argument('-format', type=str, default='gnuplot', help=CHARGE_FORMAT_HELP)
+    charge_parser.add_argument('-show', type=bool, default=True, help=CHARGE_SHOW_HELP)
 
-    subparsers.add_parser('4', help="local density of electronic entropy")
-
-    plot_num_parser = subparsers.add_parser(
-        '5', help="STM images, Tersoff and Hamann, PRB 31, 805 (1985)")
-    plot_num_parser.add_argument(
-        '-sample_bias', type=float, help="the bias of the sample (Ry) in stm images")
-
-    subparsers.add_parser('6', help="spin polarization (rho(up)-rho(down))")
-
-    plot_num_parser = subparsers.add_parser(
-        '7', help="contribution of selected wavefunction(s) to the (pseudo-)charge density")
-    plot_num_parser.add_argument(
-        '-kpoint', type=int, choices=[1, 2], action='append', help="k-point(s) to be plotted")
-    plot_num_parser.add_argument(
-        '-kband', type=int, choices=[1, 2], action='append', help="band(s) to be plotted")
-    plot_num_parser.add_argument(
-        '-lsign', type=bool, default=False, help="if true and k point is Gamma, plot |psi|^2 sign(psi)")
-    plot_num_parser.add_argument(
-        '-spin', type=int, choices=SPIN_CHOICES, action='append', help="spin component of potential")
-
-    subparsers.add_parser('8', help="electron localization function (ELF)")
-    subparsers.add_parser('9', help="charge density minus superposition of atomic densities")
-    subparsers.add_parser('10', help="integrated local density of states (ILDOS)")
-    subparsers.add_parser('11', help="the V_bare + V_H potential")
-    subparsers.add_parser('12', help="the sawtooth electric field potential (if present)")
-    subparsers.add_parser('13', help="the noncollinear magnetization")
-
-    plot_num_parser = subparsers.add_parser(
-        '17', help="all-electron valence charge density??")
-    plot_num_parser.add_argument(
-        '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of charge")
-
-    subparsers.add_parser('18', help="the exchange and correlation magnetic field in the noncollinear case")
-    subparsers.add_parser('19', help="Reduced density gradient")
-    subparsers.add_parser(
-        '20', help="Product of the electron density (charge) and the second "
-                   "eigenvalue of the electron-density Hessian matrix")
-    subparsers.add_parser('21', help="all-electron charge density (valence+core)")
-
-    plot_num_parser = subparsers.add_parser(
-        '22', help="kinetic energy density")
-    plot_num_parser.add_argument(
-        '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of density")
-
-    parser.add_argument('-prefix', type=str, default='pwscf',
-                        help="prefix of files saved by program pw.x")
-    parser.add_argument('-outdir', type=str, default=None,
-                        help="directory containing the input data, i.e. the same as in pw.x")
-    parser.add_argument('-fileplot', type=str, default=None,
-                        help="file to save the quantity selected by plot_num (use stdout instead)")
+    # create the parser for the "potential" command
+    potential_parser = subparsers.add_parser('potential', help=POTENTIAL_HELP)
+    potential_parser.add_argument('-prefix', type=str, required=True, help=PREFIX_HELP)
+    potential_parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    potential_parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    potential_parser.add_argument('-pot_type', type=str, default='v_tot', help=POT_TYPE_HELP)
+    potential_parser.add_argument('-fileout', type=str, default='', help=CHARGE_FILEOUT_HELP)
+    potential_parser.add_argument('-x0', type=vector, default=(0., 0., 0.), help=CHARGE_X0_HELP)
+    potential_parser.add_argument('-e1', type=vector, default=(1., 0., 0.), help=CHARGE_E1_HELP)
+    potential_parser.add_argument('-e2', type=vector, default=(0., 1., 0.), help=CHARGE_E2_HELP)
+    potential_parser.add_argument('-e3', type=vector, default=(0., 0., 1.), help=CHARGE_E3_HELP)
+    potential_parser.add_argument('-nx', type=int, default=20, help=CHARGE_NX_HELP)
+    potential_parser.add_argument('-ny', type=int, default=20, help=CHARGE_NY_HELP)
+    potential_parser.add_argument('-nz', type=int, default=20, help=CHARGE_NZ_HELP)
+    potential_parser.add_argument('-radius', type=float, default=1, help=CHARGE_RADIUS_HELP)
+    potential_parser.add_argument('-dim', type=int, default=1, help=CHARGE_DIM_HELP)
+    potential_parser.add_argument('-exportfile', type=str, default='', help=CHARGE_EXPORTFILE_HELP)
+    potential_parser.add_argument('-method', type=str, default='FFT', help=CHARGE_METHOD_HELP)
+    potential_parser.add_argument('-format', type=str, default='gnuplot', help=CHARGE_FORMAT_HELP)
+    potential_parser.add_argument('-show', type=bool, default=True, help=CHARGE_SHOW_HELP)
 
     return parser
 
