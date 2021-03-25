@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-
 import numpy as np
 
 from .constants import pi
@@ -20,6 +17,7 @@ from . import pyqe
 # Compute the volume from a1, a2, a3 vectors in direct space.  
 def compute_volume(at1, at2, at3):
     """
+    at: cell vectors
     This function computes the cell volume per atom given the a1, a2, a3 vectors.
     As in QE.
     """

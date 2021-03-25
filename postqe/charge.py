@@ -9,7 +9,7 @@
 #
 import numpy as np
 import h5py
-from .plot import plot_1Dcharge, plot_2Dcharge, plot_3Dcharge
+from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
 
@@ -164,7 +164,6 @@ class Charge:
         self.setvars(*args, **kwargs)
 
     def setvars(self, nr_temp, charge=None, charge_diff=None):
-        breakpoint()
         nr = np.array(nr_temp)
         assert nr.shape[0] == 3
         self.nr = nr
@@ -261,56 +260,56 @@ class Charge:
 
         if not self.calculator.get_spin_polarized():  # non magnetic calculation
             if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
-                fig = plot_1Dcharge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
+                fig = plot_1d_charge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
             elif dim == 2:  # 2D section
-                fig = plot_2Dcharge(
+                fig = plot_2d_charge(
                     self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
                 )
             else:           # 3D section
-                fig = plot_3Dcharge(
+                fig = plot_3d_charge(
                     self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
                 )
         else:  # magnetic calculation, plot as ifmagn
             if ifmagn == 'up':
                 charge_up = (self.charge + self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(
+                    fig = plot_1d_charge(
                         charge_up, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
                     )
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(
+                    fig = plot_2d_charge(
                         charge_up, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
                     )
                 else:  # 3D section
-                    fig = plot_3Dcharge(
+                    fig = plot_3d_charge(
                         charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
                     )
             elif ifmagn == 'down':
                 charge_down = (self.charge - self.charge_diff) / 2.0
                 if dim == 1:  # 1D section
-                    fig = plot_1Dcharge(
+                    fig = plot_1d_charge(
                         charge_down, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
                     )
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(
+                    fig = plot_2d_charge(
                         charge_down, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
                     )
                 else:  # 3D section
-                    fig = plot_3Dcharge(
+                    fig = plot_3d_charge(
                         charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
                     )
             else:
                 if dim == 1:  # 1D section ylab='charge', plot_file='', format='', method='FFT'
-                    fig = plot_1Dcharge(
+                    fig = plot_1d_charge(
                         self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
                     )
                 elif dim == 2:  # 2D section
-                    fig = plot_2Dcharge(
+                    fig = plot_2d_charge(
                         self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
                     )
                 else:  # 3D section
-                    fig = plot_3Dcharge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
-                                        method, format)
+                    fig = plot_3d_charge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
+                                         method, format)
 
         if dim < 3:
             if show == True:
@@ -365,7 +364,7 @@ class Potential(Charge):
 
         if self.pot_type=='v_bare':
             self.v = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+                ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
             )
         elif self.pot_type=='v_h':
             self.v = compute_v_h(self.charge, ecutrho, alat, b)
@@ -430,13 +429,13 @@ class Potential(Charge):
         G = compute_G(struct_info['b'], self.nr)
 
         if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
-            fig = plot_1Dcharge(self.v, G, struct_info, x0, e1, nx, self.pot_type, plot_file, method, format)
+            fig = plot_1d_charge(self.v, G, struct_info, x0, e1, nx, self.pot_type, plot_file, method, format)
         elif dim == 2:  # 2D section
-            fig = plot_2Dcharge(
+            fig = plot_2d_charge(
                 self.v, G, struct_info, x0, e1, e2, nx, ny, radius, self.pot_type, plot_file, method, format
             )
         else:           # 3D section
-            fig = plot_3Dcharge(
+            fig = plot_3d_charge(
                 self.v, G, struct_info, x0, e1, e2, e3, nx, ny, nz, self.pot_type, plot_file, method, format
             )
 

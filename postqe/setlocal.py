@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2021, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-
 import numpy as np
 import os
 from .readutils import read_pseudo_file
@@ -45,7 +42,8 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     """
     msh = len(rab)
     tpiba2 = (np.pi * 2.e0 / alat) ** 2
-    return pyqe.pyqe_vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp, tpiba2=tpiba2, gl=gl, omega=omega)
+    return pyqe.pyqe_vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp,
+                               tpiba2=tpiba2, gl=gl, omega=omega)
 
 
 def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
@@ -65,7 +63,8 @@ def compute_struct_fact(tau, alat, g):
     return str_fact
 
 
-def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho, pseudodir="./"):
+def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho,
+                  pseudodir="./"):
     omega = abs(at1[0] * at2[1] * at3[2] + at1[1] * at2[2] * at3[0] + at1[2] * at2[0] * at3[1] -
                 at3[0] * at2[1] * at1[2] - at3[1] * at2[2] * at1[0] - at3[2] * at2[0] * at3[1])
 

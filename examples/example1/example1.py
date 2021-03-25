@@ -10,7 +10,7 @@ if __name__ == "__main__":
     from ase import units
     from postqe import get_eos
 
-    eos = get_eos(prefix='Nienergies.dat', eos_type='murnaghan')
+    eos = get_eos(label='Nienergies', eos_type='murnaghan')
     v0, e0, B = eos.fit()
     # Print some data and plot
     print('Equilibrium volume = '+str(v0)+' Ang^3')

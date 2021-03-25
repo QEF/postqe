@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2021, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -33,8 +33,9 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     """
     Create band structure object from Atoms or calculator.
 
-    This functions is rewritten here to allow the user to set the reference energy level.
-    (The method calc.get_fermi_level() can fail in some cases as for insulators or for non-scf calculations)
+    This functions is rewritten here to allow the user to set the
+    reference energy level. The method calc.get_fermi_level() can
+    fail in some cases as for insulators or for non-scf calculations.
     """
 
     atoms = atoms if atoms is not None else calc.atoms
@@ -86,7 +87,8 @@ class PostqeCalculator(FileIOCalculator):
             raise ValueError("{!r} is not a directory path".format(outdir))
         self.outdir = outdir
         self.xml_document = qeschema.PwDocument(schema=schema)
-        Calculator.__init__(self, restart, ignore_bad_restart_file, label, atoms, command=command, **kwargs)
+        Calculator.__init__(self, restart, ignore_bad_restart_file, label, atoms,
+                            command=command, **kwargs)
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=()):
         """
@@ -170,7 +172,8 @@ class PostqeCalculator(FileIOCalculator):
 
         # Now the atoms in the unit cell
         for atomx in a_p:
-            # TODO: extend to all possible cases the symbol splitting (for now, only numbering up to 9 work). Not a very common case...
+            # TODO: extend to all possible cases the symbol splitting
+            #  (for now, only numbering up to 9 work). Not a very common case...
             symbol = split_atomic_symbol(atomx['@name'])[0]
             x = float(atomx['$'][0])
             y = float(atomx['$'][1])
@@ -214,7 +217,7 @@ class PostqeCalculator(FileIOCalculator):
         try:
             ef = float(self.output["band_structure"]["fermi_energy"]) * units.Ry
             return ef
-        except:
+        except (TypeError, KeyError):
             raise Warning("Fermi energy not defined or not in output file")
 
     def get_eigenvalues(self, kpt=0, spin=0):
@@ -235,7 +238,8 @@ class PostqeCalculator(FileIOCalculator):
                 # get bands for spin down
                 for j in range(nbnd // 2, nbnd):
                     # eigenvalue at k-point kpt, band j, spin down
-                    eigenvalues[j - nbnd // 2] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry
+                    eigenvalues[j - nbnd // 2] = float(ks_energies[kpt]['eigenvalues'][j]) * \
+                                                 2 * nat * units.Ry
         else:
             # non magnetic
             eigenvalues = np.zeros(nbnd)
@@ -275,12 +279,14 @@ class PostqeCalculator(FileIOCalculator):
 
     # Here are a number of additional getter methods, some very specific for Quantum Espresso
     def get_nr(self):
-        nr = np.array([self.output["basis_set"]["fft_grid"]["@nr1"], self.output["basis_set"]["fft_grid"]["@nr2"],
+        nr = np.array([self.output["basis_set"]["fft_grid"]["@nr1"],
+                       self.output["basis_set"]["fft_grid"]["@nr2"],
                        self.output["basis_set"]["fft_grid"]["@nr3"]], int)
         return nr
 
     def get_nr_smooth(self):
-        nr_smooth = np.array([self.output["basis_set"]["fft_smooth"]["@nr1"], self.output["basis_set"]["fft_smooth"]["@nr2"],
+        nr_smooth = np.array([self.output["basis_set"]["fft_smooth"]["@nr1"],
+                              self.output["basis_set"]["fft_smooth"]["@nr2"],
                               self.output["basis_set"]["fft_smooth"]["@nr3"]], int)
         return nr_smooth
 
@@ -297,9 +303,10 @@ class PostqeCalculator(FileIOCalculator):
         return float(self.output["basis_set"]["ecutrho"])
 
     def get_pseudodir(self):
-        return (self.input["control_variables"]["pseudo_dir"])
+        return self.input["control_variables"]["pseudo_dir"]
 
-    # TODO: these two methods are just a temporary patch (a and b vectors can be obtained from Atoms object)
+    # TODO: these two methods are just a temporary patch
+    #  (a and b vectors can be obtained from Atoms object)
     def get_a_vectors(self):
         a1 = np.array(self.output["atomic_structure"]["cell"]["a1"])
         a2 = np.array(self.output["atomic_structure"]["cell"]["a2"])
@@ -313,21 +320,17 @@ class PostqeCalculator(FileIOCalculator):
         return np.array([b1, b2, b3])
 
     def get_atomic_positions(self):
-        a_p = (self.output["atomic_structure"]["atomic_positions"]["atom"])
-        if (type(a_p) == type([])):
-            atomic_positions = a_p
-        else:
-            atomic_positions = [a_p]
+        atomic_positions = self.output["atomic_structure"]["atomic_positions"]["atom"]
+        if not isinstance(atomic_positions, list):
+            return [atomic_positions]
         return atomic_positions
 
     def get_atomic_species(self):
-        a_s = (self.output["atomic_species"]["species"])
+        atomic_species = self.output["atomic_species"]["species"]
         # for subsequent loops it is important to have always lists for atomic_positions
         # and atomic_species. If this is not, convert
-        if (type(a_s) == type([])):
-            atomic_species = a_s
-        else:
-            atomic_species = [a_s]
+        if not isinstance(atomic_species, list):
+            return [atomic_species]
         return atomic_species
 
     # TODO: methods below are not implemented yet (do it if necessary)
@@ -336,14 +339,14 @@ class PostqeCalculator(FileIOCalculator):
 
         The coordinates are relative to reciprocal lattice vectors."""
         raise NotImplementedError
-        #return kpoints
+        # return kpoints
 
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone.
 
         The coordinates are relative to reciprocal lattice vectors."""
         raise NotImplementedError
-        #return kpoints
+        # return kpoints
 
     def get_pseudo_density(self, spin=None, pad=True):
         """Return pseudo-density array.
@@ -374,37 +377,45 @@ class PostqeCalculator(FileIOCalculator):
 
 
 # These lists contain the input parameters of pw.x divided per section (control,system,etc.)
-# They correspond to Fortran namelists and are necessary to write the different sections of the input file from
-# a unique dictionary of parameters (as in the base class FileIOCalculator)
+# They correspond to Fortran namelists and are necessary to write the different sections of
+# the input file from a unique dictionary of parameters (as in the base class FileIOCalculator)
 
-control_keys = ['calculation', 'title', 'verbosity', 'restart_mode', 'wf_collect', 'nstep', 'iprint', 'tstress',
-                'tprnfor', 'dt', 'outdir', 'wfcdir', 'prefix', 'lkpoint_dir', 'max_seconds', 'etot_conv_thr',
-                'forc_conv_thr', 'disk_io', 'pseudo_dir', 'tefield', 'dipfield', 'lelfield', 'nberrycyc', 'lorbm',
-                'lberry', 'gdir', 'nppstr', 'lfcpopt', 'monopole']
+control_keys = ['calculation', 'title', 'verbosity', 'restart_mode', 'wf_collect',
+                'nstep', 'iprint', 'tstress', 'tprnfor', 'dt', 'outdir', 'wfcdir',
+                'prefix', 'lkpoint_dir', 'max_seconds', 'etot_conv_thr', 'forc_conv_thr',
+                'disk_io', 'pseudo_dir', 'tefield', 'dipfield', 'lelfield', 'nberrycyc',
+                'lorbm', 'lberry', 'gdir', 'nppstr', 'lfcpopt', 'monopole']
 
-system_keys = ['ibrav', 'celldm', 'A', 'B', 'C', 'cosAB', 'cosAC', 'cosBC', 'nat', 'ntyp', 'nbnd', 'tot_charge',
-               'tot_magnetization', 'starting_magnetization', 'ecutwfc', 'ecutrho', 'ecutfock', 'nr1', 'nr2', 'nr3',
-               'nr1s', 'nr2s', 'nr3s', 'nosym', 'nosym_evc', 'noinv', 'no_t_rev', 'force_symmorphic', 'use_all_frac',
-               'occupations', 'one_atom_occupations', 'starting_spin_angle', 'degauss', 'smearing', 'nspin', 'noncolin',
-               'ecfixed', 'qcutz', 'q2sigma', 'input_dft', 'exx_fraction', 'screening_parameter', 'exxdiv_treatment',
-               'x_gamma_extrapolation', 'ecutvcut', 'nqx1', 'nqx2', 'nqx3', 'lda_plus_u', 'lda_plus_u_kind',
-               'Hubbard_U', 'Hubbard_J0', 'Hubbard_alpha', 'Hubbard_beta', 'Hubbard_J(i,ityp)',
-               'starting_ns_eigenvalue(m,ispin,I)', 'U_projection_type', 'edir', 'emaxpos', 'eopreg', 'eamp',
-               'angle1', 'angle2', 'constrained_magnetization', 'fixed_magnetization', 'lambda', 'report', 'lspinorb',
-               'assume_isolated', 'esm_bc', 'esm_w', 'esm_efield', 'esm_nfit', 'fcp_mu', 'vdw_corr',
-               'london', 'london_s6', 'london_c6', 'london_rvdw', 'london_rcut', 'ts_vdw_econv_thr', 'ts_vdw_isolated',
-               'xdm', 'xdm_a1', 'xdm_a2', 'space_group', 'uniqueb', 'origin_choice', 'rhombohedral', 'zmon', 'realxz',
-               'block', 'block_1', 'block_2', 'block_height']
+system_keys = ['ibrav', 'celldm', 'A', 'B', 'C', 'cosAB', 'cosAC', 'cosBC', 'nat',
+               'ntyp', 'nbnd', 'tot_charge', 'tot_magnetization', 'starting_magnetization',
+               'ecutwfc', 'ecutrho', 'ecutfock', 'nr1', 'nr2', 'nr3', 'nr1s', 'nr2s', 'nr3s',
+               'nosym', 'nosym_evc', 'noinv', 'no_t_rev', 'force_symmorphic', 'use_all_frac',
+               'occupations', 'one_atom_occupations', 'starting_spin_angle', 'degauss',
+               'smearing', 'nspin', 'noncolin', 'ecfixed', 'qcutz', 'q2sigma', 'input_dft',
+               'exx_fraction', 'screening_parameter', 'exxdiv_treatment',
+               'x_gamma_extrapolation', 'ecutvcut', 'nqx1', 'nqx2', 'nqx3', 'lda_plus_u',
+               'lda_plus_u_kind', 'Hubbard_U', 'Hubbard_J0', 'Hubbard_alpha', 'Hubbard_beta',
+               'Hubbard_J(i,ityp)', 'starting_ns_eigenvalue(m,ispin,I)', 'U_projection_type',
+               'edir', 'emaxpos', 'eopreg', 'eamp', 'angle1', 'angle2',
+               'constrained_magnetization', 'fixed_magnetization', 'lambda', 'report',
+               'lspinorb', 'assume_isolated', 'esm_bc', 'esm_w', 'esm_efield', 'esm_nfit',
+               'fcp_mu', 'vdw_corr', 'london', 'london_s6', 'london_c6', 'london_rvdw',
+               'london_rcut', 'ts_vdw_econv_thr', 'ts_vdw_isolated', 'xdm', 'xdm_a1',
+               'xdm_a2', 'space_group', 'uniqueb', 'origin_choice', 'rhombohedral',
+               'zmon', 'realxz', 'block', 'block_1', 'block_2', 'block_height']
 
-electrons_keys = ['electron_maxstep', 'scf_must_converge', 'conv_thr', 'adaptive_thr', 'conv_thr_init',
-                  'conv_thr_multi', 'mixing_mode', 'mixing_beta', 'mixing_ndim', 'mixing_fixed_ns', 'diagonalization',
-                  'ortho_para', 'diago_thr_init', 'diago_cg_maxiter', 'diago_david_ndim', 'diago_full_acc', 'efield',
-                  'efield_cart', 'efield_phase', 'startingpot', 'startingwfc', 'tqr']
+electrons_keys = ['electron_maxstep', 'scf_must_converge', 'conv_thr', 'adaptive_thr',
+                  'conv_thr_init', 'conv_thr_multi', 'mixing_mode', 'mixing_beta',
+                  'mixing_ndim', 'mixing_fixed_ns', 'diagonalization', 'ortho_para',
+                  'diago_thr_init', 'diago_cg_maxiter', 'diago_david_ndim',
+                  'diago_full_acc', 'efield', 'efield_cart', 'efield_phase',
+                  'startingpot', 'startingwfc', 'tqr']
 
 
-ions_keys = ['ion_dynamics', 'ion_positions', 'pot_extrapolation', 'wfc_extrapolation', 'remove_rigid_rot',
-             'ion_temperature', 'tempw', 'tolp', 'delta_t', 'nraise', 'refold_pos', 'upscale', 'bfgs_ndim',
-             'trust_radius_max', 'trust_radius_min', 'trust_radius_ini', 'w_1', 'w_2']
+ions_keys = ['ion_dynamics', 'ion_positions', 'pot_extrapolation', 'wfc_extrapolation',
+             'remove_rigid_rot', 'ion_temperature', 'tempw', 'tolp', 'delta_t', 'nraise',
+             'refold_pos', 'upscale', 'bfgs_ndim', 'trust_radius_max', 'trust_radius_min',
+             'trust_radius_ini', 'w_1', 'w_2']
 
 cell_keys = ['cell_dynamics', 'press', 'wmass', 'cell_factor', 'press_conv_thr', 'cell_dofree']
 
@@ -423,16 +434,19 @@ def write_type(f, key, value):
 
 class EspressoCalculator(PostqeCalculator):
     """
-    This is a full calculator for Quantum Espresso, including generating input file and running the code.
-    The input file is the old text format which will be substituted by a new xml format in the future.
+    This is a full calculator for Quantum Espresso, including generating input file
+    and running the code. The input file is the old text format which will be
+    substituted by a new xml format in the future.
 
     To use the full calculator, some input parameters for QE must be handled.
     """
     implemented_properties = ['energy', 'forces']
-    command = '/home/brunato/Development/projects/postqe/postqe/fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
+    command = os.path.join(os.path.dirname(__file__),
+                           'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out')
 
     # These are reasonable default values for the REQUIRED parameters in pw.x input.
-    # All other default values are not set here and let to pw.x, unless the user defines them in the calculator.
+    # All other default values are not set here and let to pw.x, unless the user
+    # defines them in the calculator.
     default_parameters = dict(
         ibrav=0,
         nat=1,
@@ -440,6 +454,8 @@ class EspressoCalculator(PostqeCalculator):
         ecutwfc=50,
         kpoints=[1, 1, 1, 0, 0, 0]
     )
+    spinpol = None
+    kpts = None
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='pw', atoms=None, command=None, pp_dict=None, **kwargs):
@@ -492,7 +508,7 @@ class EspressoCalculator(PostqeCalculator):
         if 'numbers' in system_changes or 'initial_magmoms' in system_changes:
             self.initialize(atoms)
 
-        print ("Writing input file... " + self.label + ".in")
+        print("Writing input file... " + self.label + ".in")
         param = self.parameters   # copy the parameters into param
 
         finput = open(self.label + '.in', 'w')
@@ -557,7 +573,7 @@ class EspressoCalculator(PostqeCalculator):
         finput.write('K_POINTS tpiba\n')
         finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
         for i in range(0, len(self.kpts)):
-            finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')   # assume unary weight for all
+            finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')  # assume unary weight for all
 
         # TODO: check if it makes sense in some cases to let QE generate the Monkhorst mesh
         # finput.write('K_POINTS AUTOMATIC\n')
@@ -566,8 +582,7 @@ class EspressoCalculator(PostqeCalculator):
         finput.close()
 
     def initialize(self, atoms):
-
-        self.parameters['nat'] = atoms.get_number_of_atoms()  # how many atoms are in the atoms object
+        self.parameters['nat'] = atoms.get_number_of_atoms()
         numbers = atoms.get_atomic_numbers().copy()
         self.species = []
         for a, Z in enumerate(numbers):
@@ -590,7 +605,7 @@ class EspressoCalculator(PostqeCalculator):
         try:
             print(self.directory)
             os.chdir(self.directory)
-            print (command)
+            print(command)
             errorcode = subprocess.call(command, shell=True)
         finally:
             os.chdir(olddir)

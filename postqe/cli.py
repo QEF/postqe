@@ -14,6 +14,12 @@ import sys
 import time
 import argparse
 
+
+
+
+
+
+
 ##
 # CLI parser help messages
 #
@@ -223,7 +229,7 @@ def main():
             window = None
         else:
             window = (pars.emin, pars.emax)
-        api.comput_dos(
+        api.compute_dos(
             pars.prefix, pars.outdir, pars.schema, pars.width, window, pars.npts, pars.fileout,
             pars.fileplot, pars.show
         )
@@ -233,6 +239,7 @@ def main():
             pars.e2, pars.ny, pars.e3, pars.nz, pars.radius, pars.dim, pars.ifmagn, pars.exportfile,
             pars.method, pars.format, pars.show
         )
+        api.new_get_charge(prefix, outdir, filplot)
     elif pars.commands == 'potential':
         api.compute_potential(
             pars.prefix, pars.outdir, pars.schema, pars.pot_type, pars.fileout, pars.x0,
