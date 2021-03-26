@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright (c), 2016-2018, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2021, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -9,10 +9,11 @@
 #
 import unittest
 import os
-import numpy as np
+import pathlib
 
 from ase.calculators.calculator import kpts2ndarray
-from postqe import PostqeCalculator
+from ase.spectrum.band_structure import BandStructure
+from postqe import EspressoCalculator, PostqeCalculator, get_band_structure
 
 
 def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
@@ -42,15 +43,40 @@ def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
     return True
 
 
-class TestPostQE(unittest.TestCase):
+class TestPostqeCalculators(unittest.TestCase):
 
     def abspath(self, rel_path):
-        return os.path.join(os.path.abspath(os.path.dirname(__file__)), rel_path)
+        return str(pathlib.Path(__file__).parent.absolute().joinpath(rel_path))
+
+    def test_calculator_paths(self):
+        example_dir = self.abspath('examples')
+        label = self.abspath('examples/Si')
+
+        calculator = EspressoCalculator(label=label)
+        self.assertEqual(calculator.label, label)
+        self.assertEqual(calculator.prefix, 'Si')
+        self.assertEqual(calculator.directory, example_dir)
+        self.assertEqual(calculator.outdir, example_dir)
+
+        calculator = EspressoCalculator(label='Si', outdir=example_dir)
+        self.assertEqual(calculator.label, label)
+        self.assertEqual(calculator.prefix, 'Si')
+        self.assertEqual(calculator.directory, example_dir)
+        self.assertEqual(calculator.outdir, example_dir)
+
+        with self.assertRaises(ValueError):
+            EspressoCalculator(label='./Si', outdir=example_dir)
+
+        with self.assertRaises(ValueError):
+            EspressoCalculator(label=label, outdir=example_dir)
+
+
+class TestPostqeAPI(unittest.TestCase):
+
+    def abspath(self, rel_path):
+        return str(pathlib.Path(__file__).parent.absolute().joinpath(rel_path))
 
     def test_get_band_structure(self):
-        from ase.dft.band_structure import BandStructure
-        from postqe import get_band_structure
-
         bs = get_band_structure(
             prefix=self.abspath('examples/Si'),
             schema="releases/qes-20180510.xsd",

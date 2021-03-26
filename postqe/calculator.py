@@ -167,16 +167,25 @@ class EspressoCalculator(FileIOCalculator):
                  label='pwscf', atoms=None, command=None, outdir=None,
                  schema=None, pp_dict=None, **kwargs):
 
-        if outdir is None:
+        # Check outdir and label to fit the preferred format for an ASE calculator
+        if outdir is not None:
+            pass
+        elif '/' in label:
+            outdir, label = label.rsplit('/', 1)
+        else:
             outdir = os.environ.get('ESPRESSO_TMPDIR', '.')
+
         if not os.path.isdir(outdir):
             raise ValueError("{!r} is not a directory path".format(outdir))
 
-        self.outdir = outdir
         self.pp_dict = pp_dict
         self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(restart, ignore_bad_restart_file, label, atoms,
                          command, directory=outdir, **kwargs)
+
+    @property
+    def outdir(self):
+        return self.directory
 
     @property
     def schema(self):

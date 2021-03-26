@@ -199,42 +199,43 @@ def get_cli_parser():
 def main():
     from . import api
 
-    if sys.version_info < (3, 4, 0):
-        sys.stderr.write("You need python 3.4 or later to run this program\n")
+    if sys.version_info < (3, 6):
+        sys.stderr.write("You need python 3.6 or later to run this program\n")
         sys.exit(1)
 
     start_time = time.time()
     cli_parser = get_cli_parser()
-    pars = cli_parser.parse_args()
+    args = cli_parser.parse_args()
 
-    if pars.commands == 'eos':
-        api.compute_eos(pars.prefix, pars.outdir, pars.eos_type, pars.fileout, pars.fileplot, pars.show)
-    elif pars.commands == 'bands':
+    if args.commands == 'eos':
+        api.compute_eos(args.prefix, args.outdir, args.eos_type,
+                        args.fileout, args.fileplot, args.show)
+    elif args.commands == 'bands':
         api.compute_band_structure(
-            pars.prefix, pars.outdir, pars.schema, pars.reference_energy, pars.emin,
-            pars.emax, pars.fileplot, pars.show
+            args.prefix, args.outdir, args.schema, args.reference_energy, args.emin,
+            args.emax, args.fileplot, args.show
         )
-    elif pars.commands == 'dos':
-        if pars.emin is None or pars.max is None:
+    elif args.commands == 'dos':
+        if args.emin is None or args.max is None:
             window = None
         else:
-            window = (pars.emin, pars.emax)
+            window = (args.emin, args.emax)
         api.compute_dos(
-            pars.prefix, pars.outdir, pars.schema, pars.width, window, pars.npts, pars.fileout,
-            pars.fileplot, pars.show
+            args.prefix, args.outdir, args.schema, args.width, window, args.npts, args.fileout,
+            args.fileplot, args.show
         )
-    elif pars.commands == 'charge':
+    elif args.commands == 'charge':
         api.compute_charge(
-            pars.prefix, pars.outdir, pars.schema, pars.fileout, pars.x0, pars.e1, pars.nx,
-            pars.e2, pars.ny, pars.e3, pars.nz, pars.radius, pars.dim, pars.ifmagn, pars.exportfile,
-            pars.method, pars.format, pars.show
+            args.prefix, args.outdir, args.schema, args.fileout, args.x0, args.e1, args.nx,
+            args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn, args.exportfile,
+            args.method, args.format, args.show
         )
-        api.new_get_charge(prefix, outdir, filplot)
-    elif pars.commands == 'potential':
+        api.new_get_charge(args.prefix, args.outdir, args.filplot)
+    elif args.commands == 'potential':
         api.compute_potential(
-            pars.prefix, pars.outdir, pars.schema, pars.pot_type, pars.fileout, pars.x0,
-            pars.e1, pars.nx, pars.e2, pars.ny, pars.e3, pars.nz, pars.radius, pars.dim,
-            pars.exportfile, pars.method, pars.format, pars.show
+            args.prefix, args.outdir, args.schema, args.pot_type, args.fileout, args.x0,
+            args.e1, args.nx, args.e2, args.ny, args.e3, args.nz, args.radius, args.dim,
+            args.exportfile, args.method, args.format, args.show
         )
     else:
         print('Command not implemented! Exiting...')

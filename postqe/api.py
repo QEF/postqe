@@ -16,13 +16,6 @@ from .charge import Charge, Potential
 from .readutils import read_EtotV
 from .calculator import PostqeCalculator
 
-default_prefix = 'pwscf'
-
-
-def set_prefix(prefix):
-    global default_prefix
-    default_prefix = prefix
-
 
 def get_label(prefix='pwscf', outdir=None):
     """Gets a filepath for Quantum ESPRESSO environment."""
@@ -35,6 +28,7 @@ def get_label(prefix='pwscf', outdir=None):
     label = os.path.join(outdir, '{}.save'.format(prefix))
     return label
 
+
 ## New CLI-API interfaces ###
 
 def new_get_charge(prefix=None, output=None, filplot=None):
@@ -46,10 +40,6 @@ def new_get_charge(prefix=None, output=None, filplot=None):
     return plot
 
 
-
-
-
-
 ## New CLI-API interfaces ###
 
 def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
@@ -59,8 +49,9 @@ def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     :param plot_num:
     :param filplot: if `None` returns the computed plot object, otherwise save \
     it to the specified file.
-    :param prefix:
-    :param output:
+    :param prefix: name of the input file with volumes and energies
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param kwargs: additional arguments for plot computation.
     """
     plot = []
@@ -118,28 +109,26 @@ def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     return plot
 
 
-
-
 def get_eos(prefix, outdir=None, eos_type='murnaghan'):
     """
     Fits an Equation of state of type *eos* and returns an QEEquationOfState object.
     Different equation of states are available (see below).
 
     :param prefix: name of the input file with volumes and energies
-    :param outdir: directory containing the input data. Default to the value of
-            ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
-    :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n
-            'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n
-            'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n
-            \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n
-            'taylor' -> A third order Taylor series expansion around the minimum volume\n
-            'vinet' -> Vinet EOS, PRB 70, 224107 \n
-            'birch' -> Birch EOS, Intermetallic compounds: Principles and Practice, Vol I: Principles, p. 195\n
-            'birchmurnaghan' -> Birch-Murnaghan EOS, PRB 70, 224107\n
-            'pouriertarantola' -> Pourier-Tarantola EOS, PRB 70, 224107\n
-            'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n
-            'p3' -> A third order inverse polynomial fit\n
-
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
+    :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n\
+    'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983)\n\
+    'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n\
+    \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n\
+    'taylor' -> A third order Taylor series expansion around the minimum volume\n\
+    'vinet' -> Vinet EOS, PRB 70, 224107 \n\
+    'birch' -> Birch EOS, Intermetallic compounds: Principles and Practice, \
+    Vol I: Principles, p. 195\n\
+    'birchmurnaghan' -> Birch-Murnaghan EOS, PRB 70, 224107\n\
+    'pouriertarantola' -> Pourier-Tarantola EOS, PRB 70, 224107\n\
+    'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n\
+    'p3' -> A third order inverse polynomial fit\n
     :return: an QEEquationOfState object
     """
 
@@ -151,30 +140,32 @@ def get_eos(prefix, outdir=None, eos_type='murnaghan'):
     return eos
 
 
-def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='', fileplot='EOSplot', show=True, ax=None):
+def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='',
+                fileplot='EOSplot', show=True, ax=None):
     """
     Fits an Equation of state of type *eos_type*, writes the results into *fileout* (optionally)
     and creates a Matplotlib figure. Different equation of states are available (see below).
 
     :param prefix: name of the input file with volumes and energies
-    :param outdir: directory containing the input data. Default to the value of
-            ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are: \
-    'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983); \
-            'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n
-            \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n
-            'taylor' -> A third order Taylor series expansion around the minimum volume\n
-            'vinet' -> Vinet EOS, PRB 70, 224107 \n
-            'birch' -> Birch EOS, Intermetallic compounds: Principles and Practice, Vol I: Principles, p. 195\n
-            'birchmurnaghan' -> Birch-Murnaghan EOS, PRB 70, 224107\n
-            'pouriertarantola' -> Pourier-Tarantola EOS, PRB 70, 224107\n
-            'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n
-            'p3' -> A third order inverse polynomial fit
+    'murnaghan' (default) -> Murnaghan EOS, PRB 28, 5480 (1983);\n \
+    'sjeos' -> A third order inverse polynomial fit, PhysRevB.67.026103\n\
+    \t\tE(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3)\n\
+    'taylor' -> A third order Taylor series expansion around the minimum volume\n\
+    'vinet' -> Vinet EOS, PRB 70, 224107 \n\
+    'birch' -> Birch EOS, Intermetallic compounds: Principles and Practice, \
+    Vol I: Principles, p. 195\n\
+    'birchmurnaghan' -> Birch-Murnaghan EOS, PRB 70, 224107\n\
+    'pouriertarantola' -> Pourier-Tarantola EOS, PRB 70, 224107\n\
+    'antonschmidt' -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003)\n\
+    'p3' -> A third order inverse polynomial fit
     :param fileout: output file with fitting data and results (default='', not written).
     :param fileplot: output plot file (default='EOSplot') in png format.
     :param show: True -> plot results with Matplotlib; None or False -> do nothing. Default = True
-    :param ax: a Matplotlib "Axes" instance (see Matplotlib documentation for details). If ax=None (default), creates
-            a new one
+    :param ax: a Matplotlib "Axes" instance (see Matplotlib documentation for details). \
+    If ax=None (default), creates a new one.
     :return: an QEEquationOfState object and a Matplotlib figure object
     """
     eos = get_eos(prefix, outdir, eos_type)
@@ -191,14 +182,13 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     containing the results of a proper calculation along a path in the Brilluoin zone.
 
     :param prefix: prefix of saved output file
-    :param outdir: directory containing the input data. Default to the value of
-            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param reference_energy: the Fermi level, defines the zero of the plot along y axis
     :return: an ASE band structure object
     """
-    label = get_label(prefix, outdir)
-    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc = PostqeCalculator(atoms=None, label=prefix, outdir=outdir, schema=schema)
     calc.read_results()
 
     atoms = calc.get_atoms_from_xml_output()
@@ -237,8 +227,8 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=100)
     results of a DOS calculation.
 
     :param prefix: prefix of saved output file
-    :param outdir: directory containing the input data. Default to the value of
-            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise.
     :param schema: the XML schema to be used to read and validate the XML output file
     :param width: width of the gaussian to be used for the DOS (in eV)
     :param window: a tuple (emin, emax) that defines the minimum and maximum energies for the DOS
@@ -341,40 +331,45 @@ def compute_charge(prefix, outdir=None, schema=None, fileout='', x0=(0., 0., 0.)
     different formats (XSF, cube, Gnuplot, etc.).
 
     :param prefix: prefix of saved output file
-    :param outdir: directory containing the input data. Default to the value of
-            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
-    :param fileout: text file with the full charge data as in the HDF5 file. Default='', nothing is written.
+    :param fileout: text file with the full charge data as in the HDF5 file. Default='', \
+    nothing is written.
     :param x0: 3D vector (a tuple), origin of the line
     :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
     :param nx, ny, nz: number of points along e1, e2, e3
     :param radius: radious of the sphere in the polar average method
     :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
-    :param ifmagn: for a magnetic calculation, 'total' plot the total charge, 'up' plot the charge with spin up,
-                   'down' for spin down
-    :param plot_file: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
-    :param method: interpolation method. Available choices are:\n
-                    'FFT' -> Fourier interpolation (default)\n
-                    'polar' -> 2D polar plot on a sphere\n
-                    'spherical' -> 1D plot of the spherical average\n
+    :param ifmagn: for a magnetic calculation, 'total' plot the total charge, \
+    'up' plot the charge with spin up, 'down' for spin down.
+    :param plot_file: file where plot data are exported in the chosen format \
+    (Gnuplot, XSF, cube Gaussian, etc.).
+    :param method: interpolation method. Available choices are:\n\
+                    'FFT' -> Fourier interpolation (default)\n\
+                    'polar' -> 2D polar plot on a sphere\n\
+                    'spherical' -> 1D plot of the spherical average\n\
                     'splines' -> not implemented
-    :param format: format of the (optional) exported file. Available choices are:\n
-                    'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.\n
-                    'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.\n
-                    'cube' -> cube Gaussian format. Available for 3D sections.\n
-                    'contour' -> format for the contour.x code of Quantum Espresso.\n
+    :param format: format of the (optional) exported file. Available choices are:\n\
+                    'gnuplot' -> plain text format for Gnuplot (default). Available \
+                    for 1D and 2D sections.\n\
+                    'xsf' -> XSF format for the XCrySDen program. Available for 2D \
+                    and 3D sections.\n\
+                    'cube' -> cube Gaussian format. Available for 3D sections.\n\
+                    'contour' -> format for the contour.x code of Quantum Espresso.\n\
                     'plotrho' -> format for the plotrho.x code of Quantum Espresso.\n
     :param show: if True, show the Matplotlib plot (only for 1D and 2D sections)
-    :return: a Charge object and a Matplotlib figure object for 1D and 2D sections,
-             a Charge object and None for 3D sections
+    :return: a Charge object and a Matplotlib figure object for 1D and 2D sections, \
+    a Charge object and None for 3D sections
     """
 
     charge = get_charge(prefix=prefix, outdir=outdir, schema=schema)
     if fileout != '':
         charge.write(fileout)
 
-    figure = charge.plot(x0=x0, e1=e1, nx=nx, e2=e2, ny=ny, e3=e3, nz=nz, radius=radius, dim=dim,
-                         ifmagn=ifmagn, plot_file=plot_file, method=method, format=format, show=show)
+    figure = charge.plot(x0=x0, e1=e1, nx=nx, e2=e2, ny=ny, e3=e3, nz=nz,
+                         radius=radius, dim=dim, ifmagn=ifmagn, plot_file=plot_file,
+                         method=method, format=format, show=show)
 
     return charge, figure
 
@@ -387,8 +382,8 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     exchange-correlation (pot_type='v_xc') and total (pot_type='v_tot').
 
     :param prefix: prefix of saved output files
-    :param outdir: directory containing the input data. Default to the value of
-            ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema: the XML schema to be used to read and validate the XML output file
     :param pot_type: type of the Potential ('v_tot', ....)
     :return: a Potential object
@@ -412,8 +407,9 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     return potential
 
 
-def compute_potential(prefix, outdir=None, schema=None, pot_type='v_tot', fileout='', x0 = (0., 0., 0.), e1 = (1., 0., 0.),
-                      nx = 50, e2 = (0., 1., 0.), ny = 50, e3 = (0., 0., 1.), nz = 50, radius = 1, dim = 1,
+def compute_potential(prefix, outdir=None, schema=None, pot_type='v_tot', fileout='',
+                      x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.),
+                      ny = 50, e3 = (0., 0., 1.), nz = 50, radius = 1, dim = 1,
                       plot_file = '', method = 'FFT', format = 'gnuplot', show = True):
     """
     Returns an Potential object from an output xml Espresso file and the
@@ -432,21 +428,24 @@ def compute_potential(prefix, outdir=None, schema=None, pot_type='v_tot', fileou
     :param nx, ny, nz: number of points along e1, e2, e3
     :param radius: radious of the sphere in the polar average method
     :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
-    :param plot_file: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
-    :param method: interpolation method. Available choices are:\n
-                    'FFT' -> Fourier interpolation (default)\n
-                    'polar' -> 2D polar plot on a sphere\n
-                    'spherical' -> 1D plot of the spherical average\n
+    :param plot_file: file where plot data are exported in the chosen format \
+    (Gnuplot, XSF, cube Gaussian, etc.)
+    :param method: interpolation method. Available choices are:\n\
+                    'FFT' -> Fourier interpolation (default)\n\
+                    'polar' -> 2D polar plot on a sphere\n\
+                    'spherical' -> 1D plot of the spherical average\n\
                     'splines' -> not implemented
-    :param format: format of the (optional) exported file. Available choices are:\n
-                    'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.\n
-                    'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.\n
-                    'cube' -> cube Gaussian format. Available for 3D sections.\n
-                    'contour' -> format for the contour.x code of Quantum Espresso.\n
+    :param format: format of the (optional) exported file. Available choices are:\n\
+                    'gnuplot' -> plain text format for Gnuplot (default). Available \
+                    for 1D and 2D sections.\n\
+                    'xsf' -> XSF format for the XCrySDen program. Available for 2D\
+                    and 3D sections.\n\
+                    'cube' -> cube Gaussian format. Available for 3D sections.\n\
+                    'contour' -> format for the contour.x code of Quantum Espresso.\n\
                     'plotrho' -> format for the plotrho.x code of Quantum Espresso.\n
     :param show: if True, show the Matplotlib plot (only for 1D and 2D sections)
-    :return: a Potential object and a Matplotlib figure object for 1D and 2D sections,
-             a Potential object and None for 3D sections
+    :return: a Potential object and a Matplotlib figure object for 1D and 2D sections, \
+    a Potential object and None for 3D sections
     """
 
     potential = get_potential(prefix=prefix, outdir=outdir, schema=schema, pot_type=pot_type)

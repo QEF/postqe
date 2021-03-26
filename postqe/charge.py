@@ -12,6 +12,7 @@ import h5py
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
+####### TO BE MOVED TO QESCHEMA 1.2 #######
 
 def read_charge_file_hdf5(filename):
     """
@@ -152,6 +153,10 @@ def write_charge(filename, charge, header):
                     fout.write("\n")
 
     fout.close()
+
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+####### TO BE MOVED TO QESCHEMA #######
+
 
 
 class Charge:
