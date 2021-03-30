@@ -201,7 +201,7 @@ class EspressoCalculator(FileIOCalculator):
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input parameters to files-file."""
-        FileIOCalculator.write_input(self, atoms, properties, system_changes)
+        super().write_input(atoms, properties, system_changes)
 
         if 'numbers' in system_changes or 'initial_magmoms' in system_changes:
             self.initialize(atoms)
@@ -321,10 +321,10 @@ class EspressoCalculator(FileIOCalculator):
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 
     def band_structure(self, reference=0):
-        """
-        Create band-structure object for plotting. This method is redefined here to allow
-        the user to set the reference energy (relying on the method get_fermi_level()
-        is not safe).
+        """Create band-structure object for plotting.
+
+        This method is redefined here to allow the user to set the reference
+        energy (relying on the method get_fermi_level() is not safe).
         """
         return get_band_structure(calc=self, ref=reference)
 
@@ -386,15 +386,11 @@ class EspressoCalculator(FileIOCalculator):
 
         Spin-paired calculations: 1, spin-polarized calculation: 2.
         """
-        if self.output["magnetization"]["lsda"]:
-            return 2
-        return 1
+        return 1 if not self.get_spin_polarized() else 2
 
     def get_spin_polarized(self):
-        """Is it a spin-polarized calculation?"""
-        if self.output["magnetization"]["lsda"]:
-            return True
-        return False
+        """Test if it is a spin-polarized calculation."""
+        return self.output["magnetization"]["lsda"] is True
 
     def get_k_point_weights(self):
         """Weights of the k-points.

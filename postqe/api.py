@@ -192,7 +192,7 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     calc.read_results()
 
     atoms = calc.get_atoms_from_xml_output()
-    atoms.set_calculator(calc)
+    atoms.calc = calc
     atoms.calc.read_results()
 
     return atoms.calc.band_structure(reference=reference_energy)
