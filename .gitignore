@@ -19,6 +19,6 @@ build/
 pqenv/
 .idea/
 .tox/
-doc/_*
+doc/_*/
 __pycache__/
 localfiles/
