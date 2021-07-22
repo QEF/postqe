@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-#encoding: UTF-8
-
+# -*- coding: utf-8 -*-
 """
 This is a simple example of plotting a 1D section of the electronic charge density.
 """

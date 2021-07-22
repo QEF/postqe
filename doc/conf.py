@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'postqe'
-copyright = '2017, M. Palumbo, D. Brunato, P. D. Delugas'
+copyright = '2016, M. Palumbo, D. Brunato, P. D. Delugas'
 author = 'M. Palumbo, D. Brunato, P. D. Delugas'
 
 # The version info for the project you're documenting, acts as replacement for

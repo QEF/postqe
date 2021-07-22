@@ -10,11 +10,13 @@
 # https://opensource.org/licenses/LGPL-2.1
 #
 
+# https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip
 # QE repository settings
 QE_REPOSITORY_URL="https://github.com/QEF/q-e"
 QE_REPOSITORY_NAME="q-e"
 QE_SOURCE_COMMIT="8693f23037bdee531470bcbef1db1f991ab503eb"
 QE_SOURCE_MD5SUM="433df3b608b7bde214ef6ad1a4966b1e"
+
 QE_REPOSITORY_URL="https://github.com/pietrodelugas/q-e-1" 
 QE_SOURCE_COMMIT="ade962727f70632d677a59e0a162c502d28839cf"
 QE_SOURCE_MD5SUM="713860006475948555a078a65fd048f5" 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-#encoding: UTF-8
-
+# -*- coding: utf-8 -*-
 """
 This is a simple example of fitting the total energy E as a function of the volume
 with the Murnaghan EOS.

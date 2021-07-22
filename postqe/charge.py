@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.

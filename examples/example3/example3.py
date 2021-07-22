@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-#encoding: UTF-8
-
+# -*- coding: utf-8 -*-
 """
 This is an example showing how to compute the electronic density of states (DOS or edos).
 
