@@ -7,11 +7,42 @@
 #
 
 import os
+import re
 import glob
+import pathlib
 import platform
+import shutil
+import subprocess
+import itertools
+
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
+
+
+QE_VERSION_FILEPATH = ('include/version.h', 'include/qe_version.h')
+VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
+
+
+def find_qe_installation():
+    """
+    Find a Quantum Espresso installation to be linked to postqe. The best match
+    installation found is used for building Fortran 90 wrappers.
+    Priority is for subdir installations and then for the most recent version.
+
+    :return: QE installation dynamic library path or `None` if no installation is found.
+    """
+    installations_found = []
+
+    pw_path = shutil.which('pw.x', path=os.environ.get('QE_BIN_DIR'))
+    if pw_path is not None:
+        cmd = f'readelf -Wwi {pw_path} | grep DW_AT_comp_dir'
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+        dir_paths = {line.decode('utf-8').split('): ')[-1] for line in output.splitlines()}
+        print(dir_paths)
+
+        for path in map(lambda x: pathlib.Path(x), dir_paths):
+            print(list(path.glob('*.f90')))
 
 
 def find_pyqe_module():
@@ -22,10 +53,10 @@ def find_pyqe_module():
     """
     project_dir = os.path.dirname(__file__)
     python_version = ''.join(platform.python_version_tuple()[:2])
-    platform.python_implementation()
-    pyqe_modules = glob.glob(os.path.join(project_dir, 'postqe/pyqe.*.so'))
+    pyqe_modules = glob.iglob(os.path.join(project_dir, 'postqe/pyqe.*.so'))
 
     for filename in pyqe_modules:
+        print(filename)
         if '{}m'.format(python_version) not in filename:
             continue
         elif platform.python_implementation().lower() not in filename:
@@ -39,7 +70,41 @@ def find_pyqe_module():
 
 class BuildExtCommand(build_ext):
 
+    LIB_DIRS = ['UtilXlib']  #, 'Modules'  #'upflib', 'LAXlib']
+
     def run(self):
+        make_path = pathlib.Path(__file__).parent.joinpath('postqe/fortran')
+        pw_path = shutil.which('pw.x', path=os.environ.get('QE_BIN_DIR'))
+
+        if pw_path is None:
+            print("Build f2py extension module ...")
+            os.system('make -C {} qe'.format(str(make_path)))
+            pw_path = str(make_path.joinpath('build/q-e/bin/pw.x'))
+        else:
+            cmd = f'readelf -Wwi {pw_path} | grep DW_AT_comp_dir'
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            dir_paths = {line.decode('utf-8').split('): ')[-1] for line in output.splitlines()}
+
+            # for d in dir_paths:
+            #     print(d)
+
+            qe_build_dir = pathlib.Path(os.path.commonpath(dir_paths))
+            print("QE build directory found at {}".format(str(qe_build_dir)))
+
+            fortran_files = []
+            for path in map(lambda x: qe_build_dir.joinpath(x), self.LIB_DIRS):
+                if not path.is_dir():
+                    raise OSError("Missing directory {}".format(str(path)))
+
+                fortran_files.append(path.glob('*.f90'))
+
+            fortran_files = [str(x) for x in itertools.chain.from_iterable(fortran_files)]
+            print(len(fortran_files))
+            os.chdir('postqe/wrappers')
+            os.system('f90wrap -k kind_map -m wrapper_module {}'.format(' '.join(fortran_files)))
+
+        breakpoint()
+        return
         print("Build f2py extension module ...")
         os.system('make -C postqe/fortran all')
         build_ext.run(self)
@@ -48,9 +113,11 @@ class BuildExtCommand(build_ext):
 class InstallCommand(install):
 
     def run(self):
+        print(self.__dict__)
         if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
             self.run_command('build_ext')
+        return
         install.run(self)
 
 

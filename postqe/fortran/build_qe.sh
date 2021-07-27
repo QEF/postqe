@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 # Script for download and build a local copy Quantum ESPRESSO suite, with
-# Position Independent Code shared relocatable libraries.
+# Position Independent Code shared relocatable libraries. Executed when
+# a compatible installation is not found.
 #
 # Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
@@ -102,5 +103,6 @@ unzip q-e.zip && mv $QE_REPOSITORY_NAME-$QE_SOURCE_COMMIT/ q-e/
 
 echo "Build Quantum Espresso modules ..."
 cd q-e
-./postqeconf.sh 
+# DFLAGS="-D__FFTW" MPIF90=gfortran CFLAGS=-fPIC FFLAGS="-g -fPIC"
+./configure DFLAGS="-D__FFTW" CFLAGS=-fPIC FFLAGS="-g -fPIC" --disable-parallel
 make postqe_libs

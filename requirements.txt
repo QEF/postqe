@@ -1,6 +1,7 @@
 numpy>=1.17.0
 ase~=3.20.0
 qeschema~=1.1
+f90wrap
 scipy
 h5py
 matplotlib

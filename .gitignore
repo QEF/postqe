@@ -16,6 +16,8 @@
 !.coveragerc
 dist/
 build/
+postqe/wrappers/*
+!postqe/wrappers/kind_map
 pqenv/
 .idea/
 .tox/
