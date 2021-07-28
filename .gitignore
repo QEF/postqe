@@ -18,6 +18,7 @@ dist/
 build/
 postqe/wrappers/*
 !postqe/wrappers/kind_map
+!postqe/wrappers/Makefile
 pqenv/
 .idea/
 .tox/

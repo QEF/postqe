@@ -20,7 +20,6 @@ from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 
 
-QE_VERSION_FILEPATH = ('include/version.h', 'include/qe_version.h')
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
 
 
@@ -56,7 +55,6 @@ def find_pyqe_module():
     pyqe_modules = glob.iglob(os.path.join(project_dir, 'postqe/pyqe.*.so'))
 
     for filename in pyqe_modules:
-        print(filename)
         if '{}m'.format(python_version) not in filename:
             continue
         elif platform.python_implementation().lower() not in filename:
@@ -71,40 +69,86 @@ def find_pyqe_module():
 class BuildExtCommand(build_ext):
 
     LIB_DIRS = ['UtilXlib']  #, 'Modules'  #'upflib', 'LAXlib']
+    EXCLUDED_FILES = {'mp_base_gpu.f90', 'mp_bands_util.f90'}
 
     def run(self):
-        make_path = pathlib.Path(__file__).parent.joinpath('postqe/fortran')
+        qe_topdir = os.environ.get('QE_TOPDIR')
+        if qe_topdir is None:
+            pass
+
+        qe_topdir = pathlib.Path(qe_topdir)
+
+        """
         pw_path = shutil.which('pw.x', path=os.environ.get('QE_BIN_DIR'))
 
         if pw_path is None:
-            print("Build f2py extension module ...")
-            os.system('make -C {} qe'.format(str(make_path)))
-            pw_path = str(make_path.joinpath('build/q-e/bin/pw.x'))
+            if 'QE_BIN_DIR' in os.environ:
+                msg = "Build aborted: pw.x executable not found in QE_BIN_DIR directory path!"
+            else:
+                msg = "Build aborted: pw.x executable not found in executable search paths!"
+            raise FileNotFoundError(msg)
+
+        cmd = f'readelf -Wwi {pw_path} | grep DW_AT_comp_dir'
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+
+        dir_paths = {line.decode('utf-8').split('): ')[-1] for line in output.splitlines()}
+        if not dir_paths:
+            raise FileNotFoundError("Missing QE build directory!")
+
+        # for d in dir_paths:
+        #    print(d)
+
+        # qe_build_dir = pathlib.Path(os.path.commonpath(dir_paths))
+        """
+        print("QE top directory {}".format(str(qe_topdir)))
+
+        for version_file in qe_topdir.glob('include/*version.h'):
+            with version_file.open() as fp:
+                version_number = VERSION_NUMBER_PATTERN.search(fp.read())
+
+            if version_number is None:
+                raise ValueError("Missing version label in {}".format(str(version_file)))
+
+            print("QE {}".format(version_number.group(0)))
+            if version_number.group(1).strip('\'"') < '6.8':
+                raise ValueError("Build aborted: QE version too old!")
+
+            break
         else:
-            cmd = f'readelf -Wwi {pw_path} | grep DW_AT_comp_dir'
-            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-            dir_paths = {line.decode('utf-8').split('): ')[-1] for line in output.splitlines()}
+            raise FileNotFoundError("Missing QE version file info!")
 
-            # for d in dir_paths:
-            #     print(d)
+        # invocare il configure aggiungendo l'opzione -fPIC
+        # ./configure FFLAGS = "-O3 -g -fPIC -fallow-argument-mismatch"
 
-            qe_build_dir = pathlib.Path(os.path.commonpath(dir_paths))
-            print("QE build directory found at {}".format(str(qe_build_dir)))
+        # ci pensa lui a fare la verifica.
 
-            fortran_files = []
-            for path in map(lambda x: qe_build_dir.joinpath(x), self.LIB_DIRS):
-                if not path.is_dir():
-                    raise OSError("Missing directory {}".format(str(path)))
+        fortran_files = []
+        for path in map(lambda x: qe_topdir.joinpath(x), self.LIB_DIRS):
+            if not path.is_dir():
+                raise FileNotFoundError("Missing directory {}".format(str(path)))
 
-                fortran_files.append(path.glob('*.f90'))
+            fortran_files.append(path.glob('mp_base.f90'))
 
-            fortran_files = [str(x) for x in itertools.chain.from_iterable(fortran_files)]
-            print(len(fortran_files))
-            os.chdir('postqe/wrappers')
-            os.system('f90wrap -k kind_map -m wrapper_module {}'.format(' '.join(fortran_files)))
+        fortran_files = [str(x) for x in itertools.chain.from_iterable(fortran_files)
+                         if x.name not in self.EXCLUDED_FILES]
+
+        if not fortran_files:
+            raise FileNotFoundError("Missing QE Fortran files!")
+        print("Found {} Fortran source files ...".format(len(fortran_files)))
+
+        print("Remove old wrappers ...")
+        for filepath in glob.iglob('postqe/wrappers/f90wrap_*.f90'):
+            os.unlink(filepath)
+
+        print("Create wrappers using f90wrap ...\n")
+        os.chdir('postqe/wrappers')
+        os.system('f90wrap -k kind_map -m wrapper_module {}'.format(' '.join(fortran_files)))
 
         breakpoint()
+        print("Compile wrappers with f2py ...\n")
+        os.system('f2py-f90wrap -c -m _wrapper_module f90wrap_*.f90 -L')
         return
+
         print("Build f2py extension module ...")
         os.system('make -C postqe/fortran all')
         build_ext.run(self)
@@ -113,7 +157,6 @@ class BuildExtCommand(build_ext):
 class InstallCommand(install):
 
     def run(self):
-        print(self.__dict__)
         if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
             self.run_command('build_ext')
