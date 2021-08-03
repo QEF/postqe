@@ -74,7 +74,8 @@ class BuildExtCommand(build_ext):
     def run(self):
         qe_topdir = os.environ.get('QE_TOPDIR')
         if qe_topdir is None:
-            pass
+            # TODO: discovery in certain paths?
+            raise KeyError("QE_TOPDIR environment variable not found")
 
         qe_topdir = pathlib.Path(qe_topdir)
 
