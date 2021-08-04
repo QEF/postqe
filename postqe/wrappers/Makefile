@@ -10,36 +10,27 @@ include ${QE_TOPDIR}/make.inc
 FPP = ${F90} -E -cpp
 # FFLAGS="-fPIC -fallow-argument-mismatch"
 
-UtilXlib_sources =  clib_wrappers.f90 \
-	clocks_handler.f90 \
-	data_buffer.f90 \
-	device_helper.f90 \
-	divide.f90 \
-	error_handler.f90 \
-	export_gstart_2_solvers.f90 \
-	find_free_unit.f90 \
-	fletcher32_mod.f90 \
-	hash.f90 \
-	mem_counter.f90 \
-	mp_bands_util.f90 \
-	mp_base.f90 \
-	mp_base_gpu.f90 \
-	mp.f90 \
-	nvtx_wrapper.f90 \
-	parallel_include.f90 \
-	print_mem.f90 \
-	set_mpi_comm_4_solvers.f90 \
-	thread_util.f90 \
-	util_param.f90
+MODULES_SOURCES = funct.f90
+#    xc_rVV10.f90 \
+#    xc_vdW_DF.f90 \
+#    recips.f90 \
+#    latgen.f90
 
+MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 
-WRAP_FILES = $(addprefix $(QE_TOPDIR)/UtilXlib/,${UtilXlib_sources})
+# MODULES_FILES = $(wildcard $(QE_TOPDIR)/Modules/*.f90)
+UTIL_XLIB_FILES = $(wildcard $(QE_TOPDIR)/UtilXlib/*.f90)
+
+# $(info $(MODULES_FILES))
+
+WRAP_FILES = ${MODULES_FILES}
+# WRAP_FILES = ${UTIL_XLIB_FILES}
 
 wrap_files: ${WRAP_FILES}
 	for f90_file in ${WRAP_FILES}; do \
-  		fpp_file=${f90_file%.f90}.fpp ; \
-	    echo ${FPP} $$f90_file > $$fpp_file ; \
-	    ${FPP} $$f90_file > $$fpp_file ; \
+  		export fpp_file=$${f90_file%.f90}.fpp ; \
+	    echo ${FPP} $$f90_file -I$${QE_TOPDIR}/include > $$fpp_file ; \
+	    ${FPP} $$f90_file -I$${QE_TOPDIR}/include > $$fpp_file ; \
 	done
 
 # wrap_files: ${WRAP_FILES}
@@ -63,11 +54,52 @@ clean:
 	rm -f *.o
 	rm -f *.so
 	rm -f *.f90
-	rm -f *.fpp
+	rm -f ${QE_TOPDIR}/Modules/*.fpp
+	rm -f ${QE_TOPDIR}/UtilXlib/*.fpp
 
 f90wrappers:
-	f90wrap -k kind_map -m wrapper_module $(QE_TOPDIR)/*/*.fpp
+	f90wrap -k kind_map --only set_dft_from_name -m wrapper_module $(QE_TOPDIR)/*/*.fpp
 
 py3module:
 	f2py-f90wrap -c -m _wrapper_module f90wrap_*.f90 \
-		-I$(QE_TOPDIR)/UtilXlib/
+	    $(QE_TOPDIR)/Modules/funct.o \
+	    -llapack \
+		-I$(QE_TOPDIR)/Modules/ \
+		-L$(QE_TOPDIR)/Modules -l:libqemod.a \
+		-L$(QE_TOPDIR)/upflib -l:libupf.a \
+		-L$(QE_TOPDIR)/XClib -l:xc_lib.o
+
+py3module-old2:
+	f2py-f90wrap -c -m _wrapper_module f90wrap_*.f90 \
+	    $(QE_TOPDIR)/Modules/io_global.o \
+	    $(QE_TOPDIR)/Modules/io_files.o \
+	    $(QE_TOPDIR)/Modules/ions_base.o \
+	    $(QE_TOPDIR)/Modules/mp_images.o \
+	    $(QE_TOPDIR)/Modules/read_pseudo.o \
+	    $(QE_TOPDIR)/upflib/uspp.o \
+	    $(QE_TOPDIR)/upflib/upf_auxtools.o \
+	    $(QE_TOPDIR)/upflib/upf_io.o \
+	    $(QE_TOPDIR)/upflib/upf_spinorb.o \
+		$(QE_TOPDIR)/upflib/atom.o \
+		-I$(QE_TOPDIR)/Modules/ \
+		-I$(QE_TOPDIR)/upflib/ \
+		-L$(QE_TOPDIR)/upflib/ \
+		-L$(QE_TOPDIR)/Modules/
+
+old-py3module:
+	f2py-f90wrap -c -m _wrapper_module f90wrap_*.f90 \
+	    $(QE_TOPDIR)/Modules/*.o \
+	    $(QE_TOPDIR)/UtilXlib/*.o \
+	    $(QE_TOPDIR)/upflib/atom.o \
+	    $(QE_TOPDIR)/upflib/uspp.o \
+	    $(QE_TOPDIR)/upflib/upf_spinorb.o \
+	    $(QE_TOPDIR)/MBD/libmbd-*/src/mbd*.o \
+	    $(QE_TOPDIR)/dft-d3/*.o \
+	    $(QE_TOPDIR)/XClib/qe_funct_*.o \
+	    $(QE_TOPDIR)/PW/src/beef.o \
+	    $(QE_TOPDIR)/PW/src/bp_mod.o \
+	    $(QE_TOPDIR)/PW/src/pw_restart_new.o \
+	    $(QE_TOPDIR)/PW/src/setup.o \
+	    $(QE_TOPDIR)/PW/src/symm_base.o \
+	    $(QE_TOPDIR)/PW/src/esm_common_mod.o \
+		-I$(QE_TOPDIR)/Modules/ -L$(QE_TOPDIR)/Modules/
