@@ -16,9 +16,11 @@
 !.coveragerc
 dist/
 build/
-postqe/wrappers/*
-!postqe/wrappers/kind_map
-!postqe/wrappers/Makefile
+postqe/pyqe.py
+postqe/_pyqe*
+postqe/fortran/*
+!postqe/fortran/kind_map
+!postqe/fortran/Makefile
 pqenv/
 .idea/
 .tox/

@@ -68,9 +68,6 @@ def find_pyqe_module():
 
 class BuildExtCommand(build_ext):
 
-    LIB_DIRS = ['UtilXlib']  #, 'Modules'  #'upflib', 'LAXlib']
-    EXCLUDED_FILES = {'mp_base_gpu.f90', 'mp_bands_util.f90'}
-
     def run(self):
         qe_topdir = os.environ.get('QE_TOPDIR')
         if qe_topdir is None:
@@ -78,31 +75,9 @@ class BuildExtCommand(build_ext):
             raise KeyError("QE_TOPDIR environment variable not found")
 
         qe_topdir = pathlib.Path(qe_topdir)
-
-        """
-        pw_path = shutil.which('pw.x', path=os.environ.get('QE_BIN_DIR'))
-
-        if pw_path is None:
-            if 'QE_BIN_DIR' in os.environ:
-                msg = "Build aborted: pw.x executable not found in QE_BIN_DIR directory path!"
-            else:
-                msg = "Build aborted: pw.x executable not found in executable search paths!"
-            raise FileNotFoundError(msg)
-
-        cmd = f'readelf -Wwi {pw_path} | grep DW_AT_comp_dir'
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-
-        dir_paths = {line.decode('utf-8').split('): ')[-1] for line in output.splitlines()}
-        if not dir_paths:
-            raise FileNotFoundError("Missing QE build directory!")
-
-        # for d in dir_paths:
-        #    print(d)
-
-        # qe_build_dir = pathlib.Path(os.path.commonpath(dir_paths))
-        """
         print("QE top directory {}".format(str(qe_topdir)))
 
+        # Check QE installation
         for version_file in qe_topdir.glob('include/*version.h'):
             with version_file.open() as fp:
                 version_number = VERSION_NUMBER_PATTERN.search(fp.read())
@@ -118,40 +93,28 @@ class BuildExtCommand(build_ext):
         else:
             raise FileNotFoundError("Missing QE version file info!")
 
-        # invocare il configure aggiungendo l'opzione -fPIC
-        # ./configure FFLAGS = "-O3 -g -fPIC -fallow-argument-mismatch"
+        if not qe_topdir.joinpath('make.inc').is_file():
+            print("Configure Quantum Espresso ...")
+            os.system(str(qe_topdir.joinpath('configure')))
 
-        # ci pensa lui a fare la verifica.
+            with qe_topdir.joinpath('make.inc').open() as fp:
+                make_inc_lines = fp.readlines()
 
-        fortran_files = []
-        for path in map(lambda x: qe_topdir.joinpath(x), self.LIB_DIRS):
-            if not path.is_dir():
-                raise FileNotFoundError("Missing directory {}".format(str(path)))
+            changed = False
+            for k in range(len(make_inc_lines)):
+                line = make_inc_lines[k]
+                if line.startswith("CFLAGS ") or line.startswith("FFLAGS "):
+                    if '-fPIC' not in line:
+                        make_inc_lines[k] = line.replace(' = ', ' = -fPIC ')
+                        changed = True
 
-            fortran_files.append(path.glob('mp_base.f90'))
+            if changed:
+                with qe_topdir.joinpath('make.inc').open(mode='w') as fp:
+                    fp.writelines(make_inc_lines)
 
-        fortran_files = [str(x) for x in itertools.chain.from_iterable(fortran_files)
-                         if x.name not in self.EXCLUDED_FILES]
-
-        if not fortran_files:
-            raise FileNotFoundError("Missing QE Fortran files!")
-        print("Found {} Fortran source files ...".format(len(fortran_files)))
-
-        print("Remove old wrappers ...")
-        for filepath in glob.iglob('postqe/wrappers/f90wrap_*.f90'):
-            os.unlink(filepath)
-
-        print("Create wrappers using f90wrap ...\n")
-        os.chdir('postqe/wrappers')
-        os.system('f90wrap -k kind_map -m wrapper_module {}'.format(' '.join(fortran_files)))
-
-        breakpoint()
-        print("Compile wrappers with f2py ...\n")
-        os.system('f2py-f90wrap -c -m _wrapper_module f90wrap_*.f90 -L')
-        return
-
-        print("Build f2py extension module ...")
+        print("Build pyqe module ...")
         os.system('make -C postqe/fortran all')
+
         build_ext.run(self)
 
 

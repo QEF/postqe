@@ -1,56 +1,84 @@
-#
-# Makefile for building pyqe modules for postqe.
-#
 # Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-QE_DIR = `pwd`/build/q-e
-#PY3_LAPACK_LIB = `python -c "import numpy.linalg.lapack_lite; print(numpy.linalg.lapack_lite.__file__, end='')"`
-PY3_LAPACK_LIB = -llapack
-.SUFFIXES :
-.SUFFIXES : .o .c .f .f90
 
-.f90.o:
-	gfortran -c -fPIC $<
+include ${QE_TOPDIR}/make.inc
 
-LIBFILES=\
-error_handler.o\
-generate_gg_list.o\
-struct_fact.o
+QE68_ARCHIVE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip"
+FPP = ${F90} -E -cpp
+CFLAGS="-fPIC -fPIC"
+FFLAGS="-fPIC -fPIC -fallow-argument-mismatch"
 
-qe:
-	./build_qe.sh
+$(info $(CFLAGS))
 
-copy:
-	cp -pur $(QE_DIR)/POSTQE_LIBS  ./
 
-libpostqe: $(LIBFILES)
-	ar -r ./POSTQE_LIBS/$@.a $?
+MODULES_SOURCES = \
+    funct.f90
+#    xc_vdW_DF.f90 \
+#    recips.f90 \
+#    latgen.f90
+#    xc_rVV10.f90 \
 
-pyqe: wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90
-	f2py3 -c wrappers_utils.f90 wrappers_funct.f90 wrappers_vloc.f90 -m pyqe \
-	-I./POSTQE_LIBS -L./POSTQE_LIBS/ -lqemod -lqefft -lutil \
-	./POSTQE_LIBS/*.o ./POSTQE_LIBS/libpw.a $(PY3_LAPACK_LIB) ./POSTQE_LIBS/libpostqe.a
+MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 
-module: copy libpostqe pyqe move
+# If you want to wrap all Modules/*.f90 (very long and with duplications ...)
+# MODULES_FILES = $(wildcard $(QE_TOPDIR)/Modules/*.f90)
 
-all: qe module
+WRAP_FILES = ${MODULES_FILES}
+# $(info $(WRAP_FILES))
 
-move :
+download:
+	echo "Download QE source code ..."
+	curl -SL ${QE68_ARCHIVE_URL} -o q-e.zip
+
+wrap_files: ${WRAP_FILES}
+	for f90_file in ${WRAP_FILES}; do \
+  		export fpp_file=$${f90_file%.f90}.fpp ; \
+	    echo ${FPP} $$f90_file -I$${QE_TOPDIR}/include > $$fpp_file ; \
+	    ${FPP} $$f90_file -I$${QE_TOPDIR}/include > $$fpp_file ; \
+	done
+
+pw:
+	make -C ${QE_TOPDIR} pw
+
+pp:
+	make -C ${QE_TOPDIR} pp
+
+move:
 	mv *.so ../
 
-clean:
-	rm -Rf ./POSTQE_LIBS
-	rm -Rf ./build/
-	rm -Rf ./clib/
-	rm -Rf ./flib/
-	rm -Rf ./Modules/
-	rm -f *.o
-	touch *.f90
-	rm -f *.so
+qe: pw pp
 
-touch-dummy:
-	$(dummy-variable)
+clean:
+	rm -f .f2py_f2cmap
+	rm -f wrappers.py
+	rm -f _wrappers*
+	rm -f *.o
+	rm -f *.so
+	rm -f *.f90
+	rm -f ${QE_TOPDIR}/Modules/*.fpp
+
+f90wrappers:
+	f90wrap -k kind_map -m pyqe $(QE_TOPDIR)/*/*.fpp
+#	f90wrap -k kind_map --only set_dft_from_name -m pyqe $(QE_TOPDIR)/*/*.fpp
+
+py3module:
+	f2py-f90wrap -c -m _pyqe f90wrap_*.f90 \
+		$(QE_TOPDIR)/Modules/funct.o \
+		-I$(QE_TOPDIR)/Modules/ \
+		-L$(QE_TOPDIR)/Modules -l:libqemod.a \
+		-L$(QE_TOPDIR)/upflib -l:libupf.a \
+		-L$(QE_TOPDIR)/XClib -l:xc_lib.a \
+		-L$(QE_TOPDIR)/UtilXlib -l:libutil.a \
+		-L$(QE_TOPDIR)/clib -l:clib.a \
+		-L$(QE_TOPDIR)/FFTXlib -l:libqefft.a \
+		-llapack
+
+pyqe: clean wrap_files f90wrappers py3module
+
+all: qe pyqe move
+
+
