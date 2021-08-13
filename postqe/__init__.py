@@ -6,7 +6,7 @@
 # https://opensource.org/licenses/LGPL-2.1
 #
 # noinspection PyPackageRequirements
-from .pyqe import *  # Import Fortran APIs from f2py binary module
+from . import pyqe
 
 from .calculator import EspressoCalculator, PostqeCalculator
 

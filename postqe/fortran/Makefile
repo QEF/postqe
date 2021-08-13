@@ -7,13 +7,12 @@
 
 include ${QE_TOPDIR}/make.inc
 
-QE68_ARCHIVE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip"
 FPP = ${F90} -E -cpp
 CFLAGS="-fPIC -fPIC"
 FFLAGS="-fPIC -fPIC -fallow-argument-mismatch"
 
-$(info $(CFLAGS))
-
+# $(info $(CFLAGS))
+# $(info $(FFLAGS))
 
 MODULES_SOURCES = \
     funct.f90
@@ -29,10 +28,6 @@ MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 
 WRAP_FILES = ${MODULES_FILES}
 # $(info $(WRAP_FILES))
-
-download:
-	echo "Download QE source code ..."
-	curl -SL ${QE68_ARCHIVE_URL} -o q-e.zip
 
 wrap_files: ${WRAP_FILES}
 	for f90_file in ${WRAP_FILES}; do \

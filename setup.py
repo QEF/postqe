@@ -8,12 +8,8 @@
 
 import os
 import re
-import glob
 import pathlib
 import platform
-import shutil
-import subprocess
-import itertools
 
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
@@ -22,40 +18,20 @@ from setuptools.command.install import install
 
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
 
-
-def find_qe_installation():
-    """
-    Find a Quantum Espresso installation to be linked to postqe. The best match
-    installation found is used for building Fortran 90 wrappers.
-    Priority is for subdir installations and then for the most recent version.
-
-    :return: QE installation dynamic library path or `None` if no installation is found.
-    """
-    installations_found = []
-
-    pw_path = shutil.which('pw.x', path=os.environ.get('QE_BIN_DIR'))
-    if pw_path is not None:
-        cmd = f'readelf -Wwi {pw_path} | grep DW_AT_comp_dir'
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-        dir_paths = {line.decode('utf-8').split('): ')[-1] for line in output.splitlines()}
-        print(dir_paths)
-
-        for path in map(lambda x: pathlib.Path(x), dir_paths):
-            print(list(path.glob('*.f90')))
+QE_SOURCE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip"
+QE_SOURCE_MD5SUM = "787c4aad3b203f7dd61d03a849a1c4e9"
 
 
 def find_pyqe_module():
     """
-    Returns the absolute pathname of the pyqe module build for the running platform.
+    Returns the absolute pathname of the pyqe module built for the running platform.
 
     :return: A pathname string or `None` if no suitable module is found.
     """
-    project_dir = os.path.dirname(__file__)
     python_version = ''.join(platform.python_version_tuple()[:2])
-    pyqe_modules = glob.iglob(os.path.join(project_dir, 'postqe/pyqe.*.so'))
 
-    for filename in pyqe_modules:
-        if '{}m'.format(python_version) not in filename:
+    for filename in map(str, pathlib.Path(__file__).parent.glob('postqe/_pyqe.*.so')):
+        if f'-{python_version}-' not in filename and f'{python_version}m' not in filename:
             continue
         elif platform.python_implementation().lower() not in filename:
             continue
@@ -69,13 +45,33 @@ def find_pyqe_module():
 class BuildExtCommand(build_ext):
 
     def run(self):
-        qe_topdir = os.environ.get('QE_TOPDIR')
-        if qe_topdir is None:
-            # TODO: discovery in certain paths?
-            raise KeyError("QE_TOPDIR environment variable not found")
+        build_dir = pathlib.Path(__file__).parent.joinpath('postqe/fortran')
+        qe_topdir = os.environ.get('QE_TOPDIR') or next(build_dir.rglob('q-e-*'), None)
 
-        qe_topdir = pathlib.Path(qe_topdir)
+        if qe_topdir is not None:
+            qe_topdir = pathlib.Path(qe_topdir)
+        else:
+            import zipfile
+
+            qe_source_path = str(build_dir.joinpath('q-e.zip'))
+            if not os.path.isfile(qe_source_path):
+                print("Download QE source code ...")
+                os.system(f'curl -SL {QE_SOURCE_URL} -o "{qe_source_path}"')
+
+            print("Checks MD5SUM of source archive ... ")
+            if os.system(f'echo `md5sum {qe_source_path}` | grep --quiet "^{QE_SOURCE_MD5SUM}[[:blank:]]"'):
+                raise ValueError("Checksum of source code archive doesn't match!")
+
+            print("Extract source files from archive ...")
+            with zipfile.ZipFile(qe_source_path, 'r') as zfp:
+                zfp.extractall(build_dir)
+
+            qe_topdir = pathlib.Path(next(build_dir.rglob('q-e-*')))
+
         print("QE top directory {}".format(str(qe_topdir)))
+
+        if 'QE_TOPDIR' not in os.environ:
+            os.environ['QE_TOPDIR'] = str(qe_topdir)
 
         # Check QE installation
         for version_file in qe_topdir.glob('include/*version.h'):
@@ -95,6 +91,8 @@ class BuildExtCommand(build_ext):
 
         if not qe_topdir.joinpath('make.inc').is_file():
             print("Configure Quantum Espresso ...")
+            for configure_file in qe_topdir.rglob('**/configure'):
+                os.chmod(configure_file, 0o755)
             os.system(str(qe_topdir.joinpath('configure')))
 
             with qe_topdir.joinpath('make.inc').open() as fp:
@@ -113,7 +111,7 @@ class BuildExtCommand(build_ext):
                     fp.writelines(make_inc_lines)
 
         print("Build pyqe module ...")
-        os.system('make -C postqe/fortran all')
+        os.system('make -C {} all'.format(str(build_dir)))
 
         build_ext.run(self)
 
@@ -124,7 +122,6 @@ class InstallCommand(install):
         if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
             self.run_command('build_ext')
-        return
         install.run(self)
 
 
@@ -132,7 +129,7 @@ setup(
     name='postqe',
     version='1.0.0',
     packages=['postqe'],
-    package_data={'postqe': ['pyqe.*.so']},
+    package_data={'postqe': ['_pyqe.*.so']},
     install_requires=[
         'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy',
         'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
