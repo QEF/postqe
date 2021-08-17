@@ -113,6 +113,15 @@ class BuildExtCommand(build_ext):
         print("Build pyqe module ...")
         os.system('make -C {} all'.format(str(build_dir)))
 
+        # Modify python wrapper module, fixing import in postqe package.
+        with build_dir.parent.joinpath('pyqe.py').open() as fp:
+            python_wrapper_lines = fp.readlines()
+
+        with build_dir.parent.joinpath('pyqe.py').open(mode='w') as fp:
+            python_wrapper_lines[0] = "# Altered wrapper for postqe\n"
+            python_wrapper_lines[1] = "from . import _pyqe\n"
+            fp.writelines(python_wrapper_lines)
+
         build_ext.run(self)
 
 

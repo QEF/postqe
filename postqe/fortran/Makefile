@@ -15,11 +15,11 @@ FFLAGS="-fPIC -fPIC -fallow-argument-mismatch"
 # $(info $(FFLAGS))
 
 MODULES_SOURCES = \
-    funct.f90
-#    xc_vdW_DF.f90 \
-#    recips.f90 \
-#    latgen.f90
-#    xc_rVV10.f90 \
+    funct.f90 \
+    recips.f90 \
+    latgen.f90 \
+    xc_vdW_DF.f90
+#    xc_rVV10.f90
 
 MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 
@@ -44,20 +44,21 @@ pp:
 
 move:
 	mv *.so ../
+	mv pyqe.py ../
 
 qe: pw pp
 
 clean:
 	rm -f .f2py_f2cmap
-	rm -f wrappers.py
-	rm -f _wrappers*
+	rm -f pyqe.py
+	rm -f _pyqe*
 	rm -f *.o
 	rm -f *.so
 	rm -f *.f90
 	rm -f ${QE_TOPDIR}/Modules/*.fpp
 
 f90wrappers:
-	f90wrap -k kind_map -m pyqe $(QE_TOPDIR)/*/*.fpp
+	f90wrap -k kind_map -m pyqe --skip=neqq $(QE_TOPDIR)/*/*.fpp
 #	f90wrap -k kind_map --only set_dft_from_name -m pyqe $(QE_TOPDIR)/*/*.fpp
 
 py3module:
