@@ -14,7 +14,7 @@ import platform
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-
+from distutils.command.clean import clean  # type: ignore[attribute]
 
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
 
@@ -125,6 +125,24 @@ class BuildExtCommand(build_ext):
         build_ext.run(self)
 
 
+class CleanCommand(clean):
+
+    def run(self):
+        build_dir = pathlib.Path(__file__).parent.absolute().joinpath('postqe/fortran')
+        qe_topdir = os.environ.get('QE_TOPDIR') or next(build_dir.rglob('q-e-*'), None)
+        if qe_topdir is None:
+            qe_topdir = pathlib.Path(next(build_dir.rglob('q-e-*')))
+        else:
+            qe_topdir = pathlib.Path(qe_topdir)
+
+        if 'QE_TOPDIR' not in os.environ:
+            os.environ['QE_TOPDIR'] = str(qe_topdir.absolute())
+
+        print("Clean QE and pyqe module building files ...")
+        os.system('make -C {} clean'.format(str(build_dir.absolute())))
+        super().run()
+
+
 class InstallCommand(install):
 
     def run(self):
@@ -150,6 +168,7 @@ setup(
     },
     cmdclass={
         'build_ext': BuildExtCommand,
+        'clean': CleanCommand,
         'install': InstallCommand,
     },
     author='Mauro Palumbo, Pietro Delugas, Davide Brunato',

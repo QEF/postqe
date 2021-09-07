@@ -19,6 +19,7 @@ MODULES_SOURCES = \
     recips.f90 \
     latgen.f90 \
     xc_vdW_DF.f90
+#    vloc_of_g.f90
 #    xc_rVV10.f90
 
 MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
@@ -52,10 +53,13 @@ clean:
 	rm -f .f2py_f2cmap
 	rm -f pyqe.py
 	rm -f _pyqe*
+	rm -f ../pyqe.py
+	rm -f ../_pyqe*
 	rm -f *.o
 	rm -f *.so
 	rm -f *.f90
 	rm -f ${QE_TOPDIR}/Modules/*.fpp
+	make -C ${QE_TOPDIR} clean
 
 f90wrappers:
 	f90wrap -k kind_map -m pyqe --skip=neqq $(QE_TOPDIR)/*/*.fpp
@@ -72,6 +76,8 @@ py3module:
 		-L$(QE_TOPDIR)/clib -l:clib.a \
 		-L$(QE_TOPDIR)/FFTXlib -l:libqefft.a \
 		-llapack
+#		$(LAPACK_LIBS) $(FFT_LIBS)
+#		-llapack -lfftw3 # $(LAPACK_LIBS)
 
 pyqe: clean wrap_files f90wrappers py3module
 
