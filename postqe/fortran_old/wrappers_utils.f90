@@ -8,6 +8,8 @@
 ! A collection of utility subroutines better written in Fortran than in Python and wrappers for QE utility routines 
 !
 
+
+! Unused ...
 subroutine pyqe_getcelldms(alat, at1, at2, at3, ibrav, celldm) 
   ! Returns the celldms parameters from ibrav, alat and the lattice vectors
   implicit  none
@@ -98,6 +100,7 @@ subroutine pyqe_getcelldms(alat, at1, at2, at3, ibrav, celldm)
 end subroutine pyqe_getcelldms
 
 
+! --> pyqe.recips()
 subroutine pyqe_recips(a1, a2, a3, b1, b2, b3)
   ! Returns the vectors of the reciprocal cell given those of the direct one
   implicit none 
@@ -106,7 +109,7 @@ subroutine pyqe_recips(a1, a2, a3, b1, b2, b3)
   call recips(a1,a2,a3,b1,b2,b3) 
 end subroutine pyqe_recips 
 
-
+! Unused
 subroutine pyqe_latgen(ibrav, celldm, at)
   ! Returns the lattice vectors given ibrav and the celldms parameters
   implicit none
@@ -119,6 +122,7 @@ subroutine pyqe_latgen(ibrav, celldm, at)
 end subroutine pyqe_latgen
 
 
+! stand-alone: to numpy?? (or a f90 wrapper)
 subroutine pyqe_get_igtongl(ngm, gg, igtongl, ngl)
   implicit none
   real(8), parameter :: eps8 = 1.d-8
@@ -134,11 +138,12 @@ subroutine pyqe_get_igtongl(ngm, gg, igtongl, ngl)
   do ng = 2, ngm
     if (gg(ng) > gg(ng-1)+eps8) ngl=ngl+1
     igtongl(ng) = ngl
-  end do 
+  end do
 end subroutine pyqe_get_igtongl
 
 
-subroutine pyqe_get_gl(ngm, gg, ngl, gl)  
+! stand-alone -> to numpy??
+subroutine pyqe_get_gl(ngm, gg, ngl, gl)
   implicit none 
   real(8), parameter :: eps8 = 1.d-8
   integer, intent(in)  :: ngm, ngl
@@ -156,6 +161,7 @@ subroutine pyqe_get_gl(ngm, gg, ngl, gl)
 end subroutine pyqe_get_gl
 
 
+! stand-alone
 subroutine pyqe_get_gg_list( nrrr, nr1, nr2, nr3 , bg1, bg2, bg3, g, gg , mill) 
   implicit none
   real(8), parameter :: pi = 4.d0*atan(1.d0) , fpi = 4.d0*pi, eps8 = 1.d-8
@@ -199,6 +205,8 @@ subroutine pyqe_get_gg_list( nrrr, nr1, nr2, nr3 , bg1, bg2, bg3, g, gg , mill)
   !
 end subroutine pyqe_get_gg_list
 
+
+! Unused, standalone
 !
 !-----------------------------------------------------------------------
 subroutine py_w0gauss (x, n, w0gauss)

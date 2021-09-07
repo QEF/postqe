@@ -1,3 +1,7 @@
+
+!
+! postqe/fortran/q-e-qe-6.8/PW/src/struct_fact.f90
+
 !
 ! Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
 ! Internazionale Superiore di Studi Avanzati). All rights reserved.

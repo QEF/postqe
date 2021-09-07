@@ -30,6 +30,8 @@
 !  return
 !end subroutine py_set_dft_from_name
 
+
+! Refactoring with the new version
 !-----------------------------------------------------------------------
 subroutine pyqe_xc (rho, functional, ex, ec, vx, vc)
   !-----------------------------------------------------------------------
