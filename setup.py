@@ -8,13 +8,13 @@
 
 import os
 import re
-import pathlib
 import platform
+from pathlib import Path
 
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-from distutils.command.clean import clean  # type: ignore[attribute]
+from distutils.file_util import copy_file
 
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
 
@@ -30,7 +30,7 @@ def find_pyqe_module():
     """
     python_version = ''.join(platform.python_version_tuple()[:2])
 
-    for filename in map(str, pathlib.Path(__file__).parent.glob('postqe/_pyqe.*.so')):
+    for filename in map(str, Path(__file__).parent.glob('postqe/_pyqe.*.so')):
         if f'-{python_version}-' not in filename and f'{python_version}m' not in filename:
             continue
         elif platform.python_implementation().lower() not in filename:
@@ -42,36 +42,101 @@ def find_pyqe_module():
         return filename
 
 
+def get_qe_topdir(target_dir):
+    """
+    Download, check and unpack Quantum ESPRESSO source code.
+
+    :param target_dir: target dir for download and unpack the archive.
+    :return: a pathlib.Path instance pointing to the QE source base.
+    """
+    import zipfile
+
+    if isinstance(target_dir, str):
+        target_dir = Path(target_dir)
+    if not target_dir.exists():
+        target_dir.mkdir(parents=True)
+
+    qe_topdir = next(target_dir.rglob('q-e-*'), None)
+    if qe_topdir is not None:
+        return Path(qe_topdir).absolute()
+
+    qe_source_path = str(target_dir.joinpath('q-e.zip'))
+    if not os.path.isfile(qe_source_path):
+        print("Download QE source code ...")
+        os.system(f'curl -SL {QE_SOURCE_URL} -o "{qe_source_path}"')
+
+    print("Checks MD5SUM of source archive ... ")
+    if os.system(f'echo `md5sum {qe_source_path}` | grep --quiet "^{QE_SOURCE_MD5SUM}[[:blank:]]"'):
+        raise ValueError("Checksum of source code archive doesn't match!")
+
+    print("Extract source files from archive ...")
+    with zipfile.ZipFile(qe_source_path, 'r') as zfp:
+        zfp.extractall(target_dir)
+
+    return Path(next(target_dir.rglob('q-e-*'))).absolute()
+
+
+def adjust_qe_config(config_file):
+    """
+    Adjusts QE configuration file (make.inc) adding the -fPIC option for
+    compilers. If the option is already included in CFLAGS and FFLAGS
+    variables leaves the configuration file unchanged.
+    """
+    if isinstance(config_file, str):
+        config_file = Path(config_file)
+
+    with config_file.open() as fp:
+        make_inc_lines = fp.readlines()
+
+    changed = False
+    for k in range(len(make_inc_lines)):
+        line = make_inc_lines[k]
+        if line.startswith("CFLAGS ") or line.startswith("FFLAGS "):
+            if '-fPIC' not in line:
+                make_inc_lines[k] = line.replace(' = ', ' = -fPIC ')
+                changed = True
+
+    if changed:
+        with config_file.open(mode='w') as fp:
+            fp.writelines(make_inc_lines)
+
+
 class BuildExtCommand(build_ext):
 
     def run(self):
-        build_dir = pathlib.Path(__file__).parent.joinpath('postqe/fortran')
-        qe_topdir = os.environ.get('QE_TOPDIR') or next(build_dir.rglob('q-e-*'), None)
+        build_ext.run(self)
 
-        if qe_topdir is not None:
-            qe_topdir = pathlib.Path(qe_topdir)
-        else:
-            import zipfile
+        build_dir = Path(self.build_temp).absolute().joinpath('postqe-wrappers')
+        if not build_dir.exists():
+            build_dir.mkdir(parents=True)
 
-            qe_source_path = str(build_dir.joinpath('q-e.zip'))
-            if not os.path.isfile(qe_source_path):
-                print("Download QE source code ...")
-                os.system(f'curl -SL {QE_SOURCE_URL} -o "{qe_source_path}"')
+        build_py = self.get_finalized_command('build_py')
+        package_dir = Path(build_py.get_package_dir('postqe'))
 
-            print("Checks MD5SUM of source archive ... ")
-            if os.system(f'echo `md5sum {qe_source_path}` | grep --quiet "^{QE_SOURCE_MD5SUM}[[:blank:]]"'):
-                raise ValueError("Checksum of source code archive doesn't match!")
+        copy_file(src=str(package_dir.joinpath('fortran/Makefile')),
+                  dst=str(build_dir), verbose=self.verbose, dry_run=self.dry_run)
+        copy_file(src=str(package_dir.joinpath('fortran/kind_map')),
+                  dst=str(build_dir), verbose=self.verbose, dry_run=self.dry_run)
 
-            print("Extract source files from archive ...")
-            with zipfile.ZipFile(qe_source_path, 'r') as zfp:
-                zfp.extractall(build_dir)
+        self._build_quantum_espresso(build_dir)
+        self._build_pyqe_module(build_dir)
 
-            qe_topdir = pathlib.Path(next(build_dir.rglob('q-e-*')))
+        if self.inplace:
+            copy_file(src=str(build_dir.joinpath('pyqe.py')), dst=str(package_dir),
+                      verbose=self.verbose, dry_run=self.dry_run)
+            for filename in build_dir.glob('_pyqe*.so'):
+                copy_file(src=str(filename), dst=str(package_dir),
+                          verbose=self.verbose, dry_run=self.dry_run)
+
+    @staticmethod
+    def _build_quantum_espresso(build_dir):
+        try:
+            qe_topdir = Path(os.environ['QE_TOPDIR']).absolute()
+        except KeyError:
+            qe_topdir = get_qe_topdir(build_dir)
+            os.environ['QE_TOPDIR'] = str(qe_topdir)
 
         print("QE top directory {}".format(str(qe_topdir)))
-
-        if 'QE_TOPDIR' not in os.environ:
-            os.environ['QE_TOPDIR'] = str(qe_topdir)
 
         # Check QE installation
         for version_file in qe_topdir.glob('include/*version.h'):
@@ -95,52 +160,24 @@ class BuildExtCommand(build_ext):
                 os.chmod(configure_file, 0o755)
             os.system(str(qe_topdir.joinpath('configure')))
 
-            with qe_topdir.joinpath('make.inc').open() as fp:
-                make_inc_lines = fp.readlines()
+            adjust_qe_config(qe_topdir.joinpath('make.inc'))
 
-            changed = False
-            for k in range(len(make_inc_lines)):
-                line = make_inc_lines[k]
-                if line.startswith("CFLAGS ") or line.startswith("FFLAGS "):
-                    if '-fPIC' not in line:
-                        make_inc_lines[k] = line.replace(' = ', ' = -fPIC ')
-                        changed = True
+        print("Build Quantum Espresso ...")
+        os.system('make -C {} qe'.format(str(build_dir)))
 
-            if changed:
-                with qe_topdir.joinpath('make.inc').open(mode='w') as fp:
-                    fp.writelines(make_inc_lines)
-
+    @staticmethod
+    def _build_pyqe_module(build_dir):
         print("Build pyqe module ...")
-        os.system('make -C {} all'.format(str(build_dir)))
+        os.system('make -C {} pyqe'.format(str(build_dir)))
 
         # Modify python wrapper module, fixing import in postqe package.
-        with build_dir.parent.joinpath('pyqe.py').open() as fp:
+        with build_dir.joinpath('pyqe.py').open() as fp:
             python_wrapper_lines = fp.readlines()
 
-        with build_dir.parent.joinpath('pyqe.py').open(mode='w') as fp:
+        with build_dir.joinpath('pyqe.py').open(mode='w') as fp:
             python_wrapper_lines[0] = "# Altered wrapper for postqe\n"
             python_wrapper_lines[1] = "from . import _pyqe\n"
             fp.writelines(python_wrapper_lines)
-
-        build_ext.run(self)
-
-
-class CleanCommand(clean):
-
-    def run(self):
-        build_dir = pathlib.Path(__file__).parent.absolute().joinpath('postqe/fortran')
-        qe_topdir = os.environ.get('QE_TOPDIR') or next(build_dir.rglob('q-e-*'), None)
-        if qe_topdir is None:
-            qe_topdir = pathlib.Path(next(build_dir.rglob('q-e-*')))
-        else:
-            qe_topdir = pathlib.Path(qe_topdir)
-
-        if 'QE_TOPDIR' not in os.environ:
-            os.environ['QE_TOPDIR'] = str(qe_topdir.absolute())
-
-        print("Clean QE and pyqe module building files ...")
-        os.system('make -C {} clean'.format(str(build_dir.absolute())))
-        super().run()
 
 
 class InstallCommand(install):
@@ -158,7 +195,7 @@ setup(
     packages=['postqe'],
     package_data={'postqe': ['_pyqe.*.so']},
     install_requires=[
-        'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy',
+        'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy', 'f90wrap',
         'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
     ],
     entry_points={
@@ -168,7 +205,6 @@ setup(
     },
     cmdclass={
         'build_ext': BuildExtCommand,
-        'clean': CleanCommand,
         'install': InstallCommand,
     },
     author='Mauro Palumbo, Pietro Delugas, Davide Brunato',
