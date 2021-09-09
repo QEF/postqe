@@ -106,27 +106,44 @@ class BuildExtCommand(build_ext):
     def run(self):
         build_ext.run(self)
 
-        build_dir = Path(self.build_temp).absolute().joinpath('postqe-wrappers')
-        if not build_dir.exists():
-            build_dir.mkdir(parents=True)
+        build_dir = Path(self.build_temp).absolute().joinpath('postqe-fortran')
+        qe_build_dir = build_dir.joinpath('qe')
+        if not qe_build_dir.exists():
+            qe_build_dir.mkdir(parents=True)
 
         build_py = self.get_finalized_command('build_py')
         package_dir = Path(build_py.get_package_dir('postqe'))
 
         copy_file(src=str(package_dir.joinpath('fortran/Makefile')),
                   dst=str(build_dir), verbose=self.verbose, dry_run=self.dry_run)
-        copy_file(src=str(package_dir.joinpath('fortran/kind_map')),
-                  dst=str(build_dir), verbose=self.verbose, dry_run=self.dry_run)
 
-        self._build_quantum_espresso(build_dir)
-        self._build_pyqe_module(build_dir)
+        for filename in package_dir.glob('fortran/*.f90'):
+            copy_file(src=str(filename), dst=str(build_dir),
+                      verbose=self.verbose, dry_run=self.dry_run)
+
+        copy_file(src=str(package_dir.joinpath('fortran/qe/Makefile')),
+                  dst=str(qe_build_dir), verbose=self.verbose, dry_run=self.dry_run)
+        copy_file(src=str(package_dir.joinpath('fortran/qe/kind_map')),
+                  dst=str(qe_build_dir), verbose=self.verbose, dry_run=self.dry_run)
+
+        self._build_f90helpers_module(build_dir)
+        self._build_quantum_espresso(qe_build_dir)
+        self._build_pyqe_module(qe_build_dir)
 
         if self.inplace:
-            copy_file(src=str(build_dir.joinpath('pyqe.py')), dst=str(package_dir),
+            copy_file(src=str(qe_build_dir.joinpath('pyqe.py')), dst=str(package_dir),
                       verbose=self.verbose, dry_run=self.dry_run)
-            for filename in build_dir.glob('_pyqe*.so'):
+            for filename in qe_build_dir.glob('_pyqe*.so'):
                 copy_file(src=str(filename), dst=str(package_dir),
                           verbose=self.verbose, dry_run=self.dry_run)
+            for filename in build_dir.glob('f90helpers*.so'):
+                copy_file(src=str(filename), dst=str(package_dir),
+                          verbose=self.verbose, dry_run=self.dry_run)
+
+    @staticmethod
+    def _build_f90helpers_module(build_dir):
+        print("Build f90helpers module ...")
+        os.system('make -C {} f90helpers_module'.format(str(build_dir)))
 
     @staticmethod
     def _build_quantum_espresso(build_dir):
@@ -193,7 +210,7 @@ setup(
     name='postqe',
     version='1.0.0',
     packages=['postqe'],
-    package_data={'postqe': ['_pyqe.*.so']},
+    package_data={'postqe': ['_pyqe.*.so', 'f90helpers*.so']},
     install_requires=[
         'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy', 'f90wrap',
         'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',

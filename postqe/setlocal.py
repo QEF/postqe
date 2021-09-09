@@ -17,7 +17,12 @@ def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
     nrrr = nr1 * nr2 * nr3
     tpiba = 2 * np.pi / alat
     tpiba2 = tpiba**2
-    bg1, bg2, bg3 = pyqe.pyqe_recips(at1 / alat, at2 / alat, at3 / alat)
+
+    bg1 = np.empty(0)
+    bg2 = np.empty(0)
+    bg3 = np.empty(0)
+
+    pyqe.recips(at1 / alat, at2 / alat, at3 / alat, bg1, bg2, bg3)
     g, gg, mill = pyqe.pyqe_get_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
     gzip = zip(gg, g, mill)
     gzip = (el for el in gzip if el[0] <= ecutrho / tpiba2)

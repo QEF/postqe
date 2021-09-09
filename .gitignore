@@ -17,10 +17,6 @@
 dist/
 build/
 postqe/pyqe.py
-postqe/_pyqe*
-postqe/fortran/*
-!postqe/fortran/kind_map
-!postqe/fortran/Makefile
 pqenv/
 .idea/
 .tox/
