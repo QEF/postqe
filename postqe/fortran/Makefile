@@ -1,4 +1,4 @@
-# Copyright (c), 2016-2019, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2021, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -8,27 +8,18 @@
 include ${QE_TOPDIR}/make.inc
 
 FPP = ${F90} -E -cpp
-CFLAGS="-fPIC"
-FFLAGS="-fPIC -fallow-argument-mismatch"
-
-# $(info $(CFLAGS))
-# $(info $(FFLAGS))
 
 MODULES_SOURCES = \
     funct.f90 \
     recips.f90 \
     latgen.f90 \
     xc_vdW_DF.f90
-#    xc_rVV10.f90
 
 PW_SOURCES = \
     vloc_of_g.f90
 
 MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 PW_FILES = $(addprefix $(QE_TOPDIR)/PW/src/,${PW_SOURCES})
-
-# If you want to wrap all Modules/*.f90 (very long and with duplications ...)
-# MODULES_FILES = $(wildcard $(QE_TOPDIR)/Modules/*.f90)
 
 WRAP_FILES = ${MODULES_FILES} ${PW_FILES}
 # $(info $(WRAP_FILES))
@@ -60,11 +51,9 @@ clean:
 	rm -f *.so
 	rm -f *.f90
 	rm -f ${QE_TOPDIR}/Modules/*.fpp
-#	make -C ${QE_TOPDIR} clean
 
 f90wrappers:
 	f90wrap -k kind_map -m pyqe --skip=neqq $(QE_TOPDIR)/*/*.fpp
-#	f90wrap -k kind_map --only set_dft_from_name -m pyqe $(QE_TOPDIR)/*/*.fpp
 
 py3module:
 	f2py-f90wrap -c -m _pyqe f90wrap_*.f90 \
@@ -77,10 +66,7 @@ py3module:
 		-L$(QE_TOPDIR)/clib -l:clib.a \
 		-L$(QE_TOPDIR)/FFTXlib -l:libqefft.a \
 		$(LAPACK_LIBS) $(FFT_LIBS)
-#		-llapack -lfftw3 # $(LAPACK_LIBS)
 
 pyqe: wrap_files f90wrappers py3module
 
 all: qe pyqe move
-
-
