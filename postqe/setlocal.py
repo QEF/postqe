@@ -11,7 +11,7 @@ from .readutils import read_pseudo_file
 
 # f2py modules
 from . import pyqe
-from . import f90helpers
+from . import f90utils
 
 
 def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
@@ -24,15 +24,15 @@ def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
     bg3 = np.empty(0)
 
     pyqe.recips(at1 / alat, at2 / alat, at3 / alat, bg1, bg2, bg3)
-    g, gg, mill = f90helpers.get_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
+    g, gg, mill = f90utils.get_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
     gzip = zip(gg, g, mill)
     gzip = (el for el in gzip if el[0] <= ecutrho / tpiba2)
     gzip = sorted(gzip, key=lambda el: el[0])
     mill_cut = [el[2] for el in gzip]
     g_cut = [el[1] for el in gzip]
     gg_cut = [el[0] for el in gzip]
-    igtongl, ngl = f90helpers.get_igtongl(gg_cut)
-    gl = f90helpers.get_gl(gg_cut, ngl)
+    igtongl, ngl = f90utils.get_igtongl(gg_cut)
+    gl = f90utils.get_gl(gg_cut, ngl)
     return g_cut, gg_cut, mill_cut, igtongl, gl
 
 
@@ -49,7 +49,9 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     msh = len(rab)
     tpiba2 = (np.pi * 2.e0 / alat) ** 2
     vloc = np.empty(0)  # TODO: check this
-    pyqe.vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp,   # FIXME: vloc_of_g not wrapped!
+
+    # FIXME: vloc_of_g not wrapped and missing parameters in the call!
+    pyqe.vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp,
                    tpiba2=tpiba2, gl=gl, omega=omega, vloc=vloc)
     return vloc
 
@@ -67,7 +69,7 @@ def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
 
 
 def compute_struct_fact(tau, alat, g):
-    str_fact, checkgg, check_tau = f90helpers.struct_fact(tau / alat, g)
+    str_fact, checkgg, check_tau = f90utils.struct_fact(tau / alat, g)
     return str_fact
 
 

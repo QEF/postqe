@@ -174,6 +174,8 @@ def compute_v_xc(charge, charge_core, functional):
                 rhox = charge[x, y, z] + charge_core[x, y, z]
                 arhox = abs(rhox)
                 if arhox > vanishing_charge:
+
+                    # FIXME: subroutine xc removed in QE 6.8!
                     ex, ec, vx, vc = pyqe.pyqe_xc(arhox, functional)
                     v[x, y, z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
 

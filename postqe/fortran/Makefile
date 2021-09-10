@@ -8,11 +8,11 @@ move:
 	mv *.so ../
 
 clean:
-	rm -f f90helpers*
+	rm -f f90utils*
 	rm -f *.o
 	rm -f *.so
 
-f90helpers_module:
-	f2py3 -c *.f90 -m f90helpers
+f90utils_module:
+	f2py3 -c *.f90 -m f90utils
 
-all: f90helpers_module move
+all: f90utils_module move

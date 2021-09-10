@@ -147,7 +147,7 @@ class TestNiCase01(unittest.TestCase):
     def test_get_volume_from_atoms(self):
         ni_atoms = self.calc.get_atoms_from_xml_output()
         volume = ni_atoms.get_volume()
-        self.assertIsInstance(volume, np.float)
+        self.assertIsInstance(volume, float)
         self.assertEqual(volume, 73.51990624999998)
 
     def test_get_potential_energy(self):

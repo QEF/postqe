@@ -126,7 +126,7 @@ class BuildExtCommand(build_ext):
         copy_file(src=str(package_dir.joinpath('fortran/qe/kind_map')),
                   dst=str(qe_build_dir), verbose=self.verbose, dry_run=self.dry_run)
 
-        self._build_f90helpers_module(build_dir)
+        self._build_f90utils_module(build_dir)
         self._build_quantum_espresso(qe_build_dir)
         self._build_pyqe_module(qe_build_dir)
 
@@ -136,14 +136,14 @@ class BuildExtCommand(build_ext):
             for filename in qe_build_dir.glob('_pyqe*.so'):
                 copy_file(src=str(filename), dst=str(package_dir),
                           verbose=self.verbose, dry_run=self.dry_run)
-            for filename in build_dir.glob('f90helpers*.so'):
+            for filename in build_dir.glob('f90utils*.so'):
                 copy_file(src=str(filename), dst=str(package_dir),
                           verbose=self.verbose, dry_run=self.dry_run)
 
     @staticmethod
-    def _build_f90helpers_module(build_dir):
-        print("Build f90helpers module ...")
-        os.system('make -C {} f90helpers_module'.format(str(build_dir)))
+    def _build_f90utils_module(build_dir):
+        print("Build f90utils module ...")
+        os.system('make -C {} f90utils_module'.format(str(build_dir)))
 
     @staticmethod
     def _build_quantum_espresso(build_dir):
@@ -202,7 +202,7 @@ class InstallCommand(install):
     def run(self):
         if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
-            self.run_command('build_ext')
+            self.run_command('build_ext --inplace')
         install.run(self)
 
 
@@ -210,7 +210,7 @@ setup(
     name='postqe',
     version='1.0.0',
     packages=['postqe'],
-    package_data={'postqe': ['_pyqe.*.so', 'f90helpers*.so']},
+    package_data={'postqe': ['_pyqe.*.so', 'f90utils*.so']},
     install_requires=[
         'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy', 'f90wrap',
         'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
