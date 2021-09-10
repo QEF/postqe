@@ -39,22 +39,39 @@ Lapack development libraries:
     the basename of this package should be *lapack-devel* on a RHEL-based system or *liblapack-dev*
     on a Debian-based system).
 
-Tkinter graphical interface:
-    maybe *python3-tkinter* on a RHEL-based system or *python3-tk* on a Debian-based system.
-
 
 Installation
 ------------
-You can download all package files from GitHub and then install it with the command:
+
+Download all package's files from GitHub (unpack the downloaded archive
+or clone the repository).
+If you are in a virtual environment you can install it with the command:
 
 .. code-block:: bash
 
-   sudo python setup.py install
+   python setup.py install
 
+Otherwise avoid system wide installations with root privileges but install it in user-space
+with the command:
 
-The setup script takes care to install a fresh installation of Quantum ESPRESSO
-on source subdirectory. You can provide the ``--qeprefix`` option with a filepath
-to an existing compatible ESPRESSO installation.
+.. code-block:: bash
+
+   python setup.py install --user
+
+The setup script takes care to download, configure and compile a fresh installation of
+Quantum ESPRESSO v6.8 into the setup's directory `build/`.
+
+Alternatively you can download Quantum ESPRESSO v6.8 sources by your own and then unpack
+the archive in another directory. Then provide the variable `QE_TOPDIR` to the install
+command, setting it with the path of the directory containing the Quantum ESPRESSO sources,
+for example:
+
+.. code-block:: bash
+
+   QE_TOPDIR=<path-to-QE-sources-base-dir> python setup.py install
+
+The advantage of the alternate method is that you don't need to recompile Quantum ESPRESSO
+after a clean of the build directories (`python setup.py clean`).
 
 
 Usage
