@@ -15,6 +15,8 @@ from setuptools import setup, Distribution
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 
+from distutils import log
+from distutils.command.clean import clean  # type: ignore[attr-defined]
 from distutils.file_util import copy_file
 
 
@@ -24,15 +26,16 @@ QE_SOURCE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip"
 QE_SOURCE_MD5SUM = "787c4aad3b203f7dd61d03a849a1c4e9"
 
 
-def find_pyqe_module():
+def find_extension_module(pattern):
     """
-    Returns the absolute pathname of the pyqe module built for the running platform.
+    Returns the absolute pathname of an extension module built for the running platform.
 
+    :param: a glob pattern for finding the candidate extension modules.
     :return: A pathname string or `None` if no suitable module is found.
     """
     python_version = ''.join(platform.python_version_tuple()[:2])
 
-    for filename in map(str, Path(__file__).parent.glob('postqe/_pyqe.*.so')):
+    for filename in map(str, Path(__file__).parent.glob(pattern)):
         if f'-{python_version}-' not in filename and f'{python_version}m' not in filename:
             continue
         elif platform.python_implementation().lower() not in filename:
@@ -204,12 +207,31 @@ class InstallCommand(install):
     distribution: Distribution  # for avoid static check warning
 
     def run(self):
-        if find_pyqe_module() is None:
-            print("A suitable pyqe module not found, invoke build_ext ...")
+        if find_extension_module('postqe/_pyqe*.so') is None \
+                or find_extension_module('postqe/f90utils*.so'):
+            print("A required extension module not found, invoke build_ext ...")
             cmd_obj = self.distribution.get_command_obj('build_ext')
             cmd_obj.inplace = True
             self.run_command('build_ext')
         install.run(self)
+
+
+class CleanCommand(clean):
+
+    def run(self):
+        clean.run(self)
+        if self.all:
+            log.info('Remove built extension modules ...')
+            source_dir = Path(__file__).parent.joinpath('postqe')
+
+            wrapper_module = source_dir.joinpath('pyqe.py')
+            if wrapper_module.is_file():
+                log.info('Remove {}'.format(str(wrapper_module)))
+                wrapper_module.unlink()
+
+            for ext_module in source_dir.glob('*.so'):
+                log.info(f'Remove {ext_module}')
+                os.unlink(ext_module)
 
 
 setup(
@@ -229,6 +251,7 @@ setup(
     cmdclass={
         'build_ext': BuildExtCommand,
         'install': InstallCommand,
+        'clean': CleanCommand,
     },
     author='Mauro Palumbo, Pietro Delugas, Davide Brunato',
     author_email='pdelugas@sissa.it, brunato@sissa.it',
