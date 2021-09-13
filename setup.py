@@ -11,10 +11,12 @@ import re
 import platform
 from pathlib import Path
 
-from setuptools import setup
+from setuptools import setup, Distribution
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
+
 from distutils.file_util import copy_file
+
 
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
 
@@ -199,10 +201,14 @@ class BuildExtCommand(build_ext):
 
 class InstallCommand(install):
 
+    distribution: Distribution  # for avoid static check warning
+
     def run(self):
         if find_pyqe_module() is None:
             print("A suitable pyqe module not found, invoke build_ext ...")
-            self.run_command('build_ext --inplace')
+            cmd_obj = self.distribution.get_command_obj('build_ext')
+            cmd_obj.inplace = True
+            self.run_command('build_ext')
         install.run(self)
 
 
