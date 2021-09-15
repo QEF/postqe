@@ -49,6 +49,7 @@ If you are in a virtual environment you can install it with the command:
 
 .. code-block:: bash
 
+   pip install -r requirements.txt
    python setup.py install
 
 Otherwise avoid system wide installations with root privileges but install it in user-space
@@ -56,6 +57,7 @@ with the command:
 
 .. code-block:: bash
 
+   pip install -r requirements.txt --user
    python setup.py install --user
 
 The setup script takes care to download, configure and compile a fresh installation of
