@@ -176,12 +176,16 @@ class BuildExtCommand(build_ext):
         else:
             raise FileNotFoundError("Missing QE version file info!")
 
-        if not qe_topdir.joinpath('make.inc').is_file():
+        if qe_topdir.joinpath('make.inc').is_file():
+            print("Check Quantum Espresso configuration ...")
+            # TODO: check_qe_config() ...
+        else:
             print("Configure Quantum Espresso ...")
             for configure_file in qe_topdir.rglob('**/configure'):
                 os.chmod(configure_file, 0o755)
-            os.system(str(qe_topdir.joinpath('configure')))
 
+            configure = str(qe_topdir.joinpath('configure'))
+            os.system(f'{configure} --enable-parallel=no')
             adjust_qe_config(qe_topdir.joinpath('make.inc'))
 
         print("Build Quantum Espresso ...")
