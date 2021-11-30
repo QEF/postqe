@@ -25,6 +25,9 @@ VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\
 QE_SOURCE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip"
 QE_SOURCE_MD5SUM = "787c4aad3b203f7dd61d03a849a1c4e9"
 
+with Path(__file__).parent.joinpath('requirements.txt').open() as fp:
+    REQUIREMENTS = fp.read()
+
 
 def find_extension_module(pattern):
     """
@@ -243,10 +246,7 @@ setup(
     version='1.0.0',
     packages=['postqe'],
     package_data={'postqe': ['_pyqe.*.so', 'f90utils*.so']},
-    install_requires=[
-        'numpy>=1.17.0', 'ase~=3.20.0', 'qeschema~=1.1', 'scipy', 'f90wrap',
-        'h5py', 'matplotlib', 'colormath', 'natsort', 'moviepy',
-    ],
+    install_requires=REQUIREMENTS,
     entry_points={
         'console_scripts': [
             'postqe=postqe.cli:main'
@@ -274,6 +274,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
         'Natural Language :: English',
         'Topic :: Scientific/Engineering :: Physics'

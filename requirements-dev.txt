@@ -1,16 +1,7 @@
-numpy>=1.17.0
-ase~=3.20.0
-# qeschema~=1.1
--e ../qeschema
-f90wrap
-scipy
-h5py
-matplotlib
-colormath
-natsort
-moviepy
+-r requirements.txt
 tox
+flake8
 coverage
 Sphinx
 sphinx_rtd_theme
-# -e .
+-e .
