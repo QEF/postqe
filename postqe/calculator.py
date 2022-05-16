@@ -5,6 +5,7 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
+from importlib.resources import path
 import os
 import re
 import subprocess
@@ -312,8 +313,10 @@ class EspressoCalculator(FileIOCalculator):
 
         self.read_results()
 
-    def read_results(self):
-        filename = os.path.join(self.outdir or '', self.label + '.xml')
+    def read_results(self, filename=None):
+        if filename is None:
+            filename = str(pathlib.Path(self.label).joinpath('data-file-schema.xml'))
+            #filename = os.path.join(self.label + '/data-file-schema.xml')
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
