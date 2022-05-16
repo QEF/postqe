@@ -532,10 +532,14 @@ class EspressoCalculator(FileIOCalculator):
     # TODO: methods below are not implemented yet (do it if necessary)
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.
-
         The coordinates are relative to reciprocal lattice vectors."""
-        raise NotImplementedError
-        # return kpoints
+        kpoints= self.get_k_points() / self.get_alat()   
+        m = self.get_a_vectors() 
+        res = kpoints.dot(m.T) 
+        nint = lambda d: int(round(d,0))
+        center = lambda x: round(x - nint(x), 8) 
+        res = np.array( [np.array( [center(c) for c in _]) for _ in res[:]])
+        return res
 
     def get_ibz_k_points(self):
         """Return k-points in the irreducible part of the Brillouin zone.
