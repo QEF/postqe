@@ -192,7 +192,7 @@ class BuildExtCommand(build_ext):
             adjust_qe_config(qe_topdir.joinpath('make.inc'))
 
         print("Build Quantum Espresso ...")
-        os.system('make -C {} qe'.format(str(build_dir)))
+        os.system('make -j -C {} qe'.format(str(build_dir)))
 
     @staticmethod
     def _build_pyqe_module(build_dir):
