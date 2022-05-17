@@ -432,7 +432,6 @@ class EspressoCalculator(FileIOCalculator):
         ks_energies = (self.output["band_structure"]["ks_energies"])
 
         if self.get_spin_polarized():  # magnetic
-            eigenvalues = np.zeros((nbnd//2))
             if spin == 0:
                 spin = 1 
             if not use_updw:
@@ -482,7 +481,6 @@ class EspressoCalculator(FileIOCalculator):
 
         if self.get_spin_polarized():
             # magnetic
-            occupations = np.zeros((nbnd // 2))
             if spin == 0:
                 spin = 1 
             elif spin > 2: 
@@ -607,11 +605,41 @@ class EspressoCalculator(FileIOCalculator):
         """Return pseudo-effective-potential array."""
         raise NotImplementedError
 
-    def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, broadcast=True,
-                                 pad=True):
-        """Return pseudo-wave-function array."""
-        raise NotImplementedError
+    def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, filename=None):
+        """Return pseudo-wave-function array.  
+        for data read from the default  directory  kpt and spin are needed. 
+        for data read from file specified with filename, kpt and spin are neglected. 
+        :band: integer specify what band has to be extracted 
+        :kpt:  integer specify which k point is read. 
+        :spin: 1 or 2 for the lsda case specifies  which spin has to be selected 
+        :filename: string with the path to a custom wavefunction hdf5 file. """
+        from .readutils import get_wf_attributes, get_wavefunctions, get_wfc_miller_indices 
+        from .charge    import charge_r_from_cdata
+        spinlabels = ['up','dw']
+        if filename is not None:
+            attrs  = get_wf_attributes(filename=filename)
+            kpt = attrs['ik']
+        else: 
+            if self.get_spin_polarized():
+                filename = str( pathlib.Path( self.label ).joinpath( "".join(['wfc', spinlabels[spin-1], str(kpt),'.hdf5'] )))
+            else:
+                filename =  str( pathlib.Path( self.label ).joinpath( "".join(['wfc', str(kpt),'.hdf5'] )))
+            attrs = get_wf_attributes(filename = filename)
+        #
+        xk = attrs['xk']
+        igwx = attrs['igwx']
+        data = get_wavefunctions(filename,band-1,band)[0] 
+        MI = get_wfc_miller_indices(filename)
+        nr1 = 2*max(abs(MI[:, 0]))+1
+        nr2 = 2*max(abs(MI[:, 1]))+1
+        nr3 = 2*max(abs(MI[:, 2]))+1
+        gamma_only = 'TRUE' in str(attrs['gamma_only']).upper() 
+        nr = np.array([nr1, nr2, nr3])
+        return charge_r_from_cdata(data, MI, gamma_only, nr) 
 
+
+
+    
 
 # noinspection PyAbstractClass
 class PostqeCalculator(EspressoCalculator):
@@ -622,7 +650,6 @@ class PostqeCalculator(EspressoCalculator):
     according to espresso XSD schema). The implemented properties are
     those needed for postprocessing.
     """
-
     def __init__(self, restart=None, ignore_bad_restart_file=False, label='pwscf',
                  atoms=None, outdir=None, schema=None, **kwargs):
         kwargs.pop('command', None)

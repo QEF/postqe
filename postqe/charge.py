@@ -108,6 +108,7 @@ def get_charge_r(filename, nr=None):
 
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
+
     # Read the charge difference spin up - spin down if present (for magnetic calculations)
     if 'rhodiff_g' in cdata.keys():
         rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
@@ -128,6 +129,35 @@ def get_charge_r(filename, nr=None):
         return rhotot_r.real, rhodiff_r.real
     else:
         return rhotot_r.real, None
+
+
+def charge_r_from_cdata(cdata, MI, gamma_only, nr ): 
+    """
+    Computes density in real space from data"
+    :cdata: complex coefficients for 3D grid. correspondi G vectors are read from MI 
+    :MI:    integer array of dim=3 with the corresponding indexs for data in the FFT 3D grid
+    :gamma_only: boolean, if true data are real in real space, complex data for -G  are implicitly provided as conjg(rho(G)) 
+    :nr:  integer array with the 3 dimensions on the FFT grid 
+    :returns: 3D data in real space. 
+    """
+    nr1,nr2,nr3 = nr 
+    rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128) 
+    for (i,j,k),rho in zip ( MI, cdata):
+        try:
+            rho_temp [i,j,k] = rho
+        except IndexError:
+            pass 
+    #
+    if gamma_only:
+        MI_minus = (get_minus_indexes(_) for _ in MI )
+        rhog = ( _.conjugate() for _ in cdata) 
+        for (i,j,k),rho in zip ( MI_minus, rhog): 
+            try:
+                rho_temp[i,j,k] = rhog 
+            except IndexError:
+                pass
+    return np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3 
+
 
 
 def write_charge(filename, charge, header):
