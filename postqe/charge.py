@@ -35,6 +35,25 @@ def read_charge_file_hdf5(filename):
             res.update({'rhodiff_g':rhog})
         return res
 
+def get_density_data_hdf5(filename, dataset='rhotot_g'):
+    """
+    reads data for only one of the density data set. Spare some memory, works 
+    also in the non-collinear case
+    :return: a dictionary with all attributes plus the required field if present, None otherwise
+    """
+    with h5py.File(filename,"r") as h5f:
+        if not dataset in h5f.keys():
+            return None 
+        MI = h5f.get('MillerIndices')[:]
+        nr1 = 2*max(abs(MI[:, 0]))+1
+        nr2 = 2*max(abs(MI[:, 1]))+1
+        nr3 = 2*max(abs(MI[:, 2]))+1
+        nr = np.array([nr1, nr2, nr3])
+        res = dict(h5f.attrs.items())
+        res.update({'MillInd':MI,'nr_min': nr})
+        rhog = h5f[dataset][:].reshape(res['ngm_g'],2).dot([1.e0,1e0j])
+        res.update({dataset:rhog})
+    return res 
 
 def get_minus_indexes(g1, g2, g3):
     """
@@ -79,12 +98,12 @@ def get_charge_r(filename, nr=None):
 
     Notes: In the new format, the values of the charge in the reciprocal space are stored.
     Besides, only the values of the charge > cutoff are stored, together with the Miller indexes.
-    Hence
+    :returns: tot_charge 
     """
 
     cdata = read_charge_file_hdf5(filename)
     if nr is None:
-        nr1, nr2, nr3 = cdata['nrmin']
+        nr1, nr2, nr3 = cdata['nr_min']
     else:
         nr1, nr2, nr3 = nr
     gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
@@ -99,6 +118,56 @@ def get_charge_r(filename, nr=None):
     if gamma_only:
         rhotot_g = cdata['rhotot_g'].conjugate()
         MI = get_minus_indexes(cdata['MillInd'][:,0], cdata['MillInd'][:,1], cdata['MillInd'][:,2])
+        for (i, j, k), rho  in zip(MI, rhotot_g):
+            try:
+                rho_temp[i, j, k] = rho
+            except IndexError:
+                pass
+
+    rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+    return rhotot_r.real 
+
+def get_magnetization_r(filename, nr = None, direction = 3 ):
+    """
+    Reads a charge file writteb by QE in HDF5 format, returns magnetization, 
+    For non collinear case one has to indicate the direction to be read. 3 i.e. z by default 
+    :return: boolean true in a noncolinear file is read, magnetization in 3D grid nr = [nr1, nr2, nr3 ] 
+             or None in case no magnetization ha been found in file. 
+    """
+    cdata = get_density_data_hdf5(filename, dataset='rhodiff_g')
+    if cdata is not None:
+        noncolin = False 
+        dataset = 'rhodiff_g'
+    else:
+        if direction == 1:
+            dataset = 'm_x '
+        elif direction == 2:
+            dataset = 'm_y'
+        elif direction == 3:
+            dataset = 'm_z'
+        else: 
+            raise ValueError("valid directions from 1 to 3")
+        noncolin = True
+        cdata = read_charge_file_hdf5(filename, dataset = dataset)
+        if cdata is None:
+            return None 
+
+    if nr is None:
+        nr1, nr2, nr3 = cdata['nr_min']
+    else:
+        nr1, nr2, nr3 = nr
+    gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
+    # Load the total charge
+    rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
+    for (i, j, k),rho in zip( cdata['MillInd'],cdata[dataset]):
+        try:
+            rho_temp[i, j, k]=rho
+        except IndexError:
+            pass
+
+    if gamma_only:
+        rhotot_g = cdata[dataset].conjugate()
+        MI = get_minus_indexes(cdata['MillInd'][:,0], cdata['MillInd'][:,1], cdata['MillInd'][:,2])
         print("MI", MI)
         for (i, j, k), rho  in zip(MI, rhotot_g):
             try:
@@ -107,28 +176,8 @@ def get_charge_r(filename, nr=None):
                 pass
 
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+    return noncolin, rhotot_r.real 
 
-
-    # Read the charge difference spin up - spin down if present (for magnetic calculations)
-    if 'rhodiff_g' in cdata.keys():
-        rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-        for (i,j,k), rho  in zip(cdata['MillInd'], cdata['rhodiff_g']):
-            try:
-                rho_temp[i, j, k] = rho
-            except IndexError:
-                pass
-        if gamma_only:
-            rhodiff_g = cdata['rhodiff_g'].conjugate()
-            for (i, j, k),rho in zip(MI, rhodiff_g):
-                try:
-                    rho_temp[i, j, k] = rho
-                except IndexError:
-                    pass
-
-        rhodiff_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-        return rhotot_r.real, rhodiff_r.real
-    else:
-        return rhotot_r.real, None
 
 
 def charge_r_from_cdata(cdata, MI, gamma_only, nr ): 

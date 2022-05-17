@@ -5,10 +5,12 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
+from distutils.log import error
 from importlib.resources import path
 import os
 import re
 import subprocess
+from tabnanny import check
 import numpy as np
 import pathlib
 import qeschema
@@ -593,13 +595,27 @@ class EspressoCalculator(FileIOCalculator):
         raise NotImplementedError
         # return kpoints
 
-    def get_pseudo_density(self, spin=None, pad=True):
-        """Return pseudo-density array.
+    def get_pseudo_density(self, dataset='total', direction=3, check_noncolin = False, filename=None):
+        """Return pseudo-density array. 
+           dataset string is used  to chose which density is retrieved, possible values are 
+           'total' (default) and 'magnetization' For the noncollinear case the variable direction 
+           specifies the direction (3 is the default)
+        """
+        from .charge import get_charge_r, get_magnetization_r 
+        if filename is None:
+            filename = str(pathlib.Path( self.label ).joinpath( 'charge-density.hdf5' ))
+        if dataset == 'total':
+            return get_charge_r(filename)
+        elif dataset == 'magnetization':
+            temp = get_magnetization_r (filename, direction = direction )
+            if temp is None:
+                return None 
+            if check_noncolin:
+                if not temp[0]:
+                    raise Exception("Non collinear magnetization not found") 
+            return temp[1]
 
-        If *spin* is not given, then the total density is returned.
-        Otherwise, the spin up or down density is returned (spin=0 or
-        1)."""
-        raise NotImplementedError
+
 
     def get_effective_potential(self, spin=0, pad=True):
         """Return pseudo-effective-potential array."""
