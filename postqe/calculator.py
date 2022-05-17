@@ -411,65 +411,112 @@ class EspressoCalculator(FileIOCalculator):
         Warning:
         """
         try:
-            ef = float(self.output["band_structure"]["fermi_energy"]) * units.Ry
+            ef = float(self.output["band_structure"]["fermi_energy"]) * units.Ha
             return ef
         except (TypeError, KeyError):
             raise Warning("Fermi energy not defined or not in output file")
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        """Return eigenvalues array."""
+        """Return eigenvalues array.
+           For spin polarized specify spin=1 or spin=2, default spin=1
+        """
 
         nat = (self.output["atomic_structure"]["@nat"])
-        nbnd = int(self.output["band_structure"]["nbnd"])
+        try:
+            nbnd = int(self.output["band_structure"]["nbnd"])
+            use_updw = False
+        except KeyError:
+            nbnd_up = int(self.output["band_structure"]["nbnd_up"])
+            nbnd_dw = int(self.output["band_structure"]["nbnd_dw"])
+            use_updw = True 
         ks_energies = (self.output["band_structure"]["ks_energies"])
 
         if self.get_spin_polarized():  # magnetic
             eigenvalues = np.zeros((nbnd//2))
             if spin == 0:
-                # get bands for spin up
-                for j in range(0, nbnd // 2):
+                spin = 1 
+            if not use_updw:
+                nbnd_up = nbnd // 2 
+                nbnd_dw = nbnd // 2 
+            if spin == 1:
+                # get bands for spin up 
+                eigenvalues = np.zeros(nbnd_up)
+                for j in range(0, nbnd_up):
                     # eigenvalue at k-point kpt, band j, spin up
-                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry
+                    try:
+                        eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j])  * units.Ha
+                    except KeyError:
+                        eigenvalues[j] = float(ks_energies[kpt]['eigenvalues']['$'][j]) * units.Ha
             else:
                 # get bands for spin down
-                for j in range(nbnd // 2, nbnd):
+                eigenvalues = np.zeros(nbnd_dw)
+                for j in range(nbnd_up, nbnd_up + nbnd_dw ):
                     # eigenvalue at k-point kpt, band j, spin down
-                    eigenvalues[j - nbnd // 2] = float(ks_energies[kpt]['eigenvalues'][j]) * \
-                                                 2 * nat * units.Ry
+                    try:
+                        eigenvalues[j - nbnd_up] = float(ks_energies[kpt]['eigenvalues'][j]) * units.Ha
+                    except KeyError:
+                        eigenvalues[j - nbnd_up] = float(ks_energies[kpt]['eigenvalues']['$'][j]) * units.Ha
         else:
             # non magnetic
             eigenvalues = np.zeros(nbnd)
             for j in range(0, nbnd):
                 # eigenvalue at k-point kpt, band j
-                eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * 2 * nat * units.Ry
+                try:
+                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * units.Ha
+                except KeyError:
+                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues']['$'] [j]) * units.Ha
 
         return eigenvalues
 
     def get_occupation_numbers(self, kpt=0, spin=0):
-        """Return occupation number array."""
-
-        nbnd = int(self.output["band_structure"]["nbnd"])
+        """Return occupation number array.  For spin polarized case specify spin=1 or spin=2"""
+        try:
+            nbnd = int(self.output["band_structure"]["nbnd"])
+            use_updw = False
+        except KeyError:
+            nbnd_up = int(self.output["band_structure"]["nbnd_up"])
+            nbnd_dw = int(self.output["band_structure"]["nbnd_dw"])
+            use_updw = True
+        #
         ks_energies = (self.output["band_structure"]["ks_energies"])
 
         if self.get_spin_polarized():
             # magnetic
             occupations = np.zeros((nbnd // 2))
             if spin == 0:
+                spin = 1 
+            elif spin > 2: 
+                raise ValueError("Spin can be either 1 or 2 ")
+            if not use_updw:
+                nbnd_up = nbnd // 2 
+                nbnd_dw = nbnd // 2 
+            if spin == 1:
                 # get bands for spin up
-                for j in range(0, nbnd // 2):
+                occupations = np.zeros(nbnd_up) 
+                for j in range(0, nbnd_up):
                     # eigenvalue at k-point kpt, band j, spin up
-                    occupations[j] = float(ks_energies[kpt]['occupations'][j])
+                    try:
+                        occupations[j] = float(ks_energies[kpt]['occupations'][j])
+                    except KeyError:
+                        occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])  
             else:
                 # get bands for spin down
-                for j in range(nbnd // 2, nbnd):
+                occupations = np.zeros(nbnd_dw)
+                for j in range(nbnd_up, nbnd_up + nbnd_dw):
                     # eigenvalue at k-point kpt, band j, spin down
-                    occupations[j - nbnd // 2] = float(ks_energies[kpt]['occupations'][j])
+                    try:
+                        occupations[j - nbnd_up ] = float(ks_energies[kpt]['occupations'][j])
+                    except KeyError:
+                        occupations[j - nbnd_up ] = float(ks_energies[kpt]['occupations']['$'][j])
         else:
             # non magnetic
             occupations = np.zeros(nbnd)
             for j in range(0, nbnd):
                 # eigenvalue at k-point kpt, band j
-                occupations[j] = float(ks_energies[kpt]['occupations'][j])
+                try: 
+                    occupations[j] = float(ks_energies[kpt]['occupations'][j])
+                except KeyError:
+                    occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])  
 
         return occupations
 
