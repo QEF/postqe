@@ -1,5 +1,5 @@
-#
 # Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+#
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -52,7 +52,7 @@ def get_wavefunctions(filename, start_band=None, stop_band=None):
             stop_band = start_band + 1 
         res = f.get('evc')[start_band:stop_band, :]
 
-    res = np.asarray(x.reshape([igwx, 2]).dot([1.e0, 1.e0j]) for x in res[:])
+    res = np.asarray([x.reshape([igwx, 2]).dot([1.e0, 1.e0j]) for x in res[:]])
     return res 
 
 
