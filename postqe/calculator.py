@@ -91,7 +91,7 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     """
     Create band structure object from Atoms or calculator.
 
-    This functions is rewritten here to allow the user to set the
+    This function is rewritten here to allow the user to set the
     reference energy level. The method calc.get_fermi_level() can
     fail in some cases as for insulators or for non-scf calculations.
     """
@@ -165,8 +165,8 @@ class EspressoCalculator(FileIOCalculator):
     kpts = None
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='pwscf', atoms=None, command=None, outdir=None,
-                 schema=None, pp_dict=None, **kwargs):
+                 label='pwscf.save/data-file-schema.xml', atoms=None,
+                 command=None, outdir=None, schema=None, pp_dict=None, **kwargs):
 
         # Check outdir and label to fit the preferred format for an ASE calculator
         if outdir is not None:
@@ -317,7 +317,9 @@ class EspressoCalculator(FileIOCalculator):
 
     def read_results(self, filename=None):
         if filename is None:
-            filename = str(pathlib.Path(self.label).joinpath('data-file-schema.xml'))
+            # filename = os.path.join(self.outdir or '', self.label + '.xml')
+            filename = os.path.join(self.outdir or '', self.label)
+            # filename = str(pathlib.Path(self.label).joinpath('data-file-schema.xml'))
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
@@ -603,19 +605,17 @@ class EspressoCalculator(FileIOCalculator):
         """
         from .charge import get_charge_r, get_magnetization_r 
         if filename is None:
-            filename = str(pathlib.Path( self.label ).joinpath( 'charge-density.hdf5' ))
+            filename = str(pathlib.Path(self.outdir).joinpath('charge-density.hdf5'))
         if dataset == 'total':
             return get_charge_r(filename)
         elif dataset == 'magnetization':
-            temp = get_magnetization_r (filename, direction = direction )
+            temp = get_magnetization_r(filename, direction=direction)
             if temp is None:
                 return None 
             if check_noncolin:
                 if not temp[0]:
                     raise Exception("Non collinear magnetization not found") 
             return temp[1]
-
-
 
     def get_effective_potential(self, spin=0, pad=True):
         """Return pseudo-effective-potential array."""

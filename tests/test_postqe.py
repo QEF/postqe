@@ -104,10 +104,11 @@ class TestPostqeCalculators(unittest.TestCase):
 class TestNiCase01(unittest.TestCase):
 
     outdir = abspath('examples/Ni_pz_nc')
+    calc: PostqeCalculator
 
     @classmethod
     def setUpClass(cls):
-        cls.calc = PostqeCalculator(label='Ni', outdir=cls.outdir, schema='qes-20180510.xsd')
+        cls.calc = PostqeCalculator(label='Ni.xml', outdir=cls.outdir, schema='qes-20180510.xsd')
         cls.calc.read_results()
 
     def test_get_atoms_from_xml_output(self):
@@ -216,24 +217,21 @@ class TestNiCase01(unittest.TestCase):
         )
 
     def test_get_bz_k_points(self):
-        with self.assertRaises(NotImplementedError):
-            self.calc.get_bz_k_points()
+        result = self.calc.get_bz_k_points()
 
     def test_get_ibz_k_points(self):
         with self.assertRaises(NotImplementedError):
             self.calc.get_ibz_k_points()
 
     def test_get_pseudo_density(self):
-        with self.assertRaises(NotImplementedError):
-            self.calc.get_pseudo_density()
+        result = self.calc.get_pseudo_density()
 
     def test_get_effective_potential(self):
         with self.assertRaises(NotImplementedError):
             self.calc.get_effective_potential()
 
     def get_pseudo_wave_function(self):
-        with self.assertRaises(NotImplementedError):
-            self.calc.get_pseudo_wave_function()
+        result = self.calc.get_pseudo_wave_function()
 
 
 class TestNiCase02(TestNiCase01):
@@ -291,7 +289,7 @@ class TestPostqeAPI(unittest.TestCase):
 
     def test_get_band_structure(self):
         bs = get_band_structure(
-            prefix=abspath('examples/Si'),
+            prefix=abspath('examples/Si/Si.xml'),
             schema="releases/qes-20180510.xsd",
             reference_energy=0
         )

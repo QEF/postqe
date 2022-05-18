@@ -25,7 +25,7 @@ def get_label(prefix='pwscf', outdir=None):
         except KeyError:
             outdir = os.curdir
 
-    label = os.path.join(outdir, '{}.save'.format(prefix))
+    label = os.path.join(outdir, '{}.save/data-file-schema.xml'.format(prefix))
     return label
 
 
