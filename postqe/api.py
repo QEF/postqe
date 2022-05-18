@@ -14,7 +14,7 @@ from .eos import QEEquationOfState
 from .dos import QEDOS
 from .charge import Charge, Potential
 from .readutils import read_EtotV
-from .calculator import PostqeCalculator
+from .calculator import EspressoCalculator, PostqeCalculator
 
 
 def get_label(prefix='pwscf', outdir=None):
@@ -27,6 +27,26 @@ def get_label(prefix='pwscf', outdir=None):
 
     label = os.path.join(outdir, '{}.save/data-file-schema.xml'.format(prefix))
     return label
+
+
+def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=None, **kwargs):
+    """
+    Returns a calculator instance for QuantumEspresso.
+
+    :param prefix: prefix of saved output file
+    :param outdir: directory containing the input data. Default to the value of \
+    ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise.
+    :param schema: the XML schema to be used to read and validate the XML output file
+    :param pp_dict: dictionary of chemical symbols FIXME?
+    :param cls: calculator class to use, EspressoCalculator for default
+    :param kwargs: other arguments for initializing an ASE calculator
+    :return: an EspressoCalculator object
+    """
+    if cls is None:
+        cls = EspressoCalculator
+
+    label = get_label(prefix, outdir)
+    return cls(label=label, schema=schema, outdir=outdir, pp_dict=pp_dict, **kwargs)
 
 
 ## New CLI-API interfaces ###
@@ -235,8 +255,7 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=100)
     :param npts: number of points of the DOS
     :return: a DOS object
     """
-    label = get_label(prefix, outdir)
-    calc = PostqeCalculator(atoms=None, label=label, schema=schema, outdir=outdir)
+    calc = get_calculator(prefix, outdir, schema, cls=PostqeCalculator)
     calc.read_results()
 
     atoms = calc.get_atoms_from_xml_output()
@@ -302,8 +321,7 @@ def get_charge(prefix, outdir=None, schema=None):
     :param schema: the XML schema to be used to read and validate the XML output file
     :return: a Charge object
     """
-    label = get_label(prefix, outdir)
-    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc = get_calculator(prefix, outdir, schema, cls=PostqeCalculator)
     calc.read_results()
 
     atoms = calc.get_atoms_from_xml_output()
@@ -388,8 +406,7 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     :param pot_type: type of the Potential ('v_tot', ....)
     :return: a Potential object
     """
-    label = get_label(prefix, outdir)
-    calc = PostqeCalculator(atoms=None, label=label, schema=schema)
+    calc = get_calculator(prefix, outdir, schema, cls=PostqeCalculator)
     calc.read_results()
 
     atoms = calc.get_atoms_from_xml_output()
