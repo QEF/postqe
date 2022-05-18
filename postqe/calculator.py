@@ -666,8 +666,9 @@ class PostqeCalculator(EspressoCalculator):
     according to espresso XSD schema). The implemented properties are
     those needed for postprocessing.
     """
-    def __init__(self, restart=None, ignore_bad_restart_file=False, label='pwscf',
-                 atoms=None, outdir=None, schema=None, **kwargs):
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label='pwscf.save/data-file-schema.xml', atoms=None,
+                 outdir=None, schema=None, **kwargs):
         kwargs.pop('command', None)
         kwargs.pop('pp_dict', None)
         super().__init__(restart=restart, ignore_bad_restart_file=ignore_bad_restart_file,
