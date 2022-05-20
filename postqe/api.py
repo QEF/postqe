@@ -28,7 +28,6 @@ def get_label(prefix='pwscf', outdir=None):
     label = os.path.join(outdir, '{}.save/data-file-schema.xml'.format(prefix))
     return label
 
-
 def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=None, **kwargs):
     """
     Returns a calculator instance for QuantumEspresso.
@@ -46,10 +45,12 @@ def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=N
         cls = EspressoCalculator
 
     label = get_label(prefix, outdir)
-    return cls(label=label, schema=schema, outdir=outdir, pp_dict=pp_dict, **kwargs)
+
+    # return cls(label=label, schema=schema, outdir=outdir, pp_dict=pp_dict, **kwargs)
+    return cls(label=label, schema=schema, pp_dict=pp_dict, **kwargs)
 
 
-## New CLI-API interfaces ###
+## New CLI-API interfaces ###'{}.save/data-file-schema.xml'.format(prefix))
 
 def new_get_charge(prefix=None, output=None, filplot=None):
     plot = []
@@ -152,7 +153,14 @@ def get_eos(prefix, outdir=None, eos_type='murnaghan'):
     :return: an QEEquationOfState object
     """
 
-    label = get_label(prefix, outdir)
+    if outdir is None:
+        try:
+            outdir = os.environ['ESPRESSO_TMPDIR']
+        except KeyError:
+            outdir = os.curdir
+
+    label = '{}/{}'.format(outdir, prefix)
+
     # Extract volumes and energies from the input file:
     volumes, energies = read_EtotV(label)
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
@@ -288,7 +296,7 @@ def compute_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=
     :return: a DOS object and a Matplotlib figure object
     """
     # get a DOS object
-    dos = get_dos(prefix, schema=schema, width=width, window=window, npts=npts)
+    dos = get_dos(prefix, outdir=outdir, schema=schema, width=width, window=window, npts=npts)
 
     # save DOS in a file
     if fileout != '':
@@ -329,7 +337,8 @@ def get_charge(prefix, outdir=None, schema=None):
     atoms.calc.read_results()
 
     nr = calc.get_nr()
-    charge_file = calc.label + ".save/charge-density.hdf5"
+    # charge_file = calc.label + ".save/charge-density.hdf5"
+    charge_file = calc.label[:-20] + "charge-density.hdf5"
 
     charge = Charge(nr)
     charge.read(charge_file)
@@ -414,7 +423,8 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     atoms.calc.read_results()
 
     nr = calc.get_nr()
-    charge_file = calc.label + ".save/charge-density.hdf5"
+    # charge_file = calc.label + ".save/charge-density.hdf5"
+    charge_file = calc.label[:-20] + "charge-density.hdf5"
 
     potential = Potential(nr, pot_type=pot_type)
     potential.read(charge_file)
