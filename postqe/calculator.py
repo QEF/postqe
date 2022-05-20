@@ -318,7 +318,8 @@ class EspressoCalculator(FileIOCalculator):
     def read_results(self, filename=None):
         if filename is None:
             # filename = os.path.join(self.outdir or '', self.label + '.xml')
-            filename = os.path.join(self.outdir or '', self.label)
+            # filename = os.path.join(self.outdir or '', self.label)
+            filename = os.path.join(self.label)
             # filename = str(pathlib.Path(self.label).joinpath('data-file-schema.xml'))
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
@@ -432,17 +433,17 @@ class EspressoCalculator(FileIOCalculator):
         except KeyError:
             nbnd_up = int(self.output["band_structure"]["nbnd_up"])
             nbnd_dw = int(self.output["band_structure"]["nbnd_dw"])
-            use_updw = True 
+            use_updw = True
         ks_energies = (self.output["band_structure"]["ks_energies"])
 
         if self.get_spin_polarized():  # magnetic
             if spin == 0:
-                spin = 1 
+                spin = 1
             if not use_updw:
-                nbnd_up = nbnd // 2 
-                nbnd_dw = nbnd // 2 
+                nbnd_up = nbnd // 2
+                nbnd_dw = nbnd // 2
             if spin == 1:
-                # get bands for spin up 
+                # get bands for spin up
                 eigenvalues = np.zeros(nbnd_up)
                 for j in range(0, nbnd_up):
                     # eigenvalue at k-point kpt, band j, spin up
@@ -486,21 +487,21 @@ class EspressoCalculator(FileIOCalculator):
         if self.get_spin_polarized():
             # magnetic
             if spin == 0:
-                spin = 1 
-            elif spin > 2: 
+                spin = 1
+            elif spin > 2:
                 raise ValueError("Spin can be either 1 or 2 ")
             if not use_updw:
-                nbnd_up = nbnd // 2 
-                nbnd_dw = nbnd // 2 
+                nbnd_up = nbnd // 2
+                nbnd_dw = nbnd // 2
             if spin == 1:
                 # get bands for spin up
-                occupations = np.zeros(nbnd_up) 
+                occupations = np.zeros(nbnd_up)
                 for j in range(0, nbnd_up):
                     # eigenvalue at k-point kpt, band j, spin up
                     try:
                         occupations[j] = float(ks_energies[kpt]['occupations'][j])
                     except KeyError:
-                        occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])  
+                        occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])
             else:
                 # get bands for spin down
                 occupations = np.zeros(nbnd_dw)
@@ -515,10 +516,10 @@ class EspressoCalculator(FileIOCalculator):
             occupations = np.zeros(nbnd)
             for j in range(0, nbnd):
                 # eigenvalue at k-point kpt, band j
-                try: 
+                try:
                     occupations[j] = float(ks_energies[kpt]['occupations'][j])
                 except KeyError:
-                    occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])  
+                    occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])
 
         return occupations
 
@@ -582,11 +583,11 @@ class EspressoCalculator(FileIOCalculator):
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.
         The coordinates are relative to reciprocal lattice vectors."""
-        kpoints= self.get_k_points() / self.get_alat()   
-        m = self.get_a_vectors() 
-        res = kpoints.dot(m.T) 
+        kpoints= self.get_k_points() / self.get_alat()
+        m = self.get_a_vectors()
+        res = kpoints.dot(m.T)
         nint = lambda d: int(round(d,0))
-        center = lambda x: round(x - nint(x), 8) 
+        center = lambda x: round(x - nint(x), 8)
         res = np.array( [np.array( [center(c) for c in _]) for _ in res[:]])
         return res
 
@@ -598,12 +599,12 @@ class EspressoCalculator(FileIOCalculator):
         # return kpoints
 
     def get_pseudo_density(self, dataset='total', direction=3, check_noncolin = False, filename=None):
-        """Return pseudo-density array. 
-           dataset string is used  to chose which density is retrieved, possible values are 
-           'total' (default) and 'magnetization' For the noncollinear case the variable direction 
+        """Return pseudo-density array.
+           dataset string is used  to chose which density is retrieved, possible values are
+           'total' (default) and 'magnetization' For the noncollinear case the variable direction
            specifies the direction (3 is the default)
         """
-        from .charge import get_charge_r, get_magnetization_r 
+        from .charge import get_charge_r, get_magnetization_r
         if filename is None:
             filename = str(pathlib.Path(self.outdir).joinpath('charge-density.hdf5'))
         if dataset == 'total':
@@ -611,10 +612,10 @@ class EspressoCalculator(FileIOCalculator):
         elif dataset == 'magnetization':
             temp = get_magnetization_r(filename, direction=direction)
             if temp is None:
-                return None 
+                return None
             if check_noncolin:
                 if not temp[0]:
-                    raise Exception("Non collinear magnetization not found") 
+                    raise Exception("Non collinear magnetization not found")
             return temp[1]
 
     def get_effective_potential(self, spin=0, pad=True):
@@ -622,20 +623,20 @@ class EspressoCalculator(FileIOCalculator):
         raise NotImplementedError
 
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, filename=None):
-        """Return pseudo-wave-function array.  
-        for data read from the default  directory  kpt and spin are needed. 
-        for data read from file specified with filename, kpt and spin are neglected. 
-        :band: integer specify what band has to be extracted 
-        :kpt:  integer specify which k point is read. 
-        :spin: 1 or 2 for the lsda case specifies  which spin has to be selected 
+        """Return pseudo-wave-function array.
+        for data read from the default  directory  kpt and spin are needed.
+        for data read from file specified with filename, kpt and spin are neglected.
+        :band: integer specify what band has to be extracted
+        :kpt:  integer specify which k point is read.
+        :spin: 1 or 2 for the lsda case specifies  which spin has to be selected
         :filename: string with the path to a custom wavefunction hdf5 file. """
-        from .readutils import get_wf_attributes, get_wavefunctions, get_wfc_miller_indices 
+        from .readutils import get_wf_attributes, get_wavefunctions, get_wfc_miller_indices
         from .charge    import charge_r_from_cdata
         spinlabels = ['up','dw']
         if filename is not None:
             attrs  = get_wf_attributes(filename=filename)
             kpt = attrs['ik']
-        else: 
+        else:
             if self.get_spin_polarized():
                 filename = str( pathlib.Path( self.label ).joinpath( "".join(['wfc', spinlabels[spin-1], str(kpt),'.hdf5'] )))
             else:
@@ -644,18 +645,18 @@ class EspressoCalculator(FileIOCalculator):
         #
         xk = attrs['xk']
         igwx = attrs['igwx']
-        data = get_wavefunctions(filename,band-1,band)[0] 
+        data = get_wavefunctions(filename,band-1,band)[0]
         MI = get_wfc_miller_indices(filename)
         nr1 = 2*max(abs(MI[:, 0]))+1
         nr2 = 2*max(abs(MI[:, 1]))+1
         nr3 = 2*max(abs(MI[:, 2]))+1
-        gamma_only = 'TRUE' in str(attrs['gamma_only']).upper() 
+        gamma_only = 'TRUE' in str(attrs['gamma_only']).upper()
         nr = np.array([nr1, nr2, nr3])
-        return charge_r_from_cdata(data, MI, gamma_only, nr) 
+        return charge_r_from_cdata(data, MI, gamma_only, nr)
 
 
 
-    
+
 
 # noinspection PyAbstractClass
 class PostqeCalculator(EspressoCalculator):
