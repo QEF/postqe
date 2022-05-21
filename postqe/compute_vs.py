@@ -14,7 +14,7 @@ from .setlocal import wrap_setlocal
 from . import pyqe
 
 
-# Compute the volume from a1, a2, a3 vectors in direct space.  
+# Compute the volume from a1, a2, a3 vectors in direct space.
 def compute_volume(at1, at2, at3):
     """
     at: cell vectors
@@ -23,7 +23,7 @@ def compute_volume(at1, at2, at3):
     """
     V = abs(at1[0] * at2[1] * at3[2] + at1[1] * at2[2] * at3[0] + at1[2] * at2[0] * at3[1] -
             at3[0] * at2[1] * at1[2] - at3[1] * at2[2] * at1[0] - at3[2] * at2[0] * at3[1])
-    return V 
+    return V
 
 
 def compute_G(b, nr):
@@ -46,8 +46,8 @@ def compute_G(b, nr):
 
 def compute_G_squared(b, nr, ecutrho, alat):
     """
-    This function computes a matrix nr[0]*nr[1]*nr[2] containing G^2 at each point, G is the 
-    corresponding reciprocal lattice vector. Also apply a proper cut-off 
+    This function computes a matrix nr[0]*nr[1]*nr[2] containing G^2 at each point, G is the
+    corresponding reciprocal lattice vector. Also apply a proper cut-off
     ecutm = 2.0 * ecutrho / ((2.0*pi/alat)**2). For G^2>ecutm G^2, G^2 should be 0.
     Here G^2 is set to a big number so that n(G)/G^2 is 0 in the inverse FFT.
     """
@@ -107,8 +107,8 @@ def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, 
 def get_v_h_from_hdf5(filename, nr, dataset='rhotot_g'):
     """
     computes the Hartree potential, reading the data from the hdf5 charge-density file.
-    :param filename: name of the hdf5 containing the charge density in reciprocal space 
-    :param nr: three-ple containing nr1, nr2, nr3 integers defining the fft mesh 
+    :param filename: name of the hdf5 containing the charge density in reciprocal space
+    :param nr: three-ple containing nr1, nr2, nr3 integers defining the fft mesh
     :param dataset: the name of the dataset containing the charge density
     :return: returns the value of the hartree potential defined in a nr1,nr2,nr3 mesh
     """
@@ -143,15 +143,15 @@ def compute_v_h(charge, ecutrho, alat, b):
     This function computes the hartree potential from the charge and
     the cut off energy "ecutrho" on the charge. The charge is a numpy matrix nr1*nr2*nr3.
 
-    """    
-    # First compute the FFT of the charge          
+    """
+    # First compute the FFT of the charge
     fft_charge = np.fft.fftn(charge)
     nr = charge.shape
-        
+
     # Compute G^2 values for the mesh, applying the proper cutoff from ecutrho
     # and alat
     G2 = compute_G_squared(b, nr, ecutrho, alat)
-    
+
     conv_fact = 2.0 / pi * alat**2
     v = np.fft.ifftn(fft_charge / G2) * conv_fact
 
