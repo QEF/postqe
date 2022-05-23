@@ -125,7 +125,7 @@ def get_charge_r(filename, nr=None):
                 pass
 
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-    return rhotot_r.real
+    return rhotot_r.real, None
 
 def get_magnetization_r(filename, nr = None, direction = 3 ):
     """
@@ -275,10 +275,9 @@ class Charge:
                 nr = self.nr
             except:
                 raise AttributeError("nr not defined in this Charge object")
-        # charge, charge_diff = get_charge_r(filename, np.array(nr))
-        charge = get_charge_r(filename, np.array(nr))
+        charge, charge_diff = get_charge_r(filename, np.array(nr))
         self.charge = charge
-        # self.charge_diff = charge_diff
+        self.charge_diff = charge_diff
 
     def write(self, filename):
         header='# Charge file\n'
