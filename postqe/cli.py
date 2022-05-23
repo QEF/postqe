@@ -110,12 +110,20 @@ FERMI_LEVEL = 1.0  # FIXME: put in constants.py with an appropriate value
 def vector(s):
     """Parses a 3-dimension vector argument."""
     try:
-        x, y, z = map(int, s.split(','))
+        x, y, z = map(float, s.split(','))
     except (ValueError, AttributeError):
         raise argparse.ArgumentTypeError("Vectors must be x,y,z")
     else:
         return x, y, z
-
+#
+def window(s):
+    """Parses a 2-dimension argument."""
+    try:
+        emin, emax = map(int, s.split(','))
+    except (ValueError, AttributeError):
+        raise argparse.ArgumentTypeError("Tuple must be: emin, emax")
+    else:
+        return emin, emax
 
 def get_cli_parser():
     parser = argparse.ArgumentParser(description='QE post processing')
@@ -170,17 +178,22 @@ def get_cli_parser():
 
     subparsers.add_parser('2', help="local ionic potential V_bare")
 
-
+    #COMPUTE DOS
     plot_num_parser = subparsers.add_parser(
         '3', help="local density of states at specific energy or grid of energies")
+    #SPECIFIC OPTIONS
     plot_num_parser.add_argument(
-        '-emin', type=float, default=FERMI_LEVEL, help="lower boundary of energy grid (in eV)")
+        '-window', type=window, default=None, help="a tuple (emin, emax) that defines the minimum and maximum energies for the DOS")
     plot_num_parser.add_argument(
-        '-emax', type=float, default=None, help="upper boundary of energy grid (in eV)")
+        '-width', type=float, default=0.5, help="width of the gaussian to be used for the DOS (in eV, default=0.5)")
     plot_num_parser.add_argument(
-        '-delta_e', type=float, default=0.1, help="spacing of energy grid (in eV)")
+        '-npts', type=int, default=100, help="number of points of the DOS")
     plot_num_parser.add_argument(
-        '-degauss_ldos', type=float, default=None, help="broadening of energy levels for LDOS (in eV)")
+        '-fileout', type=str, default='dos.dat', help="output file with DOS results (default='dos.dat', not written)")
+    plot_num_parser.add_argument(
+        '-fileplot', type=str, default='dosplot', help="output plot file (default='dosplot') in png format.")
+    plot_num_parser.add_argument(
+        '-show', type=bool, default=False, choices=BOOL_CHOICES, help="plot results with Matplotlib (True, False")
 
 
     subparsers.add_parser('4', help="local density of electronic entropy")
@@ -292,11 +305,20 @@ def main():
         api.compute_charge(
             args.prefix, args.outdir, args.schema, args.fileout, args.x0, args.e1,
             args.nx, args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn,
-            args.plot_file, args.method, args.format, args.show)
+            args.plot_file, args.method, args.format, args.show
+        )
 
     # elif args.plot_num == '1':
     # elif args.plot_num == '2':
-    # elif args.plot_num == '3':
+    elif args.plot_num == '3':
+        if args.window is None:
+            window = None
+        else:
+            window = args.window
+        api.compute_dos(
+            args.prefix, args.outdir, args.schema, args.width, window, args.npts,
+            args.fileout, args.fileplot, args.show
+        )
     # elif args.plot_num == '4':
     # elif args.plot_num == '5':
     # elif args.plot_num == '6':
