@@ -101,6 +101,7 @@ CHARGE_SHOW_HELP = "if True, show the Matplotlib plot (only for 1D and 2D sectio
 # SPIN_CHOICES = [0, 1, 2]
 SPIN_CHOICES = ['total', 'up', 'down']
 METHOD_CHOICES = ['FFT', 'polar', 'spherical']
+EOS_CHOICES = ['murnaghan', 'sjeos', 'taylor', 'vinet', 'birch', 'birchmurnaghan', 'pouriertarantola', 'antonschmidt', 'p3']
 FORMAT_CHOICES = ['gnuplot', 'xsf', 'cube', 'contour', 'plotrho']
 BOOL_CHOICES = [True, False]
 DIM_CHOICES = [1, 2, 3]
@@ -127,135 +128,93 @@ def window(s):
 
 def get_cli_parser():
     parser = argparse.ArgumentParser(description='QE post processing')
-    subparsers = parser.add_subparsers(metavar="plot_num", dest='plot_num', required=True,
+    subparsers = parser.add_subparsers(metavar="command", dest='command', required=True,
                                        help='Selects what to save in filplot')
 
-    #COMPUTE CHARGE
-    plot_num_parser = subparsers.add_parser(
-        '0', aliases=['charge'], help="electron (pseudo-)charge density")
+    #COMPUTE Equantion of State
+    command_parser = subparsers.add_parser(
+        'eos', help="Equation of State Plot")
     #SPECIFIC OPTIONS
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
+        '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help="type of equation of state (EOS) for fitting")
+    command_parser.add_argument(
+        '-fileout', type=str, default='eos_data.dat', help="output file with fitting data and results (default='eos_data.dat', not written).")
+    command_parser.add_argument(
+        '-ax', type=str, default=None, help="a Matplotlib 'Axes' instance (see Matplotlib documentation for details. \
+                                            (default=None, creates a new one)")
+
+
+    #COMPUTE CHARGE
+    command_parser = subparsers.add_parser(
+        'charge', help="electron (pseudo-)charge density")
+    #SPECIFIC OPTIONS
+    command_parser.add_argument(
         '-fileout', type=str, default='charge.dat', help="text file with the full charge data as in the HDF5 file")
-    plot_num_parser.add_argument(
-        '-ifmagn', type=str, default=None, choices=SPIN_CHOICES, help="spin component of charge")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
+        '-ifmagn', type=str, default=None, choices=SPIN_CHOICES, help="for a magnetic calculation, 'total' plot the total charge, \
+                                                                        'up' plot the charge with spin up, 'down' for spin down.")
+    command_parser.add_argument(
         '-x0', type=vector, default=(0.,0.,0.), help="vector (a tuple), origin of the line")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-e1', type=vector, default=(1.,0.,0.), help="3D vector (tuples) which determines the plotting lines must be in  x,y,z  format")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-nx', type=int, default=50, help="number of points along e1")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-e2', type=vector, default=(0.,1.,0.), help="3D vector (tuples) which determines the plotting lines must be in '(x,y,z)' format")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-ny', type=int, default=50, help="number of points along e2")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-e3', type=vector, default=(0.,0.,1.), help="3D vector (tuples) which determines the plotting lines must be in '(x,y,z)' format")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-nz', type=int, default=50, help="number of points along e3")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-radius', type=int, default=1, help="radious of the sphere in the polar average method")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-dim', type=int, default=1, choices=DIM_CHOICES, help="1, 2, or 3 for 1D, 2D or 3D section respectively")
-    plot_num_parser.add_argument(
-        '-plot_file', type=str, default='plot_data.dat', choices=DIM_CHOICES, help="file where plot data are exported in the chosen format \
-                                                                                (Gnuplot, XSF, cube Gaussian, etc.).")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-method', type=str, default='FFT', choices=METHOD_CHOICES, help="the interpolation method")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-format', type=str, default='gnuplot', choices=FORMAT_CHOICES, help="format of the (optional) exported file")
-    plot_num_parser.add_argument(
-        '-show', type=bool, default=False, choices=BOOL_CHOICES, help="show the Matplotlib plot (only for 1D and 2D sections)")
-
-
-    #COMPUTE POTENTIAL
-    plot_num_parser = subparsers.add_parser(
-        '1', help="total potential V_bare + V_H + V_xc")
-    #SPECIFIC OPTION
-    # plot_num_parser.add_argument(
-    #     '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of potential")
-    plot_num_parser = subparsers.add_parser(
-        '0', aliases=['charge'], help="electron (pseudo-)charge density")
-
-    subparsers.add_parser('2', help="local ionic potential V_bare")
+    command_parser.add_argument(
+        '-plot_file', type=str, default='plot_data.dat', help="file where plot data are exported in the chosen format \
+                                                               (Gnuplot, XSF, cube Gaussian, etc.).")
 
     #COMPUTE DOS
-    plot_num_parser = subparsers.add_parser(
-        '3', help="local density of states at specific energy or grid of energies")
+    command_parser = subparsers.add_parser(
+        'dos', help="local density of states at specific energy or grid of energies")
     #SPECIFIC OPTIONS
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-window', type=window, default=None, help="a tuple (emin, emax) that defines the minimum and maximum energies for the DOS")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-width', type=float, default=0.5, help="width of the gaussian to be used for the DOS (in eV, default=0.5)")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-npts', type=int, default=100, help="number of points of the DOS")
-    plot_num_parser.add_argument(
+    command_parser.add_argument(
         '-fileout', type=str, default='dos.dat', help="output file with DOS results (default='dos.dat', not written)")
-    plot_num_parser.add_argument(
-        '-fileplot', type=str, default='dosplot', help="output plot file (default='dosplot') in png format.")
-    plot_num_parser.add_argument(
-        '-show', type=bool, default=False, choices=BOOL_CHOICES, help="plot results with Matplotlib (True, False")
 
 
-    subparsers.add_parser('4', help="local density of electronic entropy")
-
-
-    plot_num_parser = subparsers.add_parser(
-        '5', help="STM images, Tersoff and Hamann, PRB 31, 805 (1985)")
-    plot_num_parser.add_argument(
-        '-sample_bias', type=float, help="the bias of the sample (Ry) in stm images")
-
-
-    subparsers.add_parser('6', help="spin polarization (rho(up)-rho(down))")
-
-
-    plot_num_parser = subparsers.add_parser(
-        '7', help="contribution of selected wavefunction(s) to the (pseudo-)charge density")
-    plot_num_parser.add_argument(
-        '-kpoint', type=int, choices=[1, 2], action='append', help="k-point(s) to be plotted")
-    plot_num_parser.add_argument(
-        '-kband', type=int, choices=[1, 2], action='append', help="band(s) to be plotted")
-    plot_num_parser.add_argument(
-        '-lsign', type=bool, default=False, help="if true and k point is Gamma, plot |psi|^2 sign(psi)")
-    plot_num_parser.add_argument(
-        '-spin', type=int, choices=SPIN_CHOICES, action='append', help="spin component of potential")
-
-
-    subparsers.add_parser('8', help="electron localization function (ELF)")
-    subparsers.add_parser('9', help="charge density minus superposition of atomic densities")
-    subparsers.add_parser('10', help="integrated local density of states (ILDOS)")
-    subparsers.add_parser('11', help="the V_bare + V_H potential")
-    subparsers.add_parser('12', help="the sawtooth electric field potential (if present)")
-    subparsers.add_parser('13', help="the noncollinear magnetization")
-
-
-    plot_num_parser = subparsers.add_parser(
-        '17', help="all-electron valence charge density??")
-    plot_num_parser.add_argument(
-        '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of charge")
-
-
-    subparsers.add_parser('18', help="the exchange and correlation magnetic field in the noncollinear case")
-    subparsers.add_parser('19', help="Reduced density gradient")
-    subparsers.add_parser(
-        '20', help="Product of the electron density (charge) and the second "
-                   "eigenvalue of the electron-density Hessian matrix")
-    subparsers.add_parser('21', help="all-electron charge density (valence+core)")
-
-
-    plot_num_parser = subparsers.add_parser(
-        '22', help="kinetic energy density")
-    plot_num_parser.add_argument(
-        '-spin', type=int, default=0, choices=SPIN_CHOICES, help="spin component of density")
+    #COMPUTE DOS
+    command_parser = subparsers.add_parser(
+        'bands', help="computing the band structure")
+    #SPECIFIC OPTIONS
+    command_parser.add_argument(
+        '-reference_energy', type=float, default=0, help="the Fermi level, defines the zero of the plot along y axis (default=0)")
+    command_parser.add_argument(
+        '-emin', type=int, default=-50, help="the minimum energy for the band plot (default=-50)")
+    command_parser.add_argument(
+        '-emax', type=int, default=50, help="the maximum energy for the band plot (default=50)")
 
 
     parser.add_argument('-prefix', type=str, default='pwscf',
                         help="prefix of files saved by program pw.x")
     parser.add_argument('-outdir', type=str, default=None,
                         help="directory containing the input data, i.e. the same as in pw.x")
-    parser.add_argument('-fileplot', type=str, default=None,
-                        help="file to save the quantity selected by plot_num (use stdout instead)")
+    parser.add_argument('-fileplot', type=str, default='plot_file',
+                        help="output plot file (default='plot_file.png') in png format ")
     parser.add_argument('-schema', type=str, default=None,
                         help="The XML schema to be used to read and validate the XML output file")
+    parser.add_argument('-show', type=bool, default=False, choices=BOOL_CHOICES,
+                        help="plot results with Matplotlib (True, False")
 
     return parser
 
@@ -271,73 +230,36 @@ def main():
     cli_parser = get_cli_parser()
     args = cli_parser.parse_args()
 
-    # if args.commands == 'eos':
-    #     api.compute_eos(args.prefix, args.outdir, args.eos_type,
-    #                     args.fileout, args.fileplot, args.show)
-    # elif args.commands == 'bands':
-    #     api.compute_band_structure(
-    #         args.prefix, args.outdir, args.schema, args.reference_energy, args.emin,
-    #         args.emax, args.fileplot, args.show
-    #     )
-    # elif args.commands == 'dos':
-    #     if args.emin is None or args.max is None:
-    #         window = None
-    #     else:
-    #         window = (args.emin, args.emax)
-    #     api.compute_dos(
-    #         args.prefix, args.outdir, args.schema, args.width, window, args.npts, args.fileout,
-    #         args.fileplot, args.show
-    #     )
-    # elif args.commands == 'charge':
-    #     api.compute_charge(
-    #         args.prefix, args.outdir, args.schema, args.fileout, args.x0, args.e1, args.nx,
-    #         args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn, args.exportfile,
-    #         args.method, args.format, args.show
-    #     )
-    #     api.new_get_charge(args.prefix, args.outdir, args.filplot)
-    # elif args.commands == 'potential':
-    #     api.compute_potential(
-    #         args.prefix, args.outdir, args.schema, args.pot_type, args.fileout, args.x0,
-    #         args.e1, args.nx, args.e2, args.ny, args.e3, args.nz, args.radius, args.dim,
-    #         args.exportfile, args.method, args.format, args.show
-    #     )
-    if args.plot_num == '0':
-        api.compute_charge(
-            args.prefix, args.outdir, args.schema, args.fileout, args.x0, args.e1,
-            args.nx, args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn,
-            args.plot_file, args.method, args.format, args.show
+    if args.command == 'eos':
+        api.compute_eos(args.prefix, args.outdir, args.eos_type,
+                        args.fileout, args.fileplot, args.show)
+    elif args.command == 'bands':
+        api.compute_band_structure(
+            args.prefix, args.outdir, args.schema, args.reference_energy, args.emin,
+            args.emax, args.fileplot, args.show
         )
-
-    # elif args.plot_num == '1':
-    # elif args.plot_num == '2':
-    elif args.plot_num == '3':
+    elif args.command == 'dos':
         if args.window is None:
             window = None
         else:
             window = args.window
         api.compute_dos(
-            args.prefix, args.outdir, args.schema, args.width, window, args.npts,
-            args.fileout, args.fileplot, args.show
+            args.prefix, args.outdir, args.schema, args.width, window, args.npts, args.fileout,
+            args.fileplot, args.show
         )
-    # elif args.plot_num == '4':
-    # elif args.plot_num == '5':
-    # elif args.plot_num == '6':
-    # elif args.plot_num == '7':
-    # elif args.plot_num == '8':
-    # elif args.plot_num == '9':
-    # elif args.plot_num == '10':
-    # elif args.plot_num == '11':
-    # elif args.plot_num == '12':
-    # elif args.plot_num == '13':
-    # elif args.plot_num == '14':
-    # elif args.plot_num == '15':
-    # elif args.plot_num == '16':
-    # elif args.plot_num == '17':
-    # elif args.plot_num == '18':
-    # elif args.plot_num == '19':
-    # elif args.plot_num == '20':
-    # elif args.plot_num == '21':
-    # elif args.plot_num == '22':
+    elif args.command == 'charge':
+        api.compute_charge(
+            args.prefix, args.outdir, args.schema, args.fileout, args.x0, args.e1, args.nx,
+            args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn, args.exportfile,
+            args.method, args.format, args.show
+        )
+        api.new_get_charge(args.prefix, args.outdir, args.filplot)
+    elif args.command == 'potential':
+        api.compute_potential(
+            args.prefix, args.outdir, args.schema, args.pot_type, args.fileout, args.x0,
+            args.e1, args.nx, args.e2, args.ny, args.e3, args.nz, args.radius, args.dim,
+            args.exportfile, args.method, args.format, args.show
+        )
     else:
         print('Command not implemented! Exiting...')
 
