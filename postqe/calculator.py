@@ -548,8 +548,17 @@ class EspressoCalculator(FileIOCalculator):
     def get_ecutrho(self):
         return float(self.output["basis_set"]["ecutrho"])
 
+    def get_prefix(self):
+        return self.input["control_variables"]["prefix"]
+
     def get_pseudodir(self):
         return self.input["control_variables"]["pseudo_dir"]
+
+    def get_outdir(self):
+        return self.input["control_variables"]["outdir"]
+
+    def get_pseudofile(self):
+        return self.input["atomic_species"]["pseudo_file"]
 
     # TODO: these two methods are just a temporary patch
     #  (a and b vectors can be obtained from Atoms object)
