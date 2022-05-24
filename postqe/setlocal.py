@@ -19,9 +19,9 @@ def generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho):
     tpiba = 2 * np.pi / alat
     tpiba2 = tpiba**2
 
-    bg1 = np.empty(0)
-    bg2 = np.empty(0)
-    bg3 = np.empty(0)
+    bg1 = np.empty(3)
+    bg2 = np.empty(3)
+    bg3 = np.empty(3)
 
     pyqe.recips(at1 / alat, at2 / alat, at3 / alat, bg1, bg2, bg3)
     g, gg, mill = f90utils.get_gg_list(nrrr, nr1, nr2, nr3, bg1, bg2, bg3)
@@ -74,7 +74,7 @@ def compute_struct_fact(tau, alat, g):
 
 
 def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho,
-                  pseudodir="./"):
+                  pseudodir):
     omega = abs(at1[0] * at2[1] * at3[2] + at1[1] * at2[2] * at3[0] + at1[2] * at2[0] * at3[1] -
                 at3[0] * at2[1] * at1[2] - at3[1] * at2[2] * at1[0] - at3[2] * at2[0] * at3[1])
 
@@ -119,5 +119,5 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         vlocs.append(vloc_g)
 
     vltot = shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl)
-    prova = np.real(vltot)  
+    prova = np.real(vltot)
     return prova
