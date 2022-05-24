@@ -442,14 +442,18 @@ class Potential(Charge):
         b = self.calculator.get_b_vectors()
         atomic_positions = self.calculator.get_atomic_positions()
         atomic_species = self.calculator.get_atomic_species()
-        pseudodir = self.calculator.get_pseudodir()
+        prefix = self.calculator.get_prefix()
+        # pseudofile = self.calculator.get_pseudofile()
+        # pseudodir = self.calculator.get_pseudodir()
+        outdir = self.calculator.get_outdir()
+        pseudo_location='{}/{}.save'.format(outdir, prefix)
 
         if self.pot_type=='v_bare':
             # self.v = compute_v_bare(
             #     ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
             # )
             self.v = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
             )
         elif self.pot_type=='v_h':
             self.v = compute_v_h(self.charge, ecutrho, alat, b)
@@ -459,7 +463,7 @@ class Potential(Charge):
             self.v = compute_v_xc(self.charge, charge_core, str(functional))
         elif self.pot_type=='v_tot':
             v_bare = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
             )
             v_h =  compute_v_h(self.charge, ecutrho, alat, b)
             # TODO: core charge to be implemented
