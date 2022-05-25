@@ -326,6 +326,8 @@ class EspressoCalculator(FileIOCalculator):
                 filename = os.path.join(self.directory, 'data-file-schema.xml')
             else:
                 filename = self.label
+        elif '/' not in filename:
+            filename = os.path.join(self.directory, filename)
 
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
