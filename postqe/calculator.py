@@ -321,13 +321,13 @@ class EspressoCalculator(FileIOCalculator):
         self.read_results()
 
     def read_results(self, filename=None):
-        if filename is not None:
+        if filename is None:
+            if self.prefix is None:
+                filename = os.path.join(self.directory, 'data-file-schema.xml')
+            else:
+                filename = self.label
 
-            # filename = os.path.join(self.outdir or '', self.label + '.xml')
-            filename = os.path.join(self.directory or '', self.label)
-            # filename = str(pathli b.Path(self.label).joinpath('data-file-schema.xml')
-            self.xml_document.read(filename)
-
+        self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
 

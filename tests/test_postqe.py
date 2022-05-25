@@ -7,7 +7,6 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-import os
 import unittest
 import pathlib
 import numpy as np
@@ -122,12 +121,16 @@ class TestPostqeCalculators(unittest.TestCase):
 
 class TestNiCase01(unittest.TestCase):
 
-    outdir = abspath('examples/Ni_pz_nc')
+    directory = examples_dir.joinpath('Ni_pz_nc')
     calc: PostqeCalculator
 
     @classmethod
     def setUpClass(cls):
-        cls.calc = PostqeCalculator(label='Ni.xml', outdir=cls.outdir, schema='qes-20180510.xsd')
+        cls.calc = PostqeCalculator(
+            label='Ni.xml',
+            directory=str(cls.directory),
+            schema='qes-20180510.xsd'
+        )
         cls.calc.read_results()
 
     def test_get_atoms_from_xml_output(self):
@@ -255,7 +258,7 @@ class TestNiCase01(unittest.TestCase):
 
 class TestNiCase02(TestNiCase01):
 
-    outdir = abspath('examples/Ni_pbe_us')
+    directory = examples_dir.joinpath('Ni_pbe_us')
 
     def test_get_potential_energy(self):
         potential_energy = self.calc.get_potential_energy()
@@ -308,6 +311,7 @@ class TestPostqeAPI(unittest.TestCase):
 
     def test_get_band_structure(self):
         bs = get_band_structure(
+            # FIXME!! the QE-style prefix here is useless ...
             prefix=abspath('examples/Si/Si.xml'),
             schema="releases/qes-20180510.xsd",
             reference_energy=0
