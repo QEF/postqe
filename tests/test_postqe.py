@@ -7,6 +7,7 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
+import os
 import unittest
 import pathlib
 import numpy as np
@@ -21,6 +22,17 @@ from postqe import EspressoCalculator, PostqeCalculator, get_band_structure
 
 def abspath(rel_path):
     return str(pathlib.Path(__file__).parent.absolute().joinpath(rel_path))
+
+
+# Setup directory paths for testing
+
+current_workdir = pathlib.Path('.').resolve()
+examples_dir = pathlib.Path(__file__).parent.joinpath('examples')
+
+try:
+    rel_examples_dir = examples_dir.relative_to(current_workdir)
+except ValueError:
+    rel_examples_dir = None
 
 
 def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
@@ -55,35 +67,42 @@ def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
 
 class TestPostqeCalculators(unittest.TestCase):
 
+    @unittest.skipIf(rel_examples_dir is None,
+                     'a relative path to examples/ dir is not available!')
     def test_calculator_paths(self):
-        example_dir = abspath('examples')
-        label = abspath('examples/Si')
+        si_dir = rel_examples_dir.joinpath('Si')
+        label = str(si_dir.joinpath('Si.xml'))
 
         calculator = EspressoCalculator(label=label)
+        self.assertEqual(calculator.prefix, 'Si.xml')
+        self.assertEqual(calculator.directory, str(si_dir))
         self.assertEqual(calculator.label, label)
-        self.assertEqual(calculator.prefix, 'Si')
-        self.assertEqual(calculator.directory, example_dir)
-        self.assertEqual(calculator.outdir, example_dir)
 
-        calculator = EspressoCalculator(label='Si', outdir=example_dir)
+        calculator = EspressoCalculator(label='Si.xml', directory=str(si_dir))
+        self.assertEqual(calculator.prefix, 'Si.xml')
+        self.assertEqual(calculator.directory, str(si_dir))
         self.assertEqual(calculator.label, label)
-        self.assertEqual(calculator.prefix, 'Si')
-        self.assertEqual(calculator.directory, example_dir)
-        self.assertEqual(calculator.outdir, example_dir)
 
         with self.assertRaises(ValueError):
-            EspressoCalculator(label='./Si', outdir=example_dir)
+            EspressoCalculator(label='./Si', directory=str(si_dir.absolute()))
 
         with self.assertRaises(ValueError):
-            EspressoCalculator(label=label, outdir=example_dir)
+            EspressoCalculator(label=label, directory=str(si_dir))
+
+        directory = str(rel_examples_dir.joinpath('Si'))
+        calc = EspressoCalculator(directory=directory)
+
+        self.assertIsNone(calc.prefix)
+        self.assertEqual(calc.directory, directory)
+        self.assertEqual(calc.label, directory + '/')
 
     def test_calculator_schema(self):
-        calculator = EspressoCalculator(label='examples/Si')
+        calculator = EspressoCalculator()
         self.assertIsInstance(calculator.schema, XMLSchema10)
         self.assertEqual(calculator.schema.name, 'qes.xsd')
         self.assertTrue(calculator.schema.url.endswith('schemas/qes.xsd'))
 
-        calculator = EspressoCalculator(label='examples/Si', schema='qes_200420.xsd')
+        calculator = EspressoCalculator(schema='qes_200420.xsd')
         self.assertIsInstance(calculator.schema, XMLSchema10)
         self.assertEqual(calculator.schema.name, 'qes_200420.xsd')
         self.assertTrue(calculator.schema.url.endswith('schemas/releases/qes_200420.xsd'))
