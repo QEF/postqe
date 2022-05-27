@@ -5,7 +5,7 @@ This is an example showing how to compute the the band structure of silicon
 using the "compute_bands_structure" API
 
 OPTIONS:
-    prefix: name of the xml file of the bands structure calculation
+    prefix: prefix of saved output files
     outdir: directory containing the input data
     schema: the XML schema to be used to read and validate the XML output file
     reference_energy: the Fermi level, defines the zero of the plot along y axis
@@ -20,6 +20,5 @@ Returns: an ASE band structure object (bands_structure) and a Matplotlib figure 
 if __name__ == "__main__":
     from postqe import compute_band_structure
 
-    bands_structure, figure = compute_band_structure(prefix='Si.xml', outdir='outdir', schema='../../schemas/qes.xsd', reference_energy=0,
+    bands_structure, figure = compute_band_structure(prefix='Si', outdir='outdir', schema='../../schemas/qes.xsd', reference_energy=0,
                                emin=-20, emax=50, fileplot='Si_bandsplot.png', show=True)
-                               
