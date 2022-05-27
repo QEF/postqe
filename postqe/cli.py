@@ -133,7 +133,7 @@ def get_cli_parser():
 
     #COMPUTE Equantion of State
     command_parser = subparsers.add_parser(
-        'eos', help="Equation of State Plot")
+        'eos', help="Generate the Equation of State Plot")
     #SPECIFIC OPTIONS
     command_parser.add_argument(
         '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help="type of equation of state (EOS) for fitting")
@@ -146,7 +146,7 @@ def get_cli_parser():
 
     #COMPUTE CHARGE
     command_parser = subparsers.add_parser(
-        'charge', help="electron (pseudo-)charge density")
+        'charge', help="compute the electron (pseudo-)charge density")
     #SPECIFIC OPTIONS
     command_parser.add_argument(
         '-fileout', type=str, default='charge.dat', help="text file with the full charge data as in the HDF5 file")
@@ -181,7 +181,7 @@ def get_cli_parser():
 
     #COMPUTE DOS
     command_parser = subparsers.add_parser(
-        'dos', help="local density of states at specific energy or grid of energies")
+        'dos', help="compute the density of states")
     #SPECIFIC OPTIONS
     command_parser.add_argument(
         '-window', type=window, default=None, help="a tuple (emin, emax) that defines the minimum and maximum energies for the DOS")
