@@ -138,7 +138,7 @@ def get_cli_parser():
     command_parser.add_argument(
         '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help="type of equation of state (EOS) for fitting")
     command_parser.add_argument(
-        '-fileout', type=str, default='eos_data.dat', help="output file with fitting data and results (default='eos_data.dat', not written).")
+        '-fileout', type=str, default='eos_data.dat', help="output file with fitting data and results (default='eos_data.dat').")
     command_parser.add_argument(
         '-ax', type=str, default=None, help="a Matplotlib 'Axes' instance (see Matplotlib documentation for details. \
                                             (default=None, creates a new one)")
@@ -190,7 +190,7 @@ def get_cli_parser():
     command_parser.add_argument(
         '-npts', type=int, default=100, help="number of points of the DOS")
     command_parser.add_argument(
-        '-fileout', type=str, default='dos.dat', help="output file with DOS results (default='dos.dat', not written)")
+        '-fileout', type=str, default='dos.dat', help="output file with DOS results (default='dos.dat')")
 
 
     #COMPUTE DOS
