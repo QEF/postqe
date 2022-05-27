@@ -148,8 +148,18 @@ def get_eos(prefix='pwscf', outdir=None, eos_type='murnaghan'):
     'p3' -> A third order inverse polynomial fit\n
     :return: an QEEquationOfState object
     """
+
     # FIXME!! bisogna computare il filename o spostiamo read_EtotV nel calculator ...
-    label = get_label(prefix, outdir)
+    # label = get_label(prefix, outdir)
+    #Temporary fix
+    if outdir is None:
+        try:
+            outdir = os.environ['ESPRESSO_TMPDIR']
+        except KeyError:
+            outdir = os.curdir
+
+    label = '{}/{}'.format(outdir, prefix)
+    
     # Extract volumes and energies from the input file:
     volumes, energies = read_EtotV(label)
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
