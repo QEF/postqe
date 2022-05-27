@@ -118,16 +118,35 @@ class EspressoCalculator(FileIOCalculator):
     and running the code. The input file for the current release is the old
     text format which will be substituted by a new XML format in the future.
 
+        restart: str
+            Prefix for restart file.  May contain a directory. Default
+            is None: don't restart.
+        ignore_bad_restart_file: bool
+            Ignore broken or missing restart file.  By default, it is an
+            error if the restart file is missing or broken.
+        directory: str or PurePath
+            Working directory in which to read and write files and
+            perform calculations.
+        label: str
+            Name used for all files.  Not supported by all calculators.
+            May contain a directory, but please use the directory parameter
+            for that instead.
+        atoms: Atoms object
+            Optional Atoms object to which the calculator will be
+            attached.  When restarting, atoms will get its positions and
+            unit-cell updated from file.
+
     :param restart: prefix for restart file. May contain a directory. Default \
     is `None`: don't restart.
     :param ignore_bad_restart_file: ignore broken or missing restart file. \
-    For default it is an error if the restart file is missing or broken.
-    :param label: Prefix used for all files, as like as PW's 'prefix' parameter. \
-    Defaults to 'pwscf'.
+    By default, it is an error if the restart file is missing or broken.
+    :param label: identify the XML input/output file or the directory where \
+    to find it. By the directory `pwscf.save/` is used and the basename \
+    `data-file-schema.xml` is used for the XML file.
     :param atoms: optional Atoms object to which the calculator will be attached. \
     When restarting, atoms will get its positions and unit-cell updated from file.
     :param command: Command used to start calculation.
-    :param outdir: directory containing the input data. Default to the value of \
+    :param directory: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set or current directory ('.') otherwise
     :param schema:
     :param kwargs:
@@ -165,28 +184,14 @@ class EspressoCalculator(FileIOCalculator):
     kpts = None
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='pwscf.save/data-file-schema.xml', atoms=None,
-                 command=None, outdir=None, schema=None, pp_dict=None, **kwargs):
-
-        # Check outdir and label to fit the preferred format for an ASE calculator
-        if outdir is not None:
-            pass
-        elif '/' in label:
-            outdir, label = label.rsplit('/', 1)
-        else:
-            outdir = os.environ.get('ESPRESSO_TMPDIR', '.')
-
-        if not os.path.isdir(outdir):
-            raise ValueError("{!r} is not a directory path".format(outdir))
-
+                 label=None, atoms=None, command=None, directory='.',
+                 schema=None, pp_dict=None, **kwargs):
+        if label is None and '/' not in str(directory):
+            label = 'pwscf.save/'
         self.pp_dict = pp_dict
         self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(restart, ignore_bad_restart_file, label, atoms,
-                         command, directory=outdir, **kwargs)
-
-    @property
-    def outdir(self):
-        return self.directory
+                         command, directory=directory, **kwargs)
 
     @property
     def schema(self):
@@ -317,10 +322,13 @@ class EspressoCalculator(FileIOCalculator):
 
     def read_results(self, filename=None):
         if filename is None:
-            # filename = os.path.join(self.outdir or '', self.label + '.xml')
-            # filename = os.path.join(self.outdir or '', self.label)
-            filename = os.path.join(self.label)
-            # filename = str(pathlib.Path(self.label).joinpath('data-file-schema.xml'))
+            if self.prefix is None:
+                filename = os.path.join(self.directory, 'data-file-schema.xml')
+            else:
+                filename = self.label
+        elif '/' not in filename:
+            filename = os.path.join(self.directory, filename)
+
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
         self.results['energy'] = float(self.output["total_energy"]["etot"]) * units.Ry
@@ -615,7 +623,7 @@ class EspressoCalculator(FileIOCalculator):
         """
         from .charge import get_charge_r, get_magnetization_r
         if filename is None:
-            filename = str(pathlib.Path(self.outdir).joinpath('charge-density.hdf5'))
+            filename = str(pathlib.Path(self.directory).joinpath('charge-density.hdf5'))
         if dataset == 'total':
             return get_charge_r(filename)
         elif dataset == 'magnetization':
@@ -677,12 +685,11 @@ class PostqeCalculator(EspressoCalculator):
     those needed for postprocessing.
     """
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='pwscf.save/data-file-schema.xml', atoms=None,
-                 outdir=None, schema=None, **kwargs):
+                 label=None, atoms=None, directory='.', schema=None, **kwargs):
         kwargs.pop('command', None)
         kwargs.pop('pp_dict', None)
         super().__init__(restart=restart, ignore_bad_restart_file=ignore_bad_restart_file,
-                         label=label, atoms=atoms, outdir=outdir, schema=schema, **kwargs)
+                         label=label, atoms=atoms, directory=directory, schema=schema, **kwargs)
         self.command = None
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=()):

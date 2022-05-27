@@ -23,6 +23,17 @@ def abspath(rel_path):
     return str(pathlib.Path(__file__).parent.absolute().joinpath(rel_path))
 
 
+# Setup directory paths for testing
+
+current_workdir = pathlib.Path('.').resolve()
+examples_dir = pathlib.Path(__file__).parent.joinpath('examples')
+
+try:
+    rel_examples_dir = examples_dir.relative_to(current_workdir)
+except ValueError:
+    rel_examples_dir = None
+
+
 def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
     """Compare two data files, discarding the first 'header' lines."""
     lr = 1 - tolerance
@@ -55,35 +66,42 @@ def compare_data(datafile1, datafile2, header=0, tolerance=0.0001):
 
 class TestPostqeCalculators(unittest.TestCase):
 
+    @unittest.skipIf(rel_examples_dir is None,
+                     'a relative path to examples/ dir is not available!')
     def test_calculator_paths(self):
-        example_dir = abspath('examples')
-        label = abspath('examples/Si')
+        si_dir = rel_examples_dir.joinpath('Si')
+        label = str(si_dir.joinpath('Si.xml'))
 
         calculator = EspressoCalculator(label=label)
+        self.assertEqual(calculator.prefix, 'Si.xml')
+        self.assertEqual(calculator.directory, str(si_dir))
         self.assertEqual(calculator.label, label)
-        self.assertEqual(calculator.prefix, 'Si')
-        self.assertEqual(calculator.directory, example_dir)
-        self.assertEqual(calculator.outdir, example_dir)
 
-        calculator = EspressoCalculator(label='Si', outdir=example_dir)
+        calculator = EspressoCalculator(label='Si.xml', directory=str(si_dir))
+        self.assertEqual(calculator.prefix, 'Si.xml')
+        self.assertEqual(calculator.directory, str(si_dir))
         self.assertEqual(calculator.label, label)
-        self.assertEqual(calculator.prefix, 'Si')
-        self.assertEqual(calculator.directory, example_dir)
-        self.assertEqual(calculator.outdir, example_dir)
 
         with self.assertRaises(ValueError):
-            EspressoCalculator(label='./Si', outdir=example_dir)
+            EspressoCalculator(label='./Si', directory=str(si_dir.absolute()))
 
         with self.assertRaises(ValueError):
-            EspressoCalculator(label=label, outdir=example_dir)
+            EspressoCalculator(label=label, directory=str(si_dir))
+
+        directory = str(rel_examples_dir.joinpath('Si'))
+        calc = EspressoCalculator(directory=directory)
+
+        self.assertIsNone(calc.prefix)
+        self.assertEqual(calc.directory, directory)
+        self.assertEqual(calc.label, directory + '/')
 
     def test_calculator_schema(self):
-        calculator = EspressoCalculator(label='examples/Si')
+        calculator = EspressoCalculator()
         self.assertIsInstance(calculator.schema, XMLSchema10)
         self.assertEqual(calculator.schema.name, 'qes.xsd')
         self.assertTrue(calculator.schema.url.endswith('schemas/qes.xsd'))
 
-        calculator = EspressoCalculator(label='examples/Si', schema='qes_200420.xsd')
+        calculator = EspressoCalculator(schema='qes_200420.xsd')
         self.assertIsInstance(calculator.schema, XMLSchema10)
         self.assertEqual(calculator.schema.name, 'qes_200420.xsd')
         self.assertTrue(calculator.schema.url.endswith('schemas/releases/qes_200420.xsd'))
@@ -103,12 +121,16 @@ class TestPostqeCalculators(unittest.TestCase):
 
 class TestNiCase01(unittest.TestCase):
 
-    outdir = abspath('examples/Ni_pz_nc')
+    directory = examples_dir.joinpath('Ni_pz_nc')
     calc: PostqeCalculator
 
     @classmethod
     def setUpClass(cls):
-        cls.calc = PostqeCalculator(label='Ni.xml', outdir=cls.outdir, schema='qes-20180510.xsd')
+        cls.calc = PostqeCalculator(
+            label='Ni.xml',
+            directory=str(cls.directory),
+            schema='qes-20180510.xsd'
+        )
         cls.calc.read_results()
 
     def test_get_atoms_from_xml_output(self):
@@ -236,7 +258,7 @@ class TestNiCase01(unittest.TestCase):
 
 class TestNiCase02(TestNiCase01):
 
-    outdir = abspath('examples/Ni_pbe_us')
+    directory = examples_dir.joinpath('Ni_pbe_us')
 
     def test_get_potential_energy(self):
         potential_energy = self.calc.get_potential_energy()
@@ -289,6 +311,7 @@ class TestPostqeAPI(unittest.TestCase):
 
     def test_get_band_structure(self):
         bs = get_band_structure(
+            # FIXME!! the QE-style prefix here is useless ...
             prefix=abspath('examples/Si/Si.xml'),
             schema="releases/qes-20180510.xsd",
             reference_energy=0

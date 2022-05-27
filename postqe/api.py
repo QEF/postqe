@@ -18,15 +18,10 @@ from .calculator import EspressoCalculator, PostqeCalculator
 
 
 def get_label(prefix='pwscf', outdir=None):
-    """Gets a filepath for Quantum ESPRESSO environment."""
+    """Gets an ASE calculator label for Quantum ESPRESSO environment."""
     if outdir is None:
-        try:
-            outdir = os.environ['ESPRESSO_TMPDIR']
-        except KeyError:
-            outdir = os.curdir
-
-    label = os.path.join(outdir, '{}.save/data-file-schema.xml'.format(prefix))
-    return label
+        outdir = os.environ.get('ESPRESSO_TMPDIR', './')
+    return os.path.join(outdir, f'{prefix}.save/')
 
 def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=None, **kwargs):
     """
@@ -44,10 +39,11 @@ def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=N
     if cls is None:
         cls = EspressoCalculator
 
-    label = get_label(prefix, outdir)
+    if outdir is None:
+        outdir = os.environ.get('ESPRESSO_TMPDIR', './')
 
-    # return cls(label=label, schema=schema, outdir=outdir, pp_dict=pp_dict, **kwargs)
-    return cls(label=label, schema=schema, pp_dict=pp_dict, **kwargs)
+    kwargs['directory'] = os.path.join(outdir, f'{prefix}.save/')
+    return cls(schema=schema, pp_dict=pp_dict, **kwargs)
 
 
 ## New CLI-API interfaces ###'{}.save/data-file-schema.xml'.format(prefix))
@@ -130,12 +126,12 @@ def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     return plot
 
 
-def get_eos(prefix, outdir=None, eos_type='murnaghan'):
+def get_eos(prefix='pwscf', outdir=None, eos_type='murnaghan'):
     """
     Fits an Equation of state of type *eos* and returns an QEEquationOfState object.
     Different equation of states are available (see below).
 
-    :param prefix: name of the input file with volumes and energies
+    :param prefix: FIXME!! name of the input file with volumes and energies????
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n\
@@ -152,15 +148,8 @@ def get_eos(prefix, outdir=None, eos_type='murnaghan'):
     'p3' -> A third order inverse polynomial fit\n
     :return: an QEEquationOfState object
     """
-
-    if outdir is None:
-        try:
-            outdir = os.environ['ESPRESSO_TMPDIR']
-        except KeyError:
-            outdir = os.curdir
-
-    label = '{}/{}'.format(outdir, prefix)
-
+    # FIXME!! bisogna computare il filename o spostiamo read_EtotV nel calculator ...
+    label = get_label(prefix, outdir)
     # Extract volumes and energies from the input file:
     volumes, energies = read_EtotV(label)
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
@@ -174,7 +163,7 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='',
     Fits an Equation of state of type *eos_type*, writes the results into *fileout* (optionally)
     and creates a Matplotlib figure. Different equation of states are available (see below).
 
-    :param prefix: name of the input file with volumes and energies
+    :param prefix: FIXME!! name of the input file with volumes and energies?????
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are: \
@@ -204,7 +193,7 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='',
     return eos, eos.plot(fileplot, show=show, ax=ax)
 
 
-def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
+def get_band_structure(prefix='pwscf', outdir=None, schema=None, reference_energy=0):
     """
     This function returns a "band structure" object from an output xml Espresso file
     containing the results of a proper calculation along a path in the Brilluoin zone.
@@ -216,7 +205,7 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     :param reference_energy: the Fermi level, defines the zero of the plot along y axis
     :return: an ASE band structure object
     """
-    calc = PostqeCalculator(atoms=None, label=prefix, outdir=outdir, schema=schema)
+    calc = get_calculator(prefix, outdir, schema, cls=PostqeCalculator)
     calc.read_results()
 
     atoms = calc.get_atoms_from_xml_output()
@@ -226,7 +215,7 @@ def get_band_structure(prefix, outdir=None, schema=None, reference_energy=0):
     return atoms.calc.band_structure(reference=reference_energy)
 
 
-def compute_band_structure(prefix, outdir=None, schema=None, reference_energy=0,
+def compute_band_structure(prefix='pwscf', outdir=None, schema=None, reference_energy=0,
                            emin=-50, emax=50, fileplot='bandsplot.png', show=True):
     """
     This function returns a "band structure" object from an output xml Espresso file
@@ -245,11 +234,10 @@ def compute_band_structure(prefix, outdir=None, schema=None, reference_energy=0,
     """
     bs = get_band_structure(prefix, outdir, schema=schema, reference_energy=reference_energy)
     fig = bs.plot(emin=emin, emax=emax, show=show, filename=fileplot)
-
     return bs, fig
 
 
-def get_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=100):
+def get_dos(prefix='pwscf', outdir=None, schema=None, width=0.01, window=None, npts=100):
     """
     This function returns an DOS object from an output xml Espresso file containing the
     results of a DOS calculation.
@@ -276,8 +264,8 @@ def get_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=100)
     return dos
 
 
-def compute_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=100,
-                fileout='', fileplot='dosplot.png', show=True):
+def compute_dos(prefix='pwscf', outdir=None, schema=None, width=0.01, window=None,
+                npts=100, fileout='', fileplot='dosplot.png', show=True):
     """
     This function returns an DOS object from an output xml Espresso file containing the
     results of a DOS calculation.
@@ -296,7 +284,7 @@ def compute_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=
     :return: a DOS object and a Matplotlib figure object
     """
     # get a DOS object
-    dos = get_dos(prefix, outdir=outdir, schema=schema, width=width, window=window, npts=npts)
+    dos = get_dos(prefix, outdir, schema, width=width, window=window, npts=npts)
 
     # save DOS in a file
     if fileout != '':
@@ -318,7 +306,7 @@ def compute_dos(prefix, outdir=None, schema=None, width=0.01, window=None, npts=
     return dos, plt
 
 
-def get_charge(prefix, outdir=None, schema=None):
+def get_charge(prefix='pwscf', outdir=None, schema=None):
     """
     Returns an Charge object from an output xml Espresso file and the
     corresponding HDF5 charge file containing the results of a calculation.
@@ -347,9 +335,10 @@ def get_charge(prefix, outdir=None, schema=None):
     return charge
 
 
-def compute_charge(prefix, outdir=None, schema=None, fileout='', x0=(0., 0., 0.), e1=(1., 0., 0.),
-                   nx=50, e2=(0., 1., 0.), ny=50, e3=(0., 0., 1.), nz=50, radius=1, dim=1,
-                   ifmagn='total', plot_file='', method='FFT', format='gnuplot', show=True):
+def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
+                   x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.),
+                   ny=50, e3=(0., 0., 1.), nz=50, radius=1, dim=1, ifmagn='total',
+                   plot_file='', method='FFT', format='gnuplot', show=True):
     """
     Returns an Charge object from an output xml Espresso file and the
     corresponding HDF5 charge file containing the results of a calculation.
@@ -390,7 +379,7 @@ def compute_charge(prefix, outdir=None, schema=None, fileout='', x0=(0., 0., 0.)
     a Charge object and None for 3D sections
     """
 
-    charge = get_charge(prefix=prefix, outdir=outdir, schema=schema)
+    charge = get_charge(prefix, outdir, schema)
     if fileout != '':
         charge.write(fileout)
 
@@ -401,7 +390,7 @@ def compute_charge(prefix, outdir=None, schema=None, fileout='', x0=(0., 0., 0.)
     return charge, figure
 
 
-def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
+def get_potential(prefix='pwscf', outdir=None, schema=None, pot_type='v_tot'):
     """
     This function returns an Potential object from an output xml Espresso file and
     the corresponding HDF5 charge file containing the results of a calculation.
@@ -434,7 +423,7 @@ def get_potential(prefix, outdir=None, schema=None, pot_type='v_tot'):
     return potential
 
 
-def compute_potential(prefix, outdir=None, schema=None, pot_type='v_tot', fileout='',
+def compute_potential(prefix='pwscf', outdir=None, schema=None, pot_type='v_tot', fileout='',
                       x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.),
                       ny = 50, e3 = (0., 0., 1.), nz = 50, radius = 1, dim = 1,
                       plot_file = '', method = 'FFT', format = 'gnuplot', show = True):
@@ -475,7 +464,7 @@ def compute_potential(prefix, outdir=None, schema=None, pot_type='v_tot', fileou
     a Potential object and None for 3D sections
     """
 
-    potential = get_potential(prefix=prefix, outdir=outdir, schema=schema, pot_type=pot_type)
+    potential = get_potential(prefix, outdir, schema, pot_type=pot_type)
     if fileout != '':
         potential.write(fileout)
 
