@@ -10,6 +10,7 @@ from importlib.resources import path
 import os
 import re
 import subprocess
+from datetime import datetime
 from tabnanny import check
 import numpy as np
 import pathlib
@@ -158,21 +159,25 @@ class EspressoCalculator(FileIOCalculator):
     Use default values:
 
     >>> from ase import Atoms
+    >>> from postqe import EspressoCalculator
     >>> from ase.build import bulk
     >>> copper_bulk = bulk('Cu', 'fcc', a=3.6, cubic=True)
-    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, smearing='gaussian', conv_thr=1e-8))
+    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, smearing='gaussian', conv_thr=1e-8m, kpoints=[2,2,2,0,0,0], pseudo_dir='../'))
     >>> h.center(vacuum=3.0)
     >>> e = h.get_potential_energy()
+    >>> print(e)
     """
     ignored_changes = {'pbc'}
     discard_results_on_any_change = True
 
     implemented_properties = ['energy', 'forces']
 
-
-    command = str(pathlib.Path(__file__).parent.joinpath(
-        'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
-    )) #this gives /some_path/venvPostQE/lib/python3.10/site-packages/postqe/fortran/build/q-e/bin/pw.x ???????
+    #this gives /some_path/venvPostQE/lib/python3.10/site-packages/postqe/fortran/build/q-e/bin/pw.x ??? folder fortran/build/q-e/bin/ does not exist
+    # command = str(pathlib.Path(__file__).parent.joinpath(
+    #     'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
+    # ))
+    #TEMPORARY ? For Testing ...
+    command = "mpirun -np 2 pw.x < PREFIX.in > PREFIX.out"
 
     # These are reasonable default values for the REQUIRED parameters in pw.x input.
     # All other default values are not set here and let to pw.x, unless the user
@@ -192,7 +197,7 @@ class EspressoCalculator(FileIOCalculator):
                  label=None, atoms=None, command=None, directory='.',
                  schema=None, pp_dict=pp_dict, **kwargs):
         if label is None and '/' not in str(directory):
-            label = 'pwscf.save/'
+            label = f"pwscf-{datetime.now().strftime('%d-%m-%Y-%H%M%S')}/"
         self.pp_dict = pp_dict
         self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(restart, ignore_bad_restart_file, label, atoms,
@@ -217,11 +222,10 @@ class EspressoCalculator(FileIOCalculator):
         if 'numbers' in system_changes or 'initial_magmoms' in system_changes:
             self.initialize(atoms)
 
-        print("Writing input file... " + self.label + "qe_input.in")
+        print(f"Writing input file in... {self.label}.in")
         param = self.parameters   # copy the parameters into param
-        logging.error(F"{param}")
 
-        finput = open(self.label + 'qe_input.in', 'w')
+        finput = open(self.label + '.in', 'w')
 
         # Write CONTROL section
         finput.write(' &CONTROL \n')
@@ -263,6 +267,7 @@ class EspressoCalculator(FileIOCalculator):
         for Z in self.species:
             finput.write(chemical_symbols[Z] + ' ' + str(atomic_masses[Z]) + ' ')
             finput.write('%s\n' % self.pp_dict[Z])
+            #SUGGESTION: maybe add somewhere a automatic download of the pseudo file as in the pp_dict ?
             pass
 
         # Write the ATOMIC_POSITIONS section
@@ -281,10 +286,14 @@ class EspressoCalculator(FileIOCalculator):
         # For Monkhorst meshes, the method "calculate" has already generated a list of k-points in
         # self.kpts using ASE function kpts2ndarray
         # ???? the self.kpts at this point is None
-        finput.write('K_POINTS tpiba\n')
-        finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
-        for i in range(0, len(self.kpts)):
-            finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')  # assume unary weight for all
+        # finput.write('K_POINTS tpiba\n')
+        # finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
+        # for i in range(0, len(self.kpts)):
+        #     finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')  # assume unary weight for all
+        #TEMPORARY FIX ?
+        finput.write('K_POINTS automatic\n')
+        for i in range(0, len(self.kpoints)):
+            finput.write('%i' % self.kpoints[i] + ' ')
 
         # TODO: check if it makes sense in some cases to let QE generate the Monkhorst mesh
         # finput.write('K_POINTS AUTOMATIC\n')
@@ -300,11 +309,13 @@ class EspressoCalculator(FileIOCalculator):
             if Z not in self.species:
                 self.species.append(Z)
         self.parameters['ntyp'] = len(self.species)
+        self.kpoints = self.parameters['kpoints']
         self.spinpol = atoms.get_initial_magnetic_moments().any()
+        self.prefix = 'pwscf' #must define the default pw.x value or else its going to be non and fail on line 324
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
-        self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
+        # self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
         self.write_input(self.atoms, properties, system_changes)
 
         if self.command is None:
@@ -314,7 +325,6 @@ class EspressoCalculator(FileIOCalculator):
         command = self.command.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
         try:
-            print(self.directory)
             os.chdir(self.directory)
             print(command)
             errorcode = subprocess.call(command, shell=True)
@@ -332,7 +342,7 @@ class EspressoCalculator(FileIOCalculator):
             if self.prefix is None:
                 filename = os.path.join(self.directory, 'data-file-schema.xml')
             else:
-                filename = self.label
+                filename = f"{self.label}.xml"
         elif '/' not in filename:
             filename = os.path.join(self.directory, filename)
 
