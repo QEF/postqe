@@ -14,6 +14,9 @@ from tabnanny import check
 import numpy as np
 import pathlib
 import qeschema
+import logging
+
+from .pp_dict import pp_dict
 
 from ase.atoms import Atoms, Atom
 from ase.data import chemical_symbols, atomic_masses
@@ -120,8 +123,7 @@ class EspressoCalculator(FileIOCalculator):
 
         restart: str
             Prefix for restart file.  May contain a directory. Default
-            is None: don't restart.
-        ignore_bad_restart_file: bool
+            is None: don't restart        ignore_bad_restart_file: bool
             Ignore broken or missing restart file.  By default, it is an
             error if the restart file is missing or broken.
         directory: str or PurePath
@@ -156,7 +158,9 @@ class EspressoCalculator(FileIOCalculator):
     Use default values:
 
     >>> from ase import Atoms
-    >>> h = Atoms('H', calculator=EspressoCalculator(ecut=200, toldfe=0.001))
+    >>> from ase.build import bulk
+    >>> copper_bulk = bulk('Cu', 'fcc', a=3.6, cubic=True)
+    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, smearing='gaussian', conv_thr=1e-8))
     >>> h.center(vacuum=3.0)
     >>> e = h.get_potential_energy()
     """
@@ -165,9 +169,10 @@ class EspressoCalculator(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces']
 
+
     command = str(pathlib.Path(__file__).parent.joinpath(
         'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
-    ))
+    )) #this gives /some_path/venvPostQE/lib/python3.10/site-packages/postqe/fortran/build/q-e/bin/pw.x ???????
 
     # These are reasonable default values for the REQUIRED parameters in pw.x input.
     # All other default values are not set here and let to pw.x, unless the user
@@ -185,7 +190,7 @@ class EspressoCalculator(FileIOCalculator):
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=None, atoms=None, command=None, directory='.',
-                 schema=None, pp_dict=None, **kwargs):
+                 schema=None, pp_dict=pp_dict, **kwargs):
         if label is None and '/' not in str(directory):
             label = 'pwscf.save/'
         self.pp_dict = pp_dict
@@ -212,10 +217,11 @@ class EspressoCalculator(FileIOCalculator):
         if 'numbers' in system_changes or 'initial_magmoms' in system_changes:
             self.initialize(atoms)
 
-        print("Writing input file... " + self.label + ".in")
+        print("Writing input file... " + self.label + "qe_input.in")
         param = self.parameters   # copy the parameters into param
+        logging.error(F"{param}")
 
-        finput = open(self.label + '.in', 'w')
+        finput = open(self.label + 'qe_input.in', 'w')
 
         # Write CONTROL section
         finput.write(' &CONTROL \n')
@@ -256,7 +262,7 @@ class EspressoCalculator(FileIOCalculator):
         finput.write('ATOMIC_SPECIES\n')
         for Z in self.species:
             finput.write(chemical_symbols[Z] + ' ' + str(atomic_masses[Z]) + ' ')
-            finput.write('%s\n' % self.pp_dict[chemical_symbols[Z]])
+            finput.write('%s\n' % self.pp_dict[Z])
             pass
 
         # Write the ATOMIC_POSITIONS section
@@ -274,6 +280,7 @@ class EspressoCalculator(FileIOCalculator):
         # Write the K_POINT section, always as a list of k-points
         # For Monkhorst meshes, the method "calculate" has already generated a list of k-points in
         # self.kpts using ASE function kpts2ndarray
+        # ???? the self.kpts at this point is None
         finput.write('K_POINTS tpiba\n')
         finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
         for i in range(0, len(self.kpts)):
@@ -391,7 +398,7 @@ class EspressoCalculator(FileIOCalculator):
             y = float(atomx['$'][1])
             z = float(atomx['$'][2])
             atoms.append(Atom(symbol, (x, y, z)))
-            atoms.pbc=[1,1,1]
+        atoms.pbc=[1,1,1]
 
         return atoms
 
