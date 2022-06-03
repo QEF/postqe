@@ -162,7 +162,7 @@ class EspressoCalculator(FileIOCalculator):
     >>> from postqe import EspressoCalculator
     >>> from ase.build import bulk
     >>> copper_bulk = bulk('Cu', 'fcc', a=3.6, cubic=True)
-    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, smearing='gaussian', conv_thr=1e-8m, kpoints=[2,2,2,0,0,0], pseudo_dir='../'))
+    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, smearing='gaussian', conv_thr=1e-8, kpoints=[2,2,2,0,0,0], pseudo_dir='../'))
     >>> h.center(vacuum=3.0)
     >>> e = h.get_potential_energy()
     >>> print(e)
@@ -197,7 +197,7 @@ class EspressoCalculator(FileIOCalculator):
                  label=None, atoms=None, command=None, directory='.',
                  schema=None, pp_dict=pp_dict, **kwargs):
         if label is None and '/' not in str(directory):
-            label = f"pwscf-{datetime.now().strftime('%d-%m-%Y-%H%M%S')}/"
+            label = f"pwscf-run-{datetime.now().strftime('%d%m%Y%H%M%S')}/"
         self.pp_dict = pp_dict
         self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(restart, ignore_bad_restart_file, label, atoms,
@@ -339,10 +339,15 @@ class EspressoCalculator(FileIOCalculator):
 
     def read_results(self, filename=None):
         if filename is None:
+            # ?? if prefix is not specified it should be set by QE as pwscf by default ? right ?
             if self.prefix is None:
-                filename = os.path.join(self.directory, 'data-file-schema.xml')
+                filename = os.path.join(self.directory, 'pwscf.save/data-file-schema.xml')
             else:
-                filename = f"{self.label}.xml"
+                filename = os.path.join(self.directory, f'{self.prefix}.save/data-file-schema.xml')
+            # if self.prefix is None:
+            #     filename = os.path.join(self.directory, 'data-file-schema.xml')
+            # else:
+            #     filename = f"{self.label}.xml"
         elif '/' not in filename:
             filename = os.path.join(self.directory, filename)
 
