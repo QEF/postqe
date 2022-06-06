@@ -22,9 +22,11 @@ MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 PW_FILES = $(addprefix $(QE_TOPDIR)/PW/src/,${PW_SOURCES})
 
 WRAP_FILES = ${MODULES_FILES} ${PW_FILES}
+
 # $(info $(WRAP_FILES))
 
 wrap_files: ${WRAP_FILES}
+	echo ${WRAP_FILES}
 	for f90_file in ${WRAP_FILES}; do \
   		export fpp_file=$${f90_file%.f90}.fpp ; \
 	    echo ${FPP} $$f90_file -I$${QE_TOPDIR}/include > $$fpp_file ; \
@@ -32,10 +34,10 @@ wrap_files: ${WRAP_FILES}
 	done
 
 pw:
-	make -C ${QE_TOPDIR} pw
+	make -C ${QE_TOPDIR} -j pw
 
 pp:
-	make -C ${QE_TOPDIR} pp
+	make -C ${QE_TOPDIR} -j pp
 
 move:
 	mv *.so ../
