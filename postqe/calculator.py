@@ -312,7 +312,7 @@ class EspressoCalculator(FileIOCalculator):
         self.parameters['ntyp'] = len(self.species)
         self.kpoints = self.parameters['kpoints']
         self.spinpol = atoms.get_initial_magnetic_moments().any()
-        self.prefix = 'pwscf' #must define the default pw.x value or else its going to be non and fail on line 324
+        #self.prefix = 'pwscf' #must define the default pw.x value or else its going to be non and fail on line 324
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
@@ -337,6 +337,8 @@ class EspressoCalculator(FileIOCalculator):
                                (self.name, self.directory, errorcode))
 
         self.read_results()
+
+
 
     def read_results(self, filename=None):
         if filename is None:

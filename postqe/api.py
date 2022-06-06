@@ -42,8 +42,8 @@ def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=N
     if outdir is None:
         outdir = os.environ.get('ESPRESSO_TMPDIR', './')
 
-    kwargs['directory'] = os.path.join(outdir, f'{prefix}.save/')
-    return cls(schema=schema, pp_dict=pp_dict, **kwargs)
+    kwargs['directory'] = os.path.join(outdir)
+    return cls(label=prefix, schema=schema, pp_dict=pp_dict, **kwargs)
 
 
 ## New CLI-API interfaces ###'{}.save/data-file-schema.xml'.format(prefix))
@@ -126,12 +126,12 @@ def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     return plot
 
 
-def get_eos(prefix='pwscf', outdir=None, eos_type='murnaghan'):
+def get_eos(prefix='volumes_and_energies.dat', outdir=None, eos_type='murnaghan'):
     """
     Fits an Equation of state of type *eos* and returns an QEEquationOfState object.
     Different equation of states are available (see below).
 
-    :param prefix: FIXME!! name of the input file with volumes and energies????
+    :param prefix: name of the input file with volumes and energies (default: volumes_and_energies.dat)
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n\
@@ -159,7 +159,7 @@ def get_eos(prefix='pwscf', outdir=None, eos_type='murnaghan'):
             outdir = os.curdir
 
     label = '{}/{}'.format(outdir, prefix)
-    
+
     # Extract volumes and energies from the input file:
     volumes, energies = read_EtotV(label)
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
@@ -173,7 +173,7 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='',
     Fits an Equation of state of type *eos_type*, writes the results into *fileout* (optionally)
     and creates a Matplotlib figure. Different equation of states are available (see below).
 
-    :param prefix: FIXME!! name of the input file with volumes and energies?????
+    :param prefix: name of the input file with volumes and energies (default: volumes_and_energies.dat)
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are: \
@@ -335,7 +335,7 @@ def get_charge(prefix='pwscf', outdir=None, schema=None):
     atoms.calc.read_results()
 
     nr = calc.get_nr()
-    charge_file = calc.label + "charge-density.hdf5"
+    charge_file = calc.label + '.save/' + "charge-density.hdf5"
 
     charge = Charge(nr)
     charge.read(charge_file)
