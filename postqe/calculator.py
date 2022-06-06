@@ -198,7 +198,7 @@ class EspressoCalculator(FileIOCalculator):
                  label=None, atoms=None, command=None, directory='.',
                  schema=None, pp_dict=pp_dict, **kwargs):
         if label is None and '/' not in str(directory):
-            label = f"pwscf.save"
+            label = "pwscf"
         self.pp_dict = pp_dict
         self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(restart, ignore_bad_restart_file, label, atoms,
@@ -340,7 +340,6 @@ class EspressoCalculator(FileIOCalculator):
 
     def read_results(self, filename=None):
         if filename is None:
-            # ?? if prefix is not specified it should be set by QE as pwscf by default ? right ?
             filename = os.path.join(self.directory, f'{self.prefix}.save/data-file-schema.xml')
             # if self.prefix is None:
             #     filename = os.path.join(self.directory, 'data-file-schema.xml')
