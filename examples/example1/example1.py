@@ -25,14 +25,14 @@ if __name__ == "__main__":
 
     #Runnin 15 scf calculations with ASE and EspressoCalculator to generate a file with Volumes and Energies
     a = 3.2 # approximated lattice constant
-    ni = Atoms('Ni', #Nickel bulk
+    ni = Atoms('Ni', #Nickel
               cell = [(0, a/2, a/2), (a/2, 0, a/2), (a/2, a/2, 0)], #FCC cell
               pbc = 1, #activate periodic boudary conditions
               calculator = EspressoCalculator(calculation='scf', ecutwfc=100, occupations='smearing', smearing='gaussian',
-                                                degauss=0.001, kpoints=[6,6,6,0,0,0], conv_thr=1e-8, pseudo_dir='../'))
+                                                degauss=0.001, kpoints=[6,6,6,0,0,0], conv_thr=1e-8, pseudo_dir='.'))
     cell = ni.get_cell()
-    
-    f = open('vol_and_energies.dat', 'w')
+
+    f = open('volumes_and_energies.dat', 'w')
     for cell_multi in np.linspace(1.85, 2.15, 15):
         ni.set_cell(cell*cell_multi, scale_atoms=True)
         v = ni.get_volume()
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     f.close()
 
     #call the compute_dos API
-    eos, eos_plot = compute_eos(prefix='vol_and_energies.dat', outdir='.',eos_type='murnaghan',
+    eos, eos_plot = compute_eos(prefix='volumes_and_energies.dat', outdir='.', eos_type='murnaghan',
                                         fileout='eos.out', fileplot='EOSplot', show=True, ax=None)
 
     ## Save the plot in a different formats (pdf) with Matplotlib if you like
