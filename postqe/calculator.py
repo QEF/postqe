@@ -673,10 +673,11 @@ class EspressoCalculator(FileIOCalculator):
             attrs  = get_wf_attributes(filename=filename)
             kpt = attrs['ik']
         else:
+            root_path = pathlib.Path(self.directory).joinpath(f"{self.prefix}.save") 
             if self.get_spin_polarized():
-                filename = str( pathlib.Path( self.label ).joinpath( "".join(['wfc', spinlabels[spin-1], str(kpt),'.hdf5'] )))
+                filename = str(root_path.joinpath( "".join(['wfc', spinlabels[spin-1], str(kpt),'.hdf5'] )))
             else:
-                filename =  str( pathlib.Path( self.label ).joinpath( "".join(['wfc', str(kpt),'.hdf5'] )))
+                filename =  str(root_path.joinpath( "".join(['wfc', str(kpt),'.hdf5'] )))
             attrs = get_wf_attributes(filename = filename)
         #
         xk = attrs['xk']
