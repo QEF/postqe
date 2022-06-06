@@ -125,7 +125,7 @@ def get_charge_r(filename, nr=None):
                 pass
 
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-    return rhotot_r.real, None
+    return rhotot_r.real 
 
 def get_magnetization_r(filename, nr = None, direction = 3 ):
     """
