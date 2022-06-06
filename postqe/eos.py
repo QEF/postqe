@@ -31,9 +31,9 @@ class QEEquationOfState(EquationOfState):
             fout.write(80 * '#' + '\n')
 
             for i in range(len(self.v)):
-                fout.write('{}\t{}'.format(self.v[i], self.e[i]))
+                fout.write('{:.14f}\t{:.14f}'.format(self.v[i], self.e[i]))
                 if self.eos_string == 'sj':
                     y = self.fit0(self.v[i] ** -(1 / 3))
                 else:
                     y = self.func(self.v[i], *self.eos_parameters)
-                fout.write('\t{}\n'.format(y))
+                fout.write('\t{:.14f}\n'.format(y))
