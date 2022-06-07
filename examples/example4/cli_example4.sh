@@ -10,7 +10,7 @@
 #         -schema: the XML schema to be used to read and validate the XML output file
 #         -show: plot results with Matplotlib (True, False)
 #
-#     2) specific parameters for the dos command:
+#     2) specific parameters for the charge command:
 #         -fileout: text file with the full charge data as in the HDF5 file (default: charge.dat)
 #         -ifmagn: for a magnetic calculation, 'total' plot the total charge,'up' plot the charge with spin up, 'down' for spin down
 #         -x0: vector (a tuple), origin of the line (default: (0,0,0))
