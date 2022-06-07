@@ -18,7 +18,7 @@ import argparse
 #
 EOS_HELP = "Fit energy vs volume data with an equation of state."
 BANDS_HELP = "Calculate energy bands."
-DOS_HELP = "Calculate the electronic density of states"
+DOS_HELP = "Calculate the electronic density of states."
 CHARGE_HELP = """
 Extract the charge from an output xml Espresso file and the corresponding HDF5 charge file
 containing the results of a calculation. Create also a Matplotlib figure object from a 1D or 2D
@@ -32,14 +32,19 @@ Create also a Matplotlib figure object from a 1D or 2D' section of the charge.
 (optional) Export the charge (1, 2 or 3D section) in a text file
 according to different formats (XSF, cube, Gnuplot, etc.).
 """
-PREFIX_HELP = "prefix of files saved by program pw.x"
-OUTDIR_HELP = "directory containing the input data, i.e. the same as in pw.x"
-SCHEMA_HELP = """the XSD schema file for QE XML output file. If not provided the schema
+PREFIX_HELP = "Prefix of files saved by program pw.x."
+OUTDIR_HELP = "Directory containing the input data, i.e. the same as in pw.x"
+SCHEMA_HELP = """The XSD schema file for QE XML output file. If not provided the schema
 information is taken from xsi:schemaLocation attributes in the xml espresso file."""
+SHOW_HELP = """
+True -> plot results with Matplotlib; None or False -> do nothing (default = True).
+For DOS only for 1D and 2D sections.
+"""
+FILEPLOT_HELP = "Output plot file in png format (default = 'plot'). Other formats are available from the Matplotlib GUI."
 
-EOS_PREFIX_HELP = "file containing the energy/volume data."
+EOS_PREFIX_HELP = "Name of the file containing the energy/volume data."
 EOS_TYPE_HELP = """
-type of equation of state (EOS) for fitting. Available types are:
+Type of equation of state (EOS) for fitting. Available types are:
 murnaghan (default) -> Murnaghan EOS, PRB 28, 5480 (1983);
 sjeos -> A third order inverse polynomial fit, PhysRevB.67.026103;
 E(V) = c_0 + c_1 t + c_2 t^2  + c_3 t^3 ,  t = V^(-1/3);
@@ -51,52 +56,52 @@ pouriertarantola -> Pourier-Tarantola EOS, PRB 70, 224107;
 antonschmidt -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003);
 p3 -> A third order inverse polynomial fit.
 """
-EOS_FILEOUT_HELP = "text output file with fitting data and results (default="", not written)."
-EOS_FILEPLOT_HELP = """
-output plot file in png format (default='EOSplot'). Other formats are available from the Matplotlib GUI.
+EOS_FILEOUT_HELP = "Text output file with fitting data and results (default = 'eos_data.dat')."
+EOS_AX_HELP = "A Matplotlib 'Axes' instance (see Matplotlib documentation for details (default = None, creates a new one)."
+
+BANDS_REFERENCE_ENERGY_HELP = "The Fermi level, defines the zero of the plot along y axis (default = 0)."
+BANDS_EMIN_HELP = "The minimum energy for the band plot (default = -50)."
+BANDS_EMAX_HELP = "The maximum energy for the band plot (default = 50)."
+
+DOS_WINDOW_HELP = "A tuple (emin, emax) that defines the minimum and maximum energies for the DOS (default = None)."
+DOS_WIDTH_HELP = "Width of the gaussian to be used for the DOS (in eV, default = 0.5)."
+DOS_NPTS_HELP = 'Number of points of the DOS (default = 100).'
+DOS_FILEOUT_HELP = "Text output file with dos data (default = 'dos')."
+
+VECTOR_HELP = "Enter the vector as components separated by commas, eg. 1,0,0."
+CHARGE_FILEOUT_HELP = "Text file with the full charge data as in the HDF5 file (default='charge.dat')."
+CHARGE_X0_HELP = "3D vector (a tuple), origin of the line or plane of the section (default = 0,0,0)." + VECTOR_HELP
+CHARGE_E1_HELP = "1st 3D vector (a tuple) which determines the plotting section (default = 1,0,0)." + VECTOR_HELP
+CHARGE_E2_HELP = "2nd 3D vector (a tuple) which determines the plotting section (default = 0,1,0)." + VECTOR_HELP
+CHARGE_E3_HELP = "3rd 3D vector (a tuple) which determines the plotting section (default = 0,0,1)." + VECTOR_HELP
+CHARGE_NX_HELP = "Number of points along e1 direction (default = 50)."
+CHARGE_NY_HELP = "Number of points along e2 direction (default = 50)."
+CHARGE_NZ_HELP = "Number of points along e3 direction (default = 50)."
+CHARGE_RADIUS_HELP = "Radius of the sphere in the polar average method (default = 1)"
+CHARGE_DIM_HELP = "1, 2, 3 for a 1D, 2D or 3D section respectively (default = 1)"
+CHARGE_IFMAGN_HELP = """
+For a magnetic calculation, 'total' plot the total charge, 'up'
+plot the charge with spin up, 'down' for spin down (default=None).
 """
-EOS_SHOW_HELP = "True -> plot results with Matplotlib; None or False -> do nothing. Default = True."
-
-BANDS_REFERENCE_ENERGY_HELP = "the Fermi level, defines the zero of the plot along y axis (default=0)."
-BANDS_EMIN_HELP = "the minimum energy for the band plot (default=-50)."
-BANDS_EMAX_HELP = "the maximum energy for the band plot (default=50)."
-BANDS_FILEPLOT_HELP = "output plot file (default='bandsplot') in png format."
-
-DOS_EMIN_HELP = 'the minimum energy for the dos plot (default=-50).'
-DOS_EMAX_HELP = 'the maximum energy for the dos plot (default=50).'
-DOS_NPTS_HELP = 'number of points of the DOS.'
-DOS_FILEOUT_HELP = 'text output file with dos data (default='', not written).'
-DOS_FILEPLOT_HELP = 'output plot file (default=\'dosplot\') in png format.'
-
-VECTOR_HELP = " Enter the vector as components separated by commas, eg. 1,0,0 ."
-CHARGE_FILEOUT_HELP = "text file with the full charge data as in the HDF5 file. Default='', nothing is written."
-CHARGE_X0_HELP = "3D vector (a tuple), origin of the line or plane of the section." + VECTOR_HELP
-CHARGE_E1_HELP = "1st 3D vector (a tuple) which determines the plotting section." + VECTOR_HELP
-CHARGE_E2_HELP = "2nd 3D vector (a tuple) which determines the plotting section." + VECTOR_HELP
-CHARGE_E3_HELP = "3rd 3D vector (a tuple) which determines the plotting section." + VECTOR_HELP
-CHARGE_NX_HELP = "number of points along e1 direction."
-CHARGE_NY_HELP = "number of points along e2 direction."
-CHARGE_NZ_HELP = "number of points along e3 direction."
-CHARGE_RADIUS_HELP = "radius of the sphere in the polar average method."
-CHARGE_DIM_HELP = "1, 2, 3 for a 1D, 2D or 3D section respectively."
-CHARGE_IFMAGN_HELP = """for a magnetic calculation, 'total' plot the total charge, 'up'
-plot the charge with spin up, 'down' for spin down."""
-CHARGE_EXPORTFILE_HELP = "file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)."
+CHARGE_EXPORTFILE_HELP = """
+Name of the file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
+(default = 'plot_data.dat').
+"""
 CHARGE_METHOD_HELP = """
-interpolation method. Available choices are:
+Interpolation method. Available choices are:
 'FFT' -> Fourier interpolation (default);
 'polar' -> 2D polar plot on a sphere;
 'spherical' -> 1D plot of the spherical average;
 'splines' -> not implemented.
 """
-CHARGE_FORMAT_HELP = """format of the (optional) exported file. Available choices are:
+CHARGE_FORMAT_HELP = """
+Format of the (optional) exported file. Available choices are:
 'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.
 'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.
 'cube' -> cube Gaussian format. Available for 3D sections.
 'contour' -> format for the contour.x code of Quantum Espresso.
 'plotrho' -> format for the plotrho.x code of Quantum Espresso.
 """
-CHARGE_SHOW_HELP = "if True, show the Matplotlib plot (only for 1D and 2D sections)."
 
 # SPIN_CHOICES = [0, 1, 2]
 SPIN_CHOICES = ['total', 'up', 'down']
@@ -133,88 +138,81 @@ def get_cli_parser():
 
     #COMPUTE EOS
     command_parser = subparsers.add_parser(
-        'eos', help="generate the Equation of State Plot")
+        'eos', help=EOS_HELP)
     #SPECIFIC OPTIONS
     command_parser.add_argument(
-        '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help="type of equation of state (EOS) for fitting (default: murnaghan)")
+        '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help=EOS_TYPE_HELP)
     command_parser.add_argument(
-        '-fileout', type=str, default='eos_data.dat', help="output file with fitting data and results (default='eos_data.dat')")
+        '-fileout', type=str, default='eos_data.dat', help=EOS_FILEOUT_HELP)
     command_parser.add_argument(
-        '-ax', type=str, default=None, help="a Matplotlib 'Axes' instance (see Matplotlib documentation for details. \
-                                            (default=None, creates a new one)")
-
-
-    #COMPUTE CHARGE
-    command_parser = subparsers.add_parser(
-        'charge', help="compute the electron (pseudo-)charge density")
-    #SPECIFIC OPTIONS
-    command_parser.add_argument(
-        '-fileout', type=str, default='charge.dat', help="text file with the full charge data as in the HDF5 file")
-    command_parser.add_argument(
-        '-ifmagn', type=str, default=None, choices=SPIN_CHOICES, help="for a magnetic calculation, 'total' plot the total charge, \
-                                                                        'up' plot the charge with spin up, 'down' for spin down.")
-    command_parser.add_argument(
-        '-x0', type=vector, default=(0.,0.,0.), help="vector (a tuple), origin of the line (default: (0,0,0))")
-    command_parser.add_argument(
-        '-e1', type=vector, default=(1.,0.,0.), help="3D vector (tuples) which determines the plotting lines must be in x,y,z format (default: (1,0,0)")
-    command_parser.add_argument(
-        '-nx', type=int, default=50, help="number of points along e1 (default: 50)")
-    command_parser.add_argument(
-        '-e2', type=vector, default=(0.,1.,0.), help="3D vector (tuples) which determines the plotting lines must be in x,y,z format (default: (0,1,0))")
-    command_parser.add_argument(
-        '-ny', type=int, default=50, help="number of points along e2")
-    command_parser.add_argument(
-        '-e3', type=vector, default=(0.,0.,1.), help="3D vector (tuples) which determines the plotting lines must be in '(x,y,z)' format (default: (0,0,1))")
-    command_parser.add_argument(
-        '-nz', type=int, default=50, help="number of points along e3 (default: 50)")
-    command_parser.add_argument(
-        '-radius', type=int, default=1, help="radious of the sphere in the polar average method")
-    command_parser.add_argument(
-        '-dim', type=int, default=1, choices=DIM_CHOICES, help="1, 2, or 3 for 1D, 2D or 3D section respectively")
-    command_parser.add_argument(
-        '-method', type=str, default='FFT', choices=METHOD_CHOICES, help="the interpolation method")
-    command_parser.add_argument(
-        '-format', type=str, default='gnuplot', choices=FORMAT_CHOICES, help="format of the (optional) exported file")
-    command_parser.add_argument(
-        '-plot_file', type=str, default='plot_data.dat', help="file where plot data are exported in the chosen format \
-                                                               (Gnuplot, XSF, cube Gaussian, etc.).")
-
-    #COMPUTE DOS
-    command_parser = subparsers.add_parser(
-        'dos', help="compute the density of states")
-    #SPECIFIC OPTIONS
-    command_parser.add_argument(
-        '-window', type=window, default=None, help="a tuple (emin, emax) that defines the minimum and maximum energies for the DOS")
-    command_parser.add_argument(
-        '-width', type=float, default=0.5, help="width of the gaussian to be used for the DOS (in eV, default=0.5)")
-    command_parser.add_argument(
-        '-npts', type=int, default=100, help="number of points of the DOS")
-    command_parser.add_argument(
-        '-fileout', type=str, default='dos', help="output file with DOS results (default='dos.out')")
-
+        '-ax', type=str, default=None, help=EOS_AX_HELP)
 
     #COMPUTE BANDS
     command_parser = subparsers.add_parser(
-        'bands', help="computing the band structure")
+        'bands', help=BANDS_HELP)
     #SPECIFIC OPTIONS
     command_parser.add_argument(
-        '-reference_energy', type=float, default=0, help="the Fermi level, defines the zero of the plot along y axis (default=0)")
+        '-reference_energy', type=float, default=0, help=BANDS_REFERENCE_ENERGY_HELP)
     command_parser.add_argument(
-        '-emin', type=int, default=-50, help="the minimum energy for the band plot (default=-50)")
+        '-emin', type=int, default=-50, help=BANDS_EMIN_HELP)
     command_parser.add_argument(
-        '-emax', type=int, default=50, help="the maximum energy for the band plot (default=50)")
+        '-emax', type=int, default=50, help=BANDS_EMAX_HELP)
+
+    #COMPUTE DOS
+    command_parser = subparsers.add_parser(
+        'dos', help=DOS_HELP)
+    #SPECIFIC OPTIONS
+    command_parser.add_argument(
+        '-window', type=window, default=None, help=DOS_WINDOW_HELP)
+    command_parser.add_argument(
+        '-width', type=float, default=0.5, help=DOS_WIDTH_HELP)
+    command_parser.add_argument(
+        '-npts', type=int, default=100, help=DOS_NPTS_HELP)
+    command_parser.add_argument(
+        '-fileout', type=str, default='dos', help=DOS_FILEOUT_HELP)
+
+    #COMPUTE CHARGE
+    command_parser = subparsers.add_parser(
+        'charge', help=CHARGE_HELP)
+    #SPECIFIC OPTIONS
+    command_parser.add_argument(
+        '-fileout', type=str, default='charge.dat', help=CHARGE_FILEOUT_HELP)
+    command_parser.add_argument(
+        '-ifmagn', type=str, default=None, choices=SPIN_CHOICES, help=CHARGE_IFMAGN_HELP)
+    command_parser.add_argument(
+        '-x0', type=vector, default=(0.,0.,0.), help=CHARGE_X0_HELP)
+    command_parser.add_argument(
+        '-e1', type=vector, default=(1.,0.,0.), help=CHARGE_E1_HELP)
+    command_parser.add_argument(
+        '-nx', type=int, default=50, help=CHARGE_NX_HELP)
+    command_parser.add_argument(
+        '-e2', type=vector, default=(0.,1.,0.), help=CHARGE_E2_HELP)
+    command_parser.add_argument(
+        '-ny', type=int, default=50, help=CHARGE_NY_HELP)
+    command_parser.add_argument(
+        '-e3', type=vector, default=(0.,0.,1.), help=CHARGE_E3_HELP)
+    command_parser.add_argument(
+        '-nz', type=int, default=50, help=CHARGE_NZ_HELP)
+    command_parser.add_argument(
+        '-radius', type=int, default=1, help=CHARGE_RADIUS_HELP)
+    command_parser.add_argument(
+        '-dim', type=int, default=1, choices=DIM_CHOICES, help=CHARGE_DIM_HELP)
+    command_parser.add_argument(
+        '-method', type=str, default='FFT', choices=METHOD_CHOICES, help=CHARGE_METHOD_HELP)
+    command_parser.add_argument(
+        '-format', type=str, default='gnuplot', choices=FORMAT_CHOICES, help=CHARGE_FORMAT_HELP)
+    command_parser.add_argument(
+        '-plot_file', type=str, default='plot_data.dat', help=CHARGE_EXPORTFILE_HELP)
 
 
-    parser.add_argument('-prefix', type=str, default='pwscf',
-                        help="prefix of files saved by program pw.x")
-    parser.add_argument('-outdir', type=str, default=None,
-                        help="directory containing the input data, i.e. the same as in pw.x")
-    parser.add_argument('-fileplot', type=str, default='plot_file',
-                        help="output plot file (default='plot_file') in png format ")
-    parser.add_argument('-schema', type=str, default=None,
-                        help="The XML schema to be used to read and validate the XML output file")
-    parser.add_argument('-show', type=bool, default=False, choices=BOOL_CHOICES,
-                        help="plot results with Matplotlib (True, False)")
+    parser.add_argument('-prefix', type=str, default='pwscf', help=PREFIX_HELP)
+    parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
+    parser.add_argument('-fileplot', type=str, default='plot', help=FILEPLOT_HELP)
+    parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
+    parser.add_argument('-show', type=bool, default=True, choices=BOOL_CHOICES, help=SHOW_HELP)
+
+    #TODO:
+    #COMPUTE POTENTIAL
 
     return parser
 
