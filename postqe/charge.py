@@ -5,6 +5,7 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
+from operator import ge
 import numpy as np
 import h5py
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
@@ -275,9 +276,17 @@ class Charge:
                 nr = self.nr
             except:
                 raise AttributeError("nr not defined in this Charge object")
-        charge, charge_diff = get_charge_r(filename, np.array(nr))
+        charge  = get_charge_r(filename, np.array(nr))
         self.charge = charge
-        self.charge_diff = charge_diff
+        noncolin, magnetization = get_magnetization_r(filename, np.array(nr), direction = 3) 
+        self.noncolin = noncolin 
+        if noncolin:
+            self.mz = magnetization 
+            dummy, self.mx = get_magnetization_r(filename, np.array(nr), direction = 1)
+            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction = 2) 
+        else:
+            self.charge_diff = magnetization 
+            self.magnetization =self.charge_diff  
 
     def write(self, filename):
         header='# Charge file\n'
