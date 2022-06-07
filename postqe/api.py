@@ -298,7 +298,7 @@ def compute_dos(prefix='pwscf', outdir=None, schema=None, width=0.01, window=Non
 
     # save DOS in a file
     if fileout != '':
-        dos.write('DOS.out')
+        dos.write(f'{fileout}.out')
 
     # get the dos and energies for further processing
     d = dos.get_dos()
@@ -347,7 +347,7 @@ def get_charge(prefix='pwscf', outdir=None, schema=None):
 def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
                    x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.),
                    ny=50, e3=(0., 0., 1.), nz=50, radius=1, dim=1, ifmagn='total',
-                   plot_file='', method='FFT', format='gnuplot', show=True):
+                   plot_file='', method='FFT', format='gnuplot', fileplot='chargeplot', show=True):
     """
     Returns an Charge object from an output xml Espresso file and the
     corresponding HDF5 charge file containing the results of a calculation.
@@ -361,6 +361,7 @@ def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
     :param schema: the XML schema to be used to read and validate the XML output file
     :param fileout: text file with the full charge data as in the HDF5 file. Default='', \
     nothing is written.
+    :param fileplot: output plot file (default='chargeplot') in png format
     :param x0: 3D vector (a tuple), origin of the line
     :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
     :param nx, ny, nz: number of points along e1, e2, e3
@@ -395,6 +396,9 @@ def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
     figure = charge.plot(x0=x0, e1=e1, nx=nx, e2=e2, ny=ny, e3=e3, nz=nz,
                          radius=radius, dim=dim, ifmagn=ifmagn, plot_file=plot_file,
                          method=method, format=format, show=show)
+
+    if fileplot != '':
+        figure.savefig(f'{fileplot}.png', format='png')
 
     return charge, figure
 
