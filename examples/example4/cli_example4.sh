@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### COMMENT
-#     This is an example showing how to compute the bands structure plot using the postqe CLI
+#     This is an example showing how to compute the charge plot using the postqe CLI
 #
 #     1) postqe general parameters (for all commands):
 #         -prefix: prefix of files saved by program pw.x (default: pwscf)
