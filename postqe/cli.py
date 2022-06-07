@@ -131,14 +131,14 @@ def get_cli_parser():
     subparsers = parser.add_subparsers(metavar="command", dest='command', required=True,
                                        help='Selects what to save in filplot')
 
-    #COMPUTE Equantion of State
+    #COMPUTE EOS
     command_parser = subparsers.add_parser(
-        'eos', help="Generate the Equation of State Plot")
+        'eos', help="generate the Equation of State Plot")
     #SPECIFIC OPTIONS
     command_parser.add_argument(
-        '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help="type of equation of state (EOS) for fitting")
+        '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help="type of equation of state (EOS) for fitting (default: murnaghan)")
     command_parser.add_argument(
-        '-fileout', type=str, default='eos_data.dat', help="output file with fitting data and results (default='eos_data.dat').")
+        '-fileout', type=str, default='eos_data.dat', help="output file with fitting data and results (default='eos_data.dat')")
     command_parser.add_argument(
         '-ax', type=str, default=None, help="a Matplotlib 'Axes' instance (see Matplotlib documentation for details. \
                                             (default=None, creates a new one)")
@@ -154,19 +154,19 @@ def get_cli_parser():
         '-ifmagn', type=str, default=None, choices=SPIN_CHOICES, help="for a magnetic calculation, 'total' plot the total charge, \
                                                                         'up' plot the charge with spin up, 'down' for spin down.")
     command_parser.add_argument(
-        '-x0', type=vector, default=(0.,0.,0.), help="vector (a tuple), origin of the line")
+        '-x0', type=vector, default=(0.,0.,0.), help="vector (a tuple), origin of the line (default: (0,0,0))")
     command_parser.add_argument(
-        '-e1', type=vector, default=(1.,0.,0.), help="3D vector (tuples) which determines the plotting lines must be in  x,y,z  format")
+        '-e1', type=vector, default=(1.,0.,0.), help="3D vector (tuples) which determines the plotting lines must be in x,y,z format (default: (1,0,0)")
     command_parser.add_argument(
-        '-nx', type=int, default=50, help="number of points along e1")
+        '-nx', type=int, default=50, help="number of points along e1 (default: 50)")
     command_parser.add_argument(
-        '-e2', type=vector, default=(0.,1.,0.), help="3D vector (tuples) which determines the plotting lines must be in '(x,y,z)' format")
+        '-e2', type=vector, default=(0.,1.,0.), help="3D vector (tuples) which determines the plotting lines must be in x,y,z format (default: (0,1,0))")
     command_parser.add_argument(
         '-ny', type=int, default=50, help="number of points along e2")
     command_parser.add_argument(
-        '-e3', type=vector, default=(0.,0.,1.), help="3D vector (tuples) which determines the plotting lines must be in '(x,y,z)' format")
+        '-e3', type=vector, default=(0.,0.,1.), help="3D vector (tuples) which determines the plotting lines must be in '(x,y,z)' format (default: (0,0,1))")
     command_parser.add_argument(
-        '-nz', type=int, default=50, help="number of points along e3")
+        '-nz', type=int, default=50, help="number of points along e3 (default: 50)")
     command_parser.add_argument(
         '-radius', type=int, default=1, help="radious of the sphere in the polar average method")
     command_parser.add_argument(
@@ -190,10 +190,10 @@ def get_cli_parser():
     command_parser.add_argument(
         '-npts', type=int, default=100, help="number of points of the DOS")
     command_parser.add_argument(
-        '-fileout', type=str, default='dos.dat', help="output file with DOS results (default='dos.dat')")
+        '-fileout', type=str, default='dos', help="output file with DOS results (default='dos.out')")
 
 
-    #COMPUTE DOS
+    #COMPUTE BANDS
     command_parser = subparsers.add_parser(
         'bands', help="computing the band structure")
     #SPECIFIC OPTIONS
@@ -210,11 +210,11 @@ def get_cli_parser():
     parser.add_argument('-outdir', type=str, default=None,
                         help="directory containing the input data, i.e. the same as in pw.x")
     parser.add_argument('-fileplot', type=str, default='plot_file',
-                        help="output plot file (default='plot_file.png') in png format ")
+                        help="output plot file (default='plot_file') in png format ")
     parser.add_argument('-schema', type=str, default=None,
                         help="The XML schema to be used to read and validate the XML output file")
     parser.add_argument('-show', type=bool, default=False, choices=BOOL_CHOICES,
-                        help="plot results with Matplotlib (True, False")
+                        help="plot results with Matplotlib (True, False)")
 
     return parser
 
@@ -250,10 +250,10 @@ def main():
     elif args.command == 'charge':
         api.compute_charge(
             args.prefix, args.outdir, args.schema, args.fileout, args.x0, args.e1, args.nx,
-            args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn, args.exportfile,
-            args.method, args.format, args.show
+            args.e2, args.ny, args.e3, args.nz, args.radius, args.dim, args.ifmagn, args.plot_file,
+            args.method, args.format, args.fileplot, args.show
         )
-        api.new_get_charge(args.prefix, args.outdir, args.filplot)
+        # api.new_get_charge(args.prefix, args.outdir, args.filplot) #TODO: new_get_charge method
     elif args.command == 'potential':
         api.compute_potential(
             args.prefix, args.outdir, args.schema, args.pot_type, args.fileout, args.x0,
