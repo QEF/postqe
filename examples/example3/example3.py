@@ -23,12 +23,12 @@ if __name__ == "__main__":
     from postqe import compute_dos
 
     # get a DOS object
-    dos, plot = compute_dos(prefix='Silicon', outdir='outdir', schema='../../schemas/qes.xsd', width=0.5, npts=200,
-                                fileout='DOSresults.out', fileplot='DOSplot.png', show=True)
+    dos, plot = compute_dos(prefix='Silicon', outdir='outdir', width=0.5, npts=200,
+                                fileout='DOSresults', fileplot='DOSplot.png', show=True)
 
     # If you want, get the dos and energies for further processing
     d = dos.get_dos()
     e = dos.get_energies()
 
     # save DOS in a file
-    dos.write('DOS.out')
+    #dos.write('DOS.out')

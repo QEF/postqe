@@ -20,5 +20,5 @@ Returns: an ASE band structure object (bands_structure) and a Matplotlib figure 
 if __name__ == "__main__":
     from postqe import compute_band_structure
 
-    bands_structure, figure = compute_band_structure(prefix='Si', outdir='outdir', schema='../../schemas/qes.xsd', reference_energy=0,
+    bands_structure, figure = compute_band_structure(prefix='Si', outdir='outdir', reference_energy=0,
                                emin=-20, emax=50, fileplot='Si_bandsplot.png', show=True)

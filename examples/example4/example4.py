@@ -7,13 +7,14 @@ using the 'compute_charge' API.
 HDF5 charge file must be present, to enable HDF5 support in QE see:
     https://www.quantum-espresso.org/Doc/user_guide/node12.html#SECTION00035050000000000000,
     and look up the dmft option in pw.x:
-    https://www.quantum-espresso.org/Doc/INPUT_PW.html#idm525)
+    https://www.quantum-espresso.org/Doc/INPUT_PW.html#idm525
 
 OPTIONS:
     prefix: prefix of saved output file
     outdir: directory containing the input data
     schema: the XML schema to be used to read and validate the XML output file
     fileout: text file with the full charge data as in the HDF5 file
+    fileplot: output plot file (default='chargeplot') in png format
     x0: 3D vector (a tuple), origin of the line
     e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
     nx, ny, nz: number of points along e1, e2, e3
@@ -40,8 +41,8 @@ Returns: a Charge object and a Matplotlib figure object for 1D and 2D sections (
 if __name__ == "__main__":
     from postqe import compute_charge
 
-    charge, figure = compute_charge(prefix='Silicon', outdir='outdir', schema='../../schemas/qes.xsd', fileout='charge.out',
-                            x0=(0., 0., 0.), e1=(2., 0., 0.), nx=100, radius=1, dim=1,
-                                ifmagn='total', plot_file='charge_plot', method='FFT', format='gnuplot', show=False)
+    charge, figure = compute_charge(prefix='Silicon', outdir='outdir', fileout='charge.dat', fileplot='1D_charge_plot',
+                                        x0=(0., 0., 0.), e1=(2., 0., 0.), nx=100, radius=1, dim=1, ifmagn='total',
+                                        plot_file='charge_plot_data.dat', method='FFT', format='gnuplot', show=False)
 
-    figure.savefig('1D_charge_plot.png', format='png')
+    # figure.savefig('1D_charge_plot.png', format='png')
