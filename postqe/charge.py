@@ -54,8 +54,10 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
         res.update({'MillInd':MI,'nr_min': nr})
         rhog = h5f[dataset][:].reshape(res['ngm_g'],2).dot([1.e0,1e0j])
         res.update({dataset:rhog})
+        domag = 'rhodiff_g' in h
     return res
 
+        
 def get_minus_indexes(g1, g2, g3):
     """
     Used for getting the corresponding minus Miller Indexes. It is meant to be used
@@ -149,9 +151,10 @@ def get_magnetization_r(filename, nr = None, direction = 3 ):
         else:
             raise ValueError("valid directions from 1 to 3")
         noncolin = True
-        cdata = read_charge_file_hdf5(filename, dataset = dataset)
+        cdata = get_density_data_hdf5(filename, dataset = dataset)
         if cdata is None:
-            return None
+            noncolin = False
+            return noncolin, None
 
     if nr is None:
         nr1, nr2, nr3 = cdata['nr_min']
@@ -264,6 +267,7 @@ class Charge:
     def set_calculator(self, calculator):
         self.calculator = calculator
 
+
     def read(self, filename, nr=None):
         """
         Read the charge from a HDF5 file.
@@ -276,6 +280,7 @@ class Charge:
                 nr = self.nr
             except:
                 raise AttributeError("nr not defined in this Charge object")
+
         charge  = get_charge_r(filename, np.array(nr))
         self.charge = charge
         noncolin, magnetization = get_magnetization_r(filename, np.array(nr), direction = 3) 
@@ -283,10 +288,11 @@ class Charge:
         if noncolin:
             self.mz = magnetization 
             dummy, self.mx = get_magnetization_r(filename, np.array(nr), direction = 1)
-            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction = 2) 
+            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction = 2)
         else:
-            self.charge_diff = magnetization 
-            self.magnetization =self.charge_diff  
+            self.charge_diff = magnetization
+            self.magnetization =self.charge_diff
+
 
     def write(self, filename):
         header='# Charge file\n'
