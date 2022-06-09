@@ -49,8 +49,10 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     msh = len(rab)
     tpiba2 = (np.pi * 2.e0 / alat) ** 2
     vloc = np.empty(0)  # TODO: check this
-
-    # FIXME: vloc_of_g not wrapped and missing parameters in the call!
+    # mesh = TODO
+    # ngl = TODO
+    # FIXME: vloc_of_g now is wrapped but its missing parameters in the call!
+    # pyqe.vloc_of_g(mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, gl, omega, vloc) missing ngl and mesh and vloc
     pyqe.vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp,
                    tpiba2=tpiba2, gl=gl, omega=omega, vloc=vloc)
     return vloc
