@@ -425,7 +425,7 @@ def get_potential(prefix='pwscf', outdir=None, schema=None, pot_type='v_tot'):
     atoms.calc.read_results()
 
     nr = calc.get_nr()
-    charge_file = calc.label + "charge-density.hdf5"
+    charge_file = calc.label + '.save/' + "charge-density.hdf5"
 
     potential = Potential(nr, pot_type=pot_type)
     potential.read(charge_file)
