@@ -7,6 +7,9 @@
 #
 from distutils.log import error
 from importlib.resources import path
+from collections import deque
+from modulefinder import EXTENDED_ARG
+from operator import ge
 import os
 import re
 import subprocess
@@ -22,6 +25,7 @@ from .pp_dict import pp_dict
 from ase.atoms import Atoms, Atom
 from ase.data import chemical_symbols, atomic_masses
 from ase.spectrum.band_structure import BandStructure
+from ase.dft.kpoints import labels_from_kpts, BandPath
 from ase.calculators.calculator import all_changes, FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
 
@@ -91,7 +95,7 @@ def split_atomic_symbol(x):
         return False
 
 
-def get_band_structure(atoms=None, calc=None, ref=0):
+def get_band_structure(atoms=None, calc=None, labels = None, ref=0):
     """
     Create band structure object from Atoms or calculator.
 
@@ -104,16 +108,51 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     calc = calc if calc is not None else atoms.calc
 
     kpts = calc.get_k_points()
-
+    count = iter(range(1000))
+    if labels is None: 
+        labels=[_.replace('?',f"kp{next(count)}") for _ in 
+            labels_from_kpts(cell = atoms.cell, kpts = calc.get_bz_k_points())[2]]
+    hs_kpoints= [_[0] for _ in get_hs_points(kpts)] 
+    special_kpoints = dict(zip(labels, hs_kpoints))
     energies = []
     for s in range(calc.get_number_of_spins()):
-        energies.append([calc.get_eigenvalues(kpt=k, spin=s)
-                         for k in range(len(kpts))])
+        energies.append(calc.get_eigenvalues(range(len(kpts)), spin=s))
     energies = np.array(energies)
+    bp = BandPath(cell = atoms.cell, kpts= kpts, special_points= special_kpoints)
+    return BandStructure(path=bp, energies=energies, reference=ref)
 
-    return BandStructure(path=atoms.cell.bandpath(path=kpts),
-                         energies=energies,
-                         reference=ref)
+
+def get_hs_points(points, m = None):
+    entering_zone = False
+    exiting_zone  = False
+    entered_zone  = False 
+    count = 0 
+    ik = (_ for _ in points)
+    buff = [next(ik) for _ in  range(3)]
+    yield buff[0], count 
+    while buff[2] is not None:
+        k1 = buff[1] - buff[0]
+        k2 = buff[2] - buff[1]
+        ps = k1.dot(k2)/np.sqrt(k1.dot(k1)*k2.dot(k2))
+        if m is not None:
+            nng = lambda v: np.array([round(_,0) for _ in v.dot(m.T)])
+            nng1 = nng(buff[1])
+            nng2 = nng(buff[2]) 
+            #
+            entered_zone = entering_zone
+            exiting_zone =  np.any(nng2 - nng1  > 0 )
+            entering_zone = np.any(nng1 - nng2  > 0 ) 
+        #
+        buff[0] = buff[1]
+        buff[1] = buff[2]
+        count += 1
+        try:
+            buff[2] = next(ik)
+        except StopIteration:
+            buff[2] = None
+            yield buff[1], count + 1 
+        if abs( ps - 1.0) > 1.e-4 or exiting_zone or entered_zone:
+            yield buff[0], count 
 
 
 class EspressoCalculator(FileIOCalculator):
@@ -382,6 +421,12 @@ class EspressoCalculator(FileIOCalculator):
 
         return kpoints
 
+    def get_k_path(self):
+        kpoints = self.get_k_points()
+        iik = get_hs_points(kpoints)
+        return  list(deque(iik))
+
+
     def get_atoms_from_xml_output(self):
         """
         Returns an Atoms object constructed from an XML QE file (according to the schema).
@@ -455,7 +500,6 @@ class EspressoCalculator(FileIOCalculator):
            For spin polarized specify spin=1 or spin=2, default spin=1
         """
 
-        nat = (self.output["atomic_structure"]["@nat"])
         try:
             nbnd = int(self.output["band_structure"]["nbnd"])
             use_updw = False
@@ -463,8 +507,23 @@ class EspressoCalculator(FileIOCalculator):
             nbnd_up = int(self.output["band_structure"]["nbnd_up"])
             nbnd_dw = int(self.output["band_structure"]["nbnd_dw"])
             use_updw = True
-        ks_energies = (self.output["band_structure"]["ks_energies"])
 
+        ks_energies = self.output["band_structure"]["ks_energies"] 
+        #
+        try:
+            kiter = iter(kpt)
+            kpt_iterable = True
+        except TypeError:
+            kpt = [kpt, ]
+            kiter = iter(kpt)
+            kpt_iterable = False 
+        #
+        try:
+            values = (ks_energies[ik]['eigenvalues']['$']  for ik in kiter) 
+        except KeyError:
+            values = (ks_energies[ik]['eigenvalues'] for ik in kiter) 
+        extract = lambda start, end, bands: [float(_) * units.Ha for _ in bands[start:end]]  
+        #
         if self.get_spin_polarized():  # magnetic
             if spin == 0:
                 spin = 1
@@ -473,33 +532,17 @@ class EspressoCalculator(FileIOCalculator):
                 nbnd_dw = nbnd // 2
             if spin == 1:
                 # get bands for spin up
-                eigenvalues = np.zeros(nbnd_up)
-                for j in range(0, nbnd_up):
-                    # eigenvalue at k-point kpt, band j, spin up
-                    try:
-                        eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j])  * units.Ha
-                    except KeyError:
-                        eigenvalues[j] = float(ks_energies[kpt]['eigenvalues']['$'][j]) * units.Ha
+                eigenvalues = [ extract(0,nbnd_up, vals)  for vals in values] 
             else:
                 # get bands for spin down
-                eigenvalues = np.zeros(nbnd_dw)
-                for j in range(nbnd_up, nbnd_up + nbnd_dw ):
-                    # eigenvalue at k-point kpt, band j, spin down
-                    try:
-                        eigenvalues[j - nbnd_up] = float(ks_energies[kpt]['eigenvalues'][j]) * units.Ha
-                    except KeyError:
-                        eigenvalues[j - nbnd_up] = float(ks_energies[kpt]['eigenvalues']['$'][j]) * units.Ha
+                eigenvalues = [extract(nbnd_up, nbnd_up + nbnd_dw, vals) for vals in values] 
         else:
             # non magnetic
-            eigenvalues = np.zeros(nbnd)
-            for j in range(0, nbnd):
-                # eigenvalue at k-point kpt, band j
-                try:
-                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * units.Ha
-                except KeyError:
-                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues']['$'] [j]) * units.Ha
-
-        return eigenvalues
+            eigenvalues = [ extract(0,nbnd, vals) for vals in values ]   
+        if kpt_iterable == 1:    
+            return np.array(eigenvalues, order='F')
+        else: 
+            return np.array(eigenvalues[0]) 
 
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array.  For spin polarized case specify spin=1 or spin=2"""
