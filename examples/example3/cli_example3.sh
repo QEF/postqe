@@ -18,4 +18,4 @@
 #         -fileout: output file with DOS results (default='dos.out')
 
 
-postqe -prefix='Silicon' -outdir='outdir' -schema='../../schemas/qes.xsd' -fileplot='CLI_dosPLOT' -show=True dos -fileout='CLI_dosOUT' -width=0.5 -npts=300
+postqe -prefix='Silicon' -outdir='outdir' -fileplot='CLI_dosPLOT' -show=True dos -fileout='CLI_dosOUT' -width=0.5 -npts=300
