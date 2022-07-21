@@ -15,4 +15,4 @@
 #         -emin: the minimum energy for the band plot (default=-50)
 #         -emax: the maximum energy for the band plot (default=50)
 
-postqe -prefix='Si' -outdir='outdir' -fileplot='CLI_bandsPLOT' bands -reference_energy=10 -emin=-30 -emax=80
+postqe -prefix='Si' -outdir='outdir' -fileplot='CLI_bandsPLOT' bands -reference_energy=0 -emin=-10 -emax=20
