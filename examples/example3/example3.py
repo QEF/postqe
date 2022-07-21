@@ -27,8 +27,8 @@ if __name__ == "__main__":
                                 fileout='DOSresults', fileplot='DOSplot.png', show=True)
 
     # If you want, get the dos and energies for further processing
-    d = dos.get_dos()
-    e = dos.get_energies()
+    # d = dos.get_dos()
+    # e = dos.get_energies()
 
     # save DOS in a file
     #dos.write('DOS.out')
