@@ -14,7 +14,7 @@ MODULES_SOURCES = \
     recips.f90 \
     latgen.f90 \
     xc_vdW_DF.f90
-
+#MODULES_SOURCES =
 PW_SOURCES = \
     vloc_of_g.f90
 
@@ -22,9 +22,11 @@ MODULES_FILES = $(addprefix $(QE_TOPDIR)/Modules/,${MODULES_SOURCES})
 PW_FILES = $(addprefix $(QE_TOPDIR)/PW/src/,${PW_SOURCES})
 
 WRAP_FILES = ${MODULES_FILES} ${PW_FILES}
+
 # $(info $(WRAP_FILES))
 
 wrap_files: ${WRAP_FILES}
+	echo ${WRAP_FILES}
 	for f90_file in ${WRAP_FILES}; do \
   		export fpp_file=$${f90_file%.f90}.fpp ; \
 	    echo ${FPP} $$f90_file -I$${QE_TOPDIR}/include > $$fpp_file ; \
@@ -32,10 +34,10 @@ wrap_files: ${WRAP_FILES}
 	done
 
 pw:
-	make -C ${QE_TOPDIR} pw
+	make -C ${QE_TOPDIR} -j pw
 
 pp:
-	make -C ${QE_TOPDIR} pp
+	make -C ${QE_TOPDIR} -j pp
 
 move:
 	mv *.so ../
@@ -51,14 +53,16 @@ clean:
 	rm -f *.so
 	rm -f *.f90
 	rm -f ${QE_TOPDIR}/Modules/*.fpp
+	rm -f ${QE_TOPDIR}/PW/src/*.fpp 
 
 f90wrappers:
-	f90wrap -k kind_map -m pyqe --skip=neqq $(QE_TOPDIR)/*/*.fpp
+	f90wrap -k kind_map -m pyqe --skip=neqq $(QE_TOPDIR)/*/*.fpp $(QE_TOPDIR)/*/*/*.fpp 
 
 pyqe_module:
 	f2py-f90wrap -c -m _pyqe f90wrap_*.f90 \
 		$(QE_TOPDIR)/Modules/funct.o \
 		-I$(QE_TOPDIR)/Modules/ \
+		-L$(QE_TOPDIR)/PW/src -l:libpw.a \
 		-L$(QE_TOPDIR)/Modules -l:libqemod.a \
 		-L$(QE_TOPDIR)/upflib -l:libupf.a \
 		-L$(QE_TOPDIR)/XClib -l:xc_lib.a \

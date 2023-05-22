@@ -5,6 +5,7 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
+from operator import ge
 import numpy as np
 import h5py
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
@@ -16,7 +17,7 @@ def read_charge_file_hdf5(filename):
     """
     Reads a PW charge file in HDF5 format.
 
-    :param filename: 
+    :param filename:
     :return: a dictionary describing the content of file \
     keys=[nr, ngm_g, gamma_only, rhog_, MillerIndexes]
     """
@@ -37,13 +38,13 @@ def read_charge_file_hdf5(filename):
 
 def get_density_data_hdf5(filename, dataset='rhotot_g'):
     """
-    reads data for only one of the density data set. Spare some memory, works 
+    reads data for only one of the density data set. Spare some memory, works
     also in the non-collinear case
     :return: a dictionary with all attributes plus the required field if present, None otherwise
     """
     with h5py.File(filename,"r") as h5f:
         if not dataset in h5f.keys():
-            return None 
+            return None
         MI = h5f.get('MillerIndices')[:]
         nr1 = 2*max(abs(MI[:, 0]))+1
         nr2 = 2*max(abs(MI[:, 1]))+1
@@ -53,18 +54,20 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
         res.update({'MillInd':MI,'nr_min': nr})
         rhog = h5f[dataset][:].reshape(res['ngm_g'],2).dot([1.e0,1e0j])
         res.update({dataset:rhog})
-    return res 
+        domag = 'rhodiff_g' in h
+    return res
 
+        
 def get_minus_indexes(g1, g2, g3):
     """
-    Used for getting the corresponding minus Miller Indexes. It is meant to be used 
+    Used for getting the corresponding minus Miller Indexes. It is meant to be used
     for converting Gamma Trick grids and is defined only for the for i >=0, in the i =0 plan
-     is defined only for j >=0 and when i=0 j=0 k must be >=0. Out of this domain returns 
+     is defined only for j >=0 and when i=0 j=0 k must be >=0. Out of this domain returns
      None.
 
     :param g1: rank 1 array containing first Miller Index
     :param g2: rank 1 array containing second Miller Index
-    :param g3: rank 1 array containing third Miller Index 
+    :param g3: rank 1 array containing third Miller Index
     :return: a rank 2 array with dimension (ngm/2,3) containing mirrored Miller indexes
     """
 
@@ -72,7 +75,7 @@ def get_minus_indexes(g1, g2, g3):
         """
         scalar function to be vectorized
         :param i: 1st Miller Index
-        :param j: 2nd 
+        :param j: 2nd
         :param k: 3rd
         :return: the mirrored mirror indexes
         """
@@ -98,7 +101,7 @@ def get_charge_r(filename, nr=None):
 
     Notes: In the new format, the values of the charge in the reciprocal space are stored.
     Besides, only the values of the charge > cutoff are stored, together with the Miller indexes.
-    :returns: tot_charge 
+    :returns: tot_charge
     """
 
     cdata = read_charge_file_hdf5(filename)
@@ -129,14 +132,14 @@ def get_charge_r(filename, nr=None):
 
 def get_magnetization_r(filename, nr = None, direction = 3 ):
     """
-    Reads a charge file writteb by QE in HDF5 format, returns magnetization, 
-    For non collinear case one has to indicate the direction to be read. 3 i.e. z by default 
-    :return: boolean true in a noncolinear file is read, magnetization in 3D grid nr = [nr1, nr2, nr3 ] 
-             or None in case no magnetization ha been found in file. 
+    Reads a charge file writteb by QE in HDF5 format, returns magnetization,
+    For non collinear case one has to indicate the direction to be read. 3 i.e. z by default
+    :return: boolean true in a noncolinear file is read, magnetization in 3D grid nr = [nr1, nr2, nr3 ]
+             or None in case no magnetization ha been found in file.
     """
     cdata = get_density_data_hdf5(filename, dataset='rhodiff_g')
     if cdata is not None:
-        noncolin = False 
+        noncolin = False
         dataset = 'rhodiff_g'
     else:
         if direction == 1:
@@ -145,12 +148,13 @@ def get_magnetization_r(filename, nr = None, direction = 3 ):
             dataset = 'm_y'
         elif direction == 3:
             dataset = 'm_z'
-        else: 
+        else:
             raise ValueError("valid directions from 1 to 3")
         noncolin = True
-        cdata = read_charge_file_hdf5(filename, dataset = dataset)
+        cdata = get_density_data_hdf5(filename, dataset = dataset)
         if cdata is None:
-            return None 
+            noncolin = False
+            return noncolin, None
 
     if nr is None:
         nr1, nr2, nr3 = cdata['nr_min']
@@ -176,36 +180,36 @@ def get_magnetization_r(filename, nr = None, direction = 3 ):
                 pass
 
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-    return noncolin, rhotot_r.real 
+    return noncolin, rhotot_r.real
 
 
 
-def charge_r_from_cdata(cdata, MI, gamma_only, nr ): 
+def charge_r_from_cdata(cdata, MI, gamma_only, nr ):
     """
     Computes density in real space from data"
-    :cdata: complex coefficients for 3D grid. correspondi G vectors are read from MI 
+    :cdata: complex coefficients for 3D grid. correspondi G vectors are read from MI
     :MI:    integer array of dim=3 with the corresponding indexs for data in the FFT 3D grid
-    :gamma_only: boolean, if true data are real in real space, complex data for -G  are implicitly provided as conjg(rho(G)) 
-    :nr:  integer array with the 3 dimensions on the FFT grid 
-    :returns: 3D data in real space. 
+    :gamma_only: boolean, if true data are real in real space, complex data for -G  are implicitly provided as conjg(rho(G))
+    :nr:  integer array with the 3 dimensions on the FFT grid
+    :returns: 3D data in real space.
     """
-    nr1,nr2,nr3 = nr 
-    rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128) 
+    nr1,nr2,nr3 = nr
+    rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
     for (i,j,k),rho in zip ( MI, cdata):
         try:
             rho_temp [i,j,k] = rho
         except IndexError:
-            pass 
+            pass
     #
     if gamma_only:
         MI_minus = (get_minus_indexes(_) for _ in MI )
-        rhog = ( _.conjugate() for _ in cdata) 
-        for (i,j,k),rho in zip ( MI_minus, rhog): 
+        rhog = ( _.conjugate() for _ in cdata)
+        for (i,j,k),rho in zip ( MI_minus, rhog):
             try:
-                rho_temp[i,j,k] = rhog 
+                rho_temp[i,j,k] = rhog
             except IndexError:
                 pass
-    return np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3 
+    return np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
 
 
 
@@ -238,7 +242,7 @@ def write_charge(filename, charge, header):
 
 class Charge:
     """
-    A class for charge density (and data in real 3D grids) 
+    A class for charge density (and data in real 3D grids)
     """
     # TODO: include the Miller index as in HDF5 file?
     def __init__(self, *args, **kwargs):
@@ -263,6 +267,7 @@ class Charge:
     def set_calculator(self, calculator):
         self.calculator = calculator
 
+
     def read(self, filename, nr=None):
         """
         Read the charge from a HDF5 file.
@@ -275,9 +280,19 @@ class Charge:
                 nr = self.nr
             except:
                 raise AttributeError("nr not defined in this Charge object")
-        charge, charge_diff = get_charge_r(filename, np.array(nr))
+
+        charge  = get_charge_r(filename, np.array(nr))
         self.charge = charge
-        self.charge_diff = charge_diff
+        noncolin, magnetization = get_magnetization_r(filename, np.array(nr), direction = 3) 
+        self.noncolin = noncolin 
+        if noncolin:
+            self.mz = magnetization 
+            dummy, self.mx = get_magnetization_r(filename, np.array(nr), direction = 1)
+            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction = 2)
+        else:
+            self.charge_diff = magnetization
+            self.magnetization =self.charge_diff
+
 
     def write(self, filename):
         header='# Charge file\n'
@@ -442,11 +457,18 @@ class Potential(Charge):
         b = self.calculator.get_b_vectors()
         atomic_positions = self.calculator.get_atomic_positions()
         atomic_species = self.calculator.get_atomic_species()
-        pseudodir = self.calculator.get_pseudodir()
+        prefix = self.calculator.get_prefix()
+        # pseudofile = self.calculator.get_pseudofile()
+        # pseudodir = self.calculator.get_pseudodir()
+        outdir = self.calculator.get_outdir()
+        pseudo_location='{}/{}.save'.format(outdir, prefix)
 
         if self.pot_type=='v_bare':
+            # self.v = compute_v_bare(
+            #     ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
+            # )
             self.v = compute_v_bare(
-                ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
+                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
             )
         elif self.pot_type=='v_h':
             self.v = compute_v_h(self.charge, ecutrho, alat, b)
@@ -456,7 +478,7 @@ class Potential(Charge):
             self.v = compute_v_xc(self.charge, charge_core, str(functional))
         elif self.pot_type=='v_tot':
             v_bare = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudodir
+                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
             )
             v_h =  compute_v_h(self.charge, ecutrho, alat, b)
             # TODO: core charge to be implemented

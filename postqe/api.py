@@ -23,7 +23,6 @@ def get_label(prefix='pwscf', outdir=None):
         outdir = os.environ.get('ESPRESSO_TMPDIR', './')
     return os.path.join(outdir, f'{prefix}.save/')
 
-
 def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=None, **kwargs):
     """
     Returns a calculator instance for QuantumEspresso.
@@ -43,11 +42,11 @@ def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=N
     if outdir is None:
         outdir = os.environ.get('ESPRESSO_TMPDIR', './')
 
-    kwargs['directory'] = os.path.join(outdir, f'{prefix}.save/')
-    return cls(schema=schema, pp_dict=pp_dict, **kwargs)
+    kwargs['directory'] = os.path.join(outdir)
+    return cls(label=prefix, schema=schema, pp_dict=pp_dict, **kwargs)
 
 
-## New CLI-API interfaces ###
+## New CLI-API interfaces ###'{}.save/data-file-schema.xml'.format(prefix))
 
 def new_get_charge(prefix=None, output=None, filplot=None):
     plot = []
@@ -127,12 +126,12 @@ def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     return plot
 
 
-def get_eos(prefix='pwscf', outdir=None, eos_type='murnaghan'):
+def get_eos(prefix='volumes_and_energies.dat', outdir=None, eos_type='murnaghan'):
     """
     Fits an Equation of state of type *eos* and returns an QEEquationOfState object.
     Different equation of states are available (see below).
 
-    :param prefix: FIXME!! name of the input file with volumes and energies????
+    :param prefix: name of the input file with volumes and energies (default: volumes_and_energies.dat)
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n\
@@ -149,8 +148,18 @@ def get_eos(prefix='pwscf', outdir=None, eos_type='murnaghan'):
     'p3' -> A third order inverse polynomial fit\n
     :return: an QEEquationOfState object
     """
+
     # FIXME!! bisogna computare il filename o spostiamo read_EtotV nel calculator ...
-    label = get_label(prefix, outdir)
+    # label = get_label(prefix, outdir)
+    #Temporary fix
+    if outdir is None:
+        try:
+            outdir = os.environ['ESPRESSO_TMPDIR']
+        except KeyError:
+            outdir = os.curdir
+
+    label = '{}/{}'.format(outdir, prefix)
+
     # Extract volumes and energies from the input file:
     volumes, energies = read_EtotV(label)
     # Create an object EquationOfState and fit with Murnaghan (or other) EOS
@@ -164,7 +173,7 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='',
     Fits an Equation of state of type *eos_type*, writes the results into *fileout* (optionally)
     and creates a Matplotlib figure. Different equation of states are available (see below).
 
-    :param prefix: FIXME!! name of the input file with volumes and energies?????
+    :param prefix: name of the input file with volumes and energies (default: volumes_and_energies.dat)
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are: \
@@ -289,7 +298,7 @@ def compute_dos(prefix='pwscf', outdir=None, schema=None, width=0.01, window=Non
 
     # save DOS in a file
     if fileout != '':
-        dos.write('DOS.out')
+        dos.write(f'{fileout}.out')
 
     # get the dos and energies for further processing
     d = dos.get_dos()
@@ -326,7 +335,7 @@ def get_charge(prefix='pwscf', outdir=None, schema=None):
     atoms.calc.read_results()
 
     nr = calc.get_nr()
-    charge_file = calc.label + ".save/charge-density.hdf5"
+    charge_file = calc.label + '.save/' + "charge-density.hdf5"
 
     charge = Charge(nr)
     charge.read(charge_file)
@@ -338,7 +347,7 @@ def get_charge(prefix='pwscf', outdir=None, schema=None):
 def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
                    x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.),
                    ny=50, e3=(0., 0., 1.), nz=50, radius=1, dim=1, ifmagn='total',
-                   plot_file='', method='FFT', format='gnuplot', show=True):
+                   plot_file='', method='FFT', format='gnuplot', fileplot='chargeplot', show=True):
     """
     Returns an Charge object from an output xml Espresso file and the
     corresponding HDF5 charge file containing the results of a calculation.
@@ -352,6 +361,7 @@ def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
     :param schema: the XML schema to be used to read and validate the XML output file
     :param fileout: text file with the full charge data as in the HDF5 file. Default='', \
     nothing is written.
+    :param fileplot: output plot file (default='chargeplot') in png format
     :param x0: 3D vector (a tuple), origin of the line
     :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
     :param nx, ny, nz: number of points along e1, e2, e3
@@ -387,6 +397,9 @@ def compute_charge(prefix='pwscf', outdir=None, schema=None, fileout='',
                          radius=radius, dim=dim, ifmagn=ifmagn, plot_file=plot_file,
                          method=method, format=format, show=show)
 
+    if fileplot != '':
+        figure.savefig(f'{fileplot}.png', format='png')
+
     return charge, figure
 
 
@@ -412,7 +425,7 @@ def get_potential(prefix='pwscf', outdir=None, schema=None, pot_type='v_tot'):
     atoms.calc.read_results()
 
     nr = calc.get_nr()
-    charge_file = calc.label + ".save/charge-density.hdf5"
+    charge_file = calc.label + '.save/' + "charge-density.hdf5"
 
     potential = Potential(nr, pot_type=pot_type)
     potential.read(charge_file)

@@ -48,10 +48,10 @@ class QEDOS(DOS):
                 dos_up = self.get_dos(spin=0)
                 dos_down = self.get_dos(spin=1)
                 for i in range(len(self.energies)):
-                    fout.write('{}\t{}\t{}\t{}\n'.format(
+                    fout.write('{:.14f}\t{:.14f}\t{:.14f}\t{:.14f}\n'.format(
                         self.energies[i], dos_up[i], dos_down[i], dos_int[i])
                     )
             else:
                 dos = self.get_dos()
                 for i in range(len(self.energies)):
-                    fout.write('{}\t{}\t{}\n'.format(self.energies[i], dos[i], dos_int[i]))
+                    fout.write('{:.14f}\t{:.14f}\t{:.14f}\n'.format(self.energies[i], dos[i], dos_int[i]))

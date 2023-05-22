@@ -7,17 +7,25 @@
 #
 from distutils.log import error
 from importlib.resources import path
+from collections import deque
+from modulefinder import EXTENDED_ARG
+from operator import ge
 import os
 import re
 import subprocess
+from datetime import datetime
 from tabnanny import check
 import numpy as np
 import pathlib
 import qeschema
+import logging
+
+from .pp_dict import pp_dict
 
 from ase.atoms import Atoms, Atom
 from ase.data import chemical_symbols, atomic_masses
 from ase.spectrum.band_structure import BandStructure
+from ase.dft.kpoints import labels_from_kpts, BandPath
 from ase.calculators.calculator import all_changes, FileIOCalculator, Calculator, kpts2ndarray
 import ase.units as units
 
@@ -87,7 +95,7 @@ def split_atomic_symbol(x):
         return False
 
 
-def get_band_structure(atoms=None, calc=None, ref=0):
+def get_band_structure(atoms=None, calc=None, labels = None, ref=0):
     """
     Create band structure object from Atoms or calculator.
 
@@ -100,16 +108,51 @@ def get_band_structure(atoms=None, calc=None, ref=0):
     calc = calc if calc is not None else atoms.calc
 
     kpts = calc.get_k_points()
-
+    count = iter(range(1000))
+    if labels is None: 
+        labels=[_.replace('?',f"kp{next(count)}") for _ in 
+            labels_from_kpts(cell = atoms.cell, kpts = calc.get_bz_k_points())[2]]
+    hs_kpoints= [_[0] for _ in get_hs_points(kpts)] 
+    special_kpoints = dict(zip(labels, hs_kpoints))
     energies = []
     for s in range(calc.get_number_of_spins()):
-        energies.append([calc.get_eigenvalues(kpt=k, spin=s)
-                         for k in range(len(kpts))])
+        energies.append(calc.get_eigenvalues(range(len(kpts)), spin=s))
     energies = np.array(energies)
+    bp = BandPath(cell = atoms.cell, kpts= kpts, special_points= special_kpoints)
+    return BandStructure(path=bp, energies=energies, reference=ref)
 
-    return BandStructure(path=atoms.cell.bandpath(path=kpts),
-                         energies=energies,
-                         reference=ref)
+
+def get_hs_points(points, m = None):
+    entering_zone = False
+    exiting_zone  = False
+    entered_zone  = False 
+    count = 0 
+    ik = (_ for _ in points)
+    buff = [next(ik) for _ in  range(3)]
+    yield buff[0], count 
+    while buff[2] is not None:
+        k1 = buff[1] - buff[0]
+        k2 = buff[2] - buff[1]
+        ps = k1.dot(k2)/np.sqrt(k1.dot(k1)*k2.dot(k2))
+        if m is not None:
+            nng = lambda v: np.array([round(_,0) for _ in v.dot(m.T)])
+            nng1 = nng(buff[1])
+            nng2 = nng(buff[2]) 
+            #
+            entered_zone = entering_zone
+            exiting_zone =  np.any(nng2 - nng1  > 0 )
+            entering_zone = np.any(nng1 - nng2  > 0 ) 
+        #
+        buff[0] = buff[1]
+        buff[1] = buff[2]
+        count += 1
+        try:
+            buff[2] = next(ik)
+        except StopIteration:
+            buff[2] = None
+            yield buff[1], count + 1 
+        if abs( ps - 1.0) > 1.e-4 or exiting_zone or entered_zone:
+            yield buff[0], count 
 
 
 class EspressoCalculator(FileIOCalculator):
@@ -120,8 +163,7 @@ class EspressoCalculator(FileIOCalculator):
 
         restart: str
             Prefix for restart file.  May contain a directory. Default
-            is None: don't restart.
-        ignore_bad_restart_file: bool
+            is None: don't restart        ignore_bad_restart_file: bool
             Ignore broken or missing restart file.  By default, it is an
             error if the restart file is missing or broken.
         directory: str or PurePath
@@ -156,18 +198,26 @@ class EspressoCalculator(FileIOCalculator):
     Use default values:
 
     >>> from ase import Atoms
-    >>> h = Atoms('H', calculator=EspressoCalculator(ecut=200, toldfe=0.001))
+    >>> from postqe import EspressoCalculator
+    >>> from ase.build import bulk
+    >>> copper_bulk = bulk('Cu', 'fcc', a=3.6, cubic=True)
+    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, occupations='smearing', smearing='gaussian',
+                                                                degauss=0.001, conv_thr=1e-8, kpoints=[2,2,2,0,0,0], pseudo_dir='../'))
     >>> h.center(vacuum=3.0)
     >>> e = h.get_potential_energy()
+    >>> print(e)
     """
     ignored_changes = {'pbc'}
     discard_results_on_any_change = True
 
     implemented_properties = ['energy', 'forces']
 
-    command = str(pathlib.Path(__file__).parent.joinpath(
-        'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
-    ))
+    #this gives /some_path/venvPostQE/lib/python3.10/site-packages/postqe/fortran/build/q-e/bin/pw.x ??? folder fortran/build/q-e/bin/ does not exist
+    # command = str(pathlib.Path(__file__).parent.joinpath(
+    #     'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
+    # ))
+    #TEMPORARY ? For Testing ...
+    command = "mpirun -np 2 pw.x < PREFIX.in > PREFIX.out"
 
     # These are reasonable default values for the REQUIRED parameters in pw.x input.
     # All other default values are not set here and let to pw.x, unless the user
@@ -185,9 +235,9 @@ class EspressoCalculator(FileIOCalculator):
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=None, atoms=None, command=None, directory='.',
-                 schema=None, pp_dict=None, **kwargs):
+                 schema=None, pp_dict=pp_dict, **kwargs):
         if label is None and '/' not in str(directory):
-            label = 'pwscf.save/'
+            label = "pwscf"
         self.pp_dict = pp_dict
         self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(restart, ignore_bad_restart_file, label, atoms,
@@ -212,7 +262,7 @@ class EspressoCalculator(FileIOCalculator):
         if 'numbers' in system_changes or 'initial_magmoms' in system_changes:
             self.initialize(atoms)
 
-        print("Writing input file... " + self.label + ".in")
+        print(f"Writing input file in... {self.label}.in")
         param = self.parameters   # copy the parameters into param
 
         finput = open(self.label + '.in', 'w')
@@ -256,7 +306,8 @@ class EspressoCalculator(FileIOCalculator):
         finput.write('ATOMIC_SPECIES\n')
         for Z in self.species:
             finput.write(chemical_symbols[Z] + ' ' + str(atomic_masses[Z]) + ' ')
-            finput.write('%s\n' % self.pp_dict[chemical_symbols[Z]])
+            finput.write('%s\n' % self.pp_dict[Z])
+            #SUGGESTION: maybe add somewhere a automatic download of the pseudo file as in the pp_dict ?
             pass
 
         # Write the ATOMIC_POSITIONS section
@@ -274,10 +325,15 @@ class EspressoCalculator(FileIOCalculator):
         # Write the K_POINT section, always as a list of k-points
         # For Monkhorst meshes, the method "calculate" has already generated a list of k-points in
         # self.kpts using ASE function kpts2ndarray
-        finput.write('K_POINTS tpiba\n')
-        finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
-        for i in range(0, len(self.kpts)):
-            finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')  # assume unary weight for all
+        # ???? the self.kpts at this point is None
+        # finput.write('K_POINTS tpiba\n')
+        # finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
+        # for i in range(0, len(self.kpts)):
+        #     finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')  # assume unary weight for all
+        #TEMPORARY FIX ?
+        finput.write('K_POINTS automatic\n')
+        for i in range(0, len(self.kpoints)):
+            finput.write('%i' % self.kpoints[i] + ' ')
 
         # TODO: check if it makes sense in some cases to let QE generate the Monkhorst mesh
         # finput.write('K_POINTS AUTOMATIC\n')
@@ -293,11 +349,13 @@ class EspressoCalculator(FileIOCalculator):
             if Z not in self.species:
                 self.species.append(Z)
         self.parameters['ntyp'] = len(self.species)
+        self.kpoints = self.parameters['kpoints']
         self.spinpol = atoms.get_initial_magnetic_moments().any()
+        #self.prefix = 'pwscf' #must define the default pw.x value or else its going to be non and fail on line 324
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
-        self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
+        # self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
         self.write_input(self.atoms, properties, system_changes)
 
         if self.command is None:
@@ -307,7 +365,6 @@ class EspressoCalculator(FileIOCalculator):
         command = self.command.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
         try:
-            print(self.directory)
             os.chdir(self.directory)
             print(command)
             errorcode = subprocess.call(command, shell=True)
@@ -320,12 +377,15 @@ class EspressoCalculator(FileIOCalculator):
 
         self.read_results()
 
+
+
     def read_results(self, filename=None):
         if filename is None:
-            if self.prefix is None:
-                filename = os.path.join(self.directory, 'data-file-schema.xml')
-            else:
-                filename = self.label
+            filename = os.path.join(self.directory, f'{self.prefix}.save/data-file-schema.xml')
+            # if self.prefix is None:
+            #     filename = os.path.join(self.directory, 'data-file-schema.xml')
+            # else:
+            #     filename = f"{self.label}.xml"
         elif '/' not in filename:
             filename = os.path.join(self.directory, filename)
 
@@ -361,6 +421,12 @@ class EspressoCalculator(FileIOCalculator):
 
         return kpoints
 
+    def get_k_path(self):
+        kpoints = self.get_k_points()
+        iik = get_hs_points(kpoints)
+        return  list(deque(iik))
+
+
     def get_atoms_from_xml_output(self):
         """
         Returns an Atoms object constructed from an XML QE file (according to the schema).
@@ -391,7 +457,7 @@ class EspressoCalculator(FileIOCalculator):
             y = float(atomx['$'][1])
             z = float(atomx['$'][2])
             atoms.append(Atom(symbol, (x, y, z)))
-            atoms.pbc=[1,1,1]
+        atoms.pbc=[1,1,1]
 
         return atoms
 
@@ -434,51 +500,49 @@ class EspressoCalculator(FileIOCalculator):
            For spin polarized specify spin=1 or spin=2, default spin=1
         """
 
-        nat = (self.output["atomic_structure"]["@nat"])
         try:
             nbnd = int(self.output["band_structure"]["nbnd"])
             use_updw = False
         except KeyError:
             nbnd_up = int(self.output["band_structure"]["nbnd_up"])
             nbnd_dw = int(self.output["band_structure"]["nbnd_dw"])
-            use_updw = True 
-        ks_energies = (self.output["band_structure"]["ks_energies"])
+            use_updw = True
 
+        ks_energies = self.output["band_structure"]["ks_energies"] 
+        #
+        try:
+            kiter = iter(kpt)
+            kpt_iterable = True
+        except TypeError:
+            kpt = [kpt, ]
+            kiter = iter(kpt)
+            kpt_iterable = False 
+        #
+        try:
+            values = (ks_energies[ik]['eigenvalues']['$']  for ik in kiter) 
+        except KeyError:
+            values = (ks_energies[ik]['eigenvalues'] for ik in kiter) 
+        extract = lambda start, end, bands: [float(_) * units.Ha for _ in bands[start:end]]  
+        #
         if self.get_spin_polarized():  # magnetic
             if spin == 0:
-                spin = 1 
+                spin = 1
             if not use_updw:
-                nbnd_up = nbnd // 2 
-                nbnd_dw = nbnd // 2 
+                nbnd_up = nbnd // 2
+                nbnd_dw = nbnd // 2
             if spin == 1:
-                # get bands for spin up 
-                eigenvalues = np.zeros(nbnd_up)
-                for j in range(0, nbnd_up):
-                    # eigenvalue at k-point kpt, band j, spin up
-                    try:
-                        eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j])  * units.Ha
-                    except KeyError:
-                        eigenvalues[j] = float(ks_energies[kpt]['eigenvalues']['$'][j]) * units.Ha
+                # get bands for spin up
+                eigenvalues = [ extract(0,nbnd_up, vals)  for vals in values] 
             else:
                 # get bands for spin down
-                eigenvalues = np.zeros(nbnd_dw)
-                for j in range(nbnd_up, nbnd_up + nbnd_dw ):
-                    # eigenvalue at k-point kpt, band j, spin down
-                    try:
-                        eigenvalues[j - nbnd_up] = float(ks_energies[kpt]['eigenvalues'][j]) * units.Ha
-                    except KeyError:
-                        eigenvalues[j - nbnd_up] = float(ks_energies[kpt]['eigenvalues']['$'][j]) * units.Ha
+                eigenvalues = [extract(nbnd_up, nbnd_up + nbnd_dw, vals) for vals in values] 
         else:
             # non magnetic
-            eigenvalues = np.zeros(nbnd)
-            for j in range(0, nbnd):
-                # eigenvalue at k-point kpt, band j
-                try:
-                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues'][j]) * units.Ha
-                except KeyError:
-                    eigenvalues[j] = float(ks_energies[kpt]['eigenvalues']['$'] [j]) * units.Ha
-
-        return eigenvalues
+            eigenvalues = [ extract(0,nbnd, vals) for vals in values ]   
+        if kpt_iterable == 1:    
+            return np.array(eigenvalues, order='F')
+        else: 
+            return np.array(eigenvalues[0]) 
 
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array.  For spin polarized case specify spin=1 or spin=2"""
@@ -495,21 +559,21 @@ class EspressoCalculator(FileIOCalculator):
         if self.get_spin_polarized():
             # magnetic
             if spin == 0:
-                spin = 1 
-            elif spin > 2: 
+                spin = 1
+            elif spin > 2:
                 raise ValueError("Spin can be either 1 or 2 ")
             if not use_updw:
-                nbnd_up = nbnd // 2 
-                nbnd_dw = nbnd // 2 
+                nbnd_up = nbnd // 2
+                nbnd_dw = nbnd // 2
             if spin == 1:
                 # get bands for spin up
-                occupations = np.zeros(nbnd_up) 
+                occupations = np.zeros(nbnd_up)
                 for j in range(0, nbnd_up):
                     # eigenvalue at k-point kpt, band j, spin up
                     try:
                         occupations[j] = float(ks_energies[kpt]['occupations'][j])
                     except KeyError:
-                        occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])  
+                        occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])
             else:
                 # get bands for spin down
                 occupations = np.zeros(nbnd_dw)
@@ -524,10 +588,10 @@ class EspressoCalculator(FileIOCalculator):
             occupations = np.zeros(nbnd)
             for j in range(0, nbnd):
                 # eigenvalue at k-point kpt, band j
-                try: 
+                try:
                     occupations[j] = float(ks_energies[kpt]['occupations'][j])
                 except KeyError:
-                    occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])  
+                    occupations[j] = float(ks_energies[kpt]['occupations']['$'][j])
 
         return occupations
 
@@ -556,8 +620,17 @@ class EspressoCalculator(FileIOCalculator):
     def get_ecutrho(self):
         return float(self.output["basis_set"]["ecutrho"])
 
+    def get_prefix(self):
+        return self.input["control_variables"]["prefix"]
+
     def get_pseudodir(self):
         return self.input["control_variables"]["pseudo_dir"]
+
+    def get_outdir(self):
+        return self.input["control_variables"]["outdir"]
+
+    def get_pseudofile(self):
+        return self.input["atomic_species"]["pseudo_file"]
 
     # TODO: these two methods are just a temporary patch
     #  (a and b vectors can be obtained from Atoms object)
@@ -591,11 +664,11 @@ class EspressoCalculator(FileIOCalculator):
     def get_bz_k_points(self):
         """Return all the k-points in the 1. Brillouin zone.
         The coordinates are relative to reciprocal lattice vectors."""
-        kpoints= self.get_k_points() / self.get_alat()   
-        m = self.get_a_vectors() 
-        res = kpoints.dot(m.T) 
+        kpoints= self.get_k_points() / self.get_alat()
+        m = self.get_a_vectors()
+        res = kpoints.dot(m.T)
         nint = lambda d: int(round(d,0))
-        center = lambda x: round(x - nint(x), 8) 
+        center = lambda x: round(x - nint(x), 8)
         res = np.array( [np.array( [center(c) for c in _]) for _ in res[:]])
         return res
 
@@ -607,12 +680,12 @@ class EspressoCalculator(FileIOCalculator):
         # return kpoints
 
     def get_pseudo_density(self, dataset='total', direction=3, check_noncolin = False, filename=None):
-        """Return pseudo-density array. 
-           dataset string is used  to chose which density is retrieved, possible values are 
-           'total' (default) and 'magnetization' For the noncollinear case the variable direction 
+        """Return pseudo-density array.
+           dataset string is used  to chose which density is retrieved, possible values are
+           'total' (default) and 'magnetization' For the noncollinear case the variable direction
            specifies the direction (3 is the default)
         """
-        from .charge import get_charge_r, get_magnetization_r 
+        from .charge import get_charge_r, get_magnetization_r
         if filename is None:
             filename = str(pathlib.Path(self.directory).joinpath('charge-density.hdf5'))
         if dataset == 'total':
@@ -620,10 +693,10 @@ class EspressoCalculator(FileIOCalculator):
         elif dataset == 'magnetization':
             temp = get_magnetization_r(filename, direction=direction)
             if temp is None:
-                return None 
+                return None
             if check_noncolin:
                 if not temp[0]:
-                    raise Exception("Non collinear magnetization not found") 
+                    raise Exception("Non collinear magnetization not found")
             return temp[1]
 
     def get_effective_potential(self, spin=0, pad=True):
@@ -631,40 +704,41 @@ class EspressoCalculator(FileIOCalculator):
         raise NotImplementedError
 
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, filename=None):
-        """Return pseudo-wave-function array.  
-        for data read from the default  directory  kpt and spin are needed. 
-        for data read from file specified with filename, kpt and spin are neglected. 
-        :band: integer specify what band has to be extracted 
-        :kpt:  integer specify which k point is read. 
-        :spin: 1 or 2 for the lsda case specifies  which spin has to be selected 
+        """Return pseudo-wave-function array.
+        for data read from the default  directory  kpt and spin are needed.
+        for data read from file specified with filename, kpt and spin are neglected.
+        :band: integer specify what band has to be extracted
+        :kpt:  integer specify which k point is read.
+        :spin: 1 or 2 for the lsda case specifies  which spin has to be selected
         :filename: string with the path to a custom wavefunction hdf5 file. """
-        from .readutils import get_wf_attributes, get_wavefunctions, get_wfc_miller_indices 
+        from .readutils import get_wf_attributes, get_wavefunctions, get_wfc_miller_indices
         from .charge    import charge_r_from_cdata
         spinlabels = ['up','dw']
         if filename is not None:
             attrs  = get_wf_attributes(filename=filename)
             kpt = attrs['ik']
-        else: 
+        else:
+            root_path = pathlib.Path(self.directory).joinpath(f"{self.prefix}.save") 
             if self.get_spin_polarized():
-                filename = str( pathlib.Path( self.label ).joinpath( "".join(['wfc', spinlabels[spin-1], str(kpt),'.hdf5'] )))
+                filename = str(root_path.joinpath( "".join(['wfc', spinlabels[spin-1], str(kpt),'.hdf5'] )))
             else:
-                filename =  str( pathlib.Path( self.label ).joinpath( "".join(['wfc', str(kpt),'.hdf5'] )))
+                filename =  str(root_path.joinpath( "".join(['wfc', str(kpt),'.hdf5'] )))
             attrs = get_wf_attributes(filename = filename)
         #
         xk = attrs['xk']
         igwx = attrs['igwx']
-        data = get_wavefunctions(filename,band-1,band)[0] 
+        data = get_wavefunctions(filename,band-1,band)[0]
         MI = get_wfc_miller_indices(filename)
         nr1 = 2*max(abs(MI[:, 0]))+1
         nr2 = 2*max(abs(MI[:, 1]))+1
         nr3 = 2*max(abs(MI[:, 2]))+1
-        gamma_only = 'TRUE' in str(attrs['gamma_only']).upper() 
+        gamma_only = 'TRUE' in str(attrs['gamma_only']).upper()
         nr = np.array([nr1, nr2, nr3])
-        return charge_r_from_cdata(data, MI, gamma_only, nr) 
+        return charge_r_from_cdata(data, MI, gamma_only, nr)
 
 
 
-    
+
 
 # noinspection PyAbstractClass
 class PostqeCalculator(EspressoCalculator):
