@@ -272,7 +272,7 @@ class CleanCommand(clean):
 
             wrapper_module = source_dir.joinpath("pyqe.py")
             if wrapper_module.is_file():
-                log.info("Remove {}".format(str(wrapper_module)))
+                log.info(f"Remove {wrapper_module}")
                 wrapper_module.unlink()
 
             for ext_module in source_dir.glob("*.so"):
