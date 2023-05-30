@@ -180,35 +180,24 @@ class BuildExtCommand(build_ext):
         # BLAS LIBS path
         # FFTW3 LIBS path
         with open(f"{qe_build_dir}/CMakeCache.txt", "r") as file:
-            cmakecache_lines = file.readlines()
+            cmakecache_lines = list(filter(
+                lambda s: 'FIND_PACKAGE_MESSAGE_DETAILS' in s,
+                file.readlines()))
+        
+        def get_path(lib, lines):
+            PATTERN = r"(\[[^\s\[\]]+\])(\[[^\s\[\]]+\])+"
+            PATTERN2 = r"([/-][^;\s\[\]]+)"
+            line = next(filter(lambda s: lib in s, lines), None)
+            libpath = None if line is None else " ".join(re.findall(
+            PATTERN2,
+            re.search(PATTERN, line).group(1)
+            ))
+            return libpath       
 
-        pattern = r"(/[^;\s\]]+)"
 
-        fftw3_first_path = None
-        lapack_path = None
-        blas_path = None
-
-        for line in cmakecache_lines:
-            if (
-                line.startswith("FIND_PACKAGE_MESSAGE_DETAILS_FFTW3")
-                and fftw3_first_path is None
-            ):
-                match = re.search(pattern, line)
-                if match:
-                    fftw3_first_path = match.group(1)
-
-            if (
-                line.startswith("FIND_PACKAGE_MESSAGE_DETAILS_LAPACK")
-                and lapack_path is None
-                and blas_path is None
-            ):
-                matches = re.findall(pattern, line)
-                if len(matches) == 2:
-                    lapack_path, blas_path = matches
-
-            # Break the loop if both paths are found
-            if fftw3_first_path and lapack_path and blas_path:
-                break
+        lapack_path = get_path('LAPACK', cmakecache_lines)
+        blas_path = get_path('BLAS', cmakecache_lines) 
+        fftw3_first_path = get_path('FFTW', cmakecache_lines)
 
         if fftw3_first_path:
             print("FFTW3 first path found:", fftw3_first_path)
@@ -224,15 +213,16 @@ class BuildExtCommand(build_ext):
 
         if blas_path:
             print("BLAS path found:", blas_path)
-            os.environ["BLAS_LIBS"] = blas_path
+            if blas_path != lapack_path: 
+                os.environ["BLAS_LIBS"] = blas_path
         else:
             print("No BLAS path found")
 
         # Run the make target to build the pyqe module
         os.system(
-            f"make LAPACK_LIBS={os.environ['LAPACK_LIBS']} "
-            f"BLAS_LIBS={os.environ['BLAS_LIBS']} "
-            f"FFTW3_LIBS={os.environ['FFTW3_LIBS']} "
+            f"make LAPACK_LIBS=\"{os.environ.get('LAPACK_LIBS','')}\" "
+            f"BLAS_LIBS=\"{os.environ.get('BLAS_LIBS','')}\" "
+            f"FFTW3_LIBS=\"{os.environ.get('FFTW3_LIBS','')}\" "
             f"QE_BUILD_DIR={qe_build_dir} "
             f"BUILD_DIR={build_dir} "
             f"-f pyqe_Makefile "
