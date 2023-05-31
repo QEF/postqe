@@ -8,6 +8,7 @@
 from distutils.log import error
 from importlib.resources import path
 from collections import deque
+from pathlib import Path
 
 # from modulefinder import EXTENDED_ARG
 from operator import ge
@@ -400,7 +401,13 @@ class EspressoCalculator(FileIOCalculator):
         if label is None and "/" not in str(directory):
             label = "pwscf"
         self.pp_dict = pp_dict
-        self.xml_document = qeschema.PwDocument(schema=schema)
+        if schema is None:
+            self.xml_document = qeschema.PwDocument(
+                source = str(
+                Path(directory) / f"{label}.save/data-file-schema.xml"
+                ))
+        else:
+            self.xml_document = qeschema.PwDocument(schema=schema)
         super().__init__(
             restart,
             ignore_bad_restart_file,
@@ -666,20 +673,44 @@ class EspressoCalculator(FileIOCalculator):
         except (TypeError, KeyError):
             raise Warning("Fermi energy not defined or not in output file")
 
+    def __get_all_eigenvalues(self):
+        """
+        reads all eigenvalues directly from xml file, wrapped in _get_all_eigenvalues
+        so that the result is cached and reused if needed
+        """
+        ks_energy_iterator = iter(self.xml_document.findall('.//ks_energies'))
+        nbnd = int(self.xml_document.find('.//nbnd').text)
+        nks = int(self.xml_document.find('.//output//nks').text)
+        nspin = 2 if 'true' in self.xml_document.find('.//lsda').text else 1
+
+        def ks_eigenvalues(el):
+            eigs = el.find('./eigenvalues')
+            return np.fromstring(eigs.text, sep=' ') * units.Ha
+
+        return np.array([ks_eigenvalues(el) for el in ks_energy_iterator]).reshape([nks,nspin,nbnd]) 
+
+    def _get_all_eigenvalues(self):
+        """
+        returns all eigevalues in the calculatore with 
+        as an array of shape [nks, nspin, nbnd]
+        """
+        try:
+            cache = self._lazy_cache
+        except AttributeError:
+            cache = self._lazy_cache = {}
+
+        if '_get_all_eigenvalues' not in cache:
+            cache['_get_all_eigenvalues'] = self.__get_all_eigenvalues()
+        return cache['_get_all_eigenvalues']
+            
+
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalues array.
         For spin polarized specify spin=1 or spin=2, default spin=1
         """
-
-        try:
-            nbnd = int(self.output["band_structure"]["nbnd"])
-            use_updw = False
-        except KeyError:
-            nbnd_up = int(self.output["band_structure"]["nbnd_up"])
-            nbnd_dw = int(self.output["band_structure"]["nbnd_dw"])
-            use_updw = True
-
-        ks_energies = self.output["band_structure"]["ks_energies"]
+        eiv = self._get_all_eigenvalues() 
+        if spin > 0:
+            spin += -1 
         #
         try:
             kiter = iter(kpt)
@@ -691,36 +722,13 @@ class EspressoCalculator(FileIOCalculator):
             kiter = iter(kpt)
             kpt_iterable = False
         #
-        try:
-            values = (ks_energies[ik]["eigenvalues"]["$"] for ik in kiter)
-        except KeyError:
-            values = (ks_energies[ik]["eigenvalues"] for ik in kiter)
-        extract = lambda start, end, bands: [
-            float(_) * units.Ha for _ in bands[start:end]
-        ]
+        if kpt_iterable:
+            res = np.array([eiv[ik, spin, :] for ik in kiter])
+        else:
+            res = eiv[next(kiter), spin, :]
         #
-        if self.get_spin_polarized():  # magnetic
-            if spin == 0:
-                spin = 1
-            if not use_updw:
-                nbnd_up = nbnd // 2
-                nbnd_dw = nbnd // 2
-            if spin == 1:
-                # get bands for spin up
-                eigenvalues = [extract(0, nbnd_up, vals) for vals in values]
-            else:
-                # get bands for spin down
-                eigenvalues = [
-                    extract(nbnd_up, nbnd_up + nbnd_dw, vals) for vals in values
-                ]
-        else:
-            # non magnetic
-            eigenvalues = [extract(0, nbnd, vals) for vals in values]
-        if kpt_iterable == 1:
-            return np.array(eigenvalues, order="F")
-        else:
-            return np.array(eigenvalues[0])
-
+        return res
+    
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array.  For spin polarized case specify spin=1 or spin=2"""
         try:
