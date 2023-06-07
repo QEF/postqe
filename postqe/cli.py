@@ -125,7 +125,7 @@ def vector(s):
 def window(s):
     """Parses a 2-dimension argument."""
     try:
-        emin, emax = map(int, s.split(','))
+        emin, emax = map(float, s.split(','))
     except (ValueError, AttributeError):
         raise argparse.ArgumentTypeError("Tuple must be: emin, emax")
     else:

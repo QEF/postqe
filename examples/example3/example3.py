@@ -23,7 +23,7 @@ if __name__ == "__main__":
     from postqe import compute_dos
 
     # get a DOS object
-    dos, plot = compute_dos(prefix='Silicon', outdir='outdir', width=0.5, npts=200,
+    dos, plot = compute_dos(prefix='Silicon', outdir='si/out/nscf', width=0.25, npts=200,
                                 fileout='DOSresults', fileplot='DOSplot.png', show=True)
 
     # If you want, get the dos and energies for further processing
@@ -32,3 +32,11 @@ if __name__ == "__main__":
 
     # save DOS in a file
     #dos.write('DOS.out')
+
+    # this is an example for a magnetic system
+    
+    dos, plot = compute_dos(prefix='co', outdir='co/out/nscf', width=0.1, 
+                            npts=200, fileout='co_DOSresults', window=(-13.0, 5.0),
+                            fileplot='co_DOSplot.png', show=True)
+
+

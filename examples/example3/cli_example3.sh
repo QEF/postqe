@@ -18,4 +18,6 @@
 #         -fileout: output file with DOS results (default='dos.out')
 
 
-postqe -prefix='Silicon' -outdir='outdir' -fileplot='CLI_dosPLOT' -show=True dos -fileout='CLI_dosOUT' -width=0.5 -npts=300
+postqe -prefix='Silicon' -outdir='si/out/nscf' -fileplot='CLI_dosPLOT' -show=True dos -fileout='CLI_dosOUT' -width=0.25 -npts=300
+
+postqe -prefix='co' -outdir='co/out/nscf' -fileplot='CLI_dos_co_PLOT' -show=True dos -fileout='CLI_co_dosOUT' -width=0.1 -npts=300 -window=-13,6.0
