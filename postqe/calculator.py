@@ -261,19 +261,18 @@ def get_band_structure(atoms=None, calc=None, labels=None, ref=0):
     atoms = atoms if atoms is not None else calc.atoms
     calc = calc if calc is not None else atoms.calc
 
-    kpts = calc.get_k_points()
+    kpts = calc.get_k_points()/calc.get_alat()
+    kpts = kpts.dot(calc.atoms.cell.T)
     count = iter(range(1000))
     if labels is None:
         labels = [
             _.replace("?", f"kp{next(count)}")
-            for _ in labels_from_kpts(cell=atoms.cell, kpts=calc.get_bz_k_points())[2]
+            for _ in labels_from_kpts(cell=atoms.cell, kpts=kpts)[2]
         ]
     hs_kpoints = [_[0] for _ in get_hs_points(kpts)]
     special_kpoints = dict(zip(labels, hs_kpoints))
-    energies = []
-    for s in range(calc.get_number_of_spins()):
-        energies.append(calc.get_eigenvalues(range(len(kpts)), spin=s))
-    energies = np.array(energies)
+    energies = np.array([calc._get_all_eigenvalues()[:,s,:] 
+                         for s in range(calc.get_number_of_spins())]) 
     bp = BandPath(cell=atoms.cell, kpts=kpts, special_points=special_kpoints)
     return BandStructure(path=bp, energies=energies, reference=ref)
 
@@ -582,7 +581,10 @@ class EspressoCalculator(FileIOCalculator):
 
     def get_number_of_bands(self):
         """Return the number of bands."""
-        return int(self.output["band_structure"]["nbnd"])
+        nbnd = self.output["band_structure"].get("nbnd", None)
+        if nbnd is None:
+            nbnd = self.output["band_structure"].get("nbnd_up") 
+        return int(nbnd) 
 
     def get_xc_functional(self):
         """Returns the XC-functional identifier ('LDA', 'PBE', ...)."""
@@ -604,6 +606,9 @@ class EspressoCalculator(FileIOCalculator):
         kpoints = self.get_k_points()
         iik = get_hs_points(kpoints)
         return list(deque(iik))
+
+    def get_alat(self):
+        return self.output["atomic_structure"]["@alat"]
 
     def get_atoms_from_xml_output(self):
         """
@@ -706,11 +711,9 @@ class EspressoCalculator(FileIOCalculator):
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalues array.
-        For spin polarized specify spin=1 or spin=2, default spin=1
+        For spin polarized specify spin=0 (up)  or spin=1 (dw), default spin=0
         """
         eiv = self._get_all_eigenvalues() 
-        if spin > 0:
-            spin += -1 
         #
         try:
             kiter = iter(kpt)
