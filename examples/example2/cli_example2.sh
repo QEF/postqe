@@ -15,4 +15,7 @@
 #         -emin: the minimum energy for the band plot (default=-50)
 #         -emax: the maximum energy for the band plot (default=50)
 
-postqe -prefix='Si' -outdir='outdir' -fileplot='CLI_bandsPLOT' bands -reference_energy=0 -emin=-10 -emax=20
+postqe -prefix='Si' -outdir='si/out/bands' -fileplot='CLI_bandsPLOT' bands -reference_energy=6.1423 -emin=-10 -emax=20
+#
+echo "running magnetic example: Hexagonal Co" 
+postqe -prefix='co' -outdir='co/out/bands' -fileplot='cobalt_CLI_bandsPLOT' bands -reference_energy=18.3568  -emin=7.4 -emax=24

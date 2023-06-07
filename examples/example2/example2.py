@@ -19,6 +19,14 @@ Returns: an ASE band structure object (bands_structure) and a Matplotlib figure 
 
 if __name__ == "__main__":
     from postqe import compute_band_structure
+    print("Plotting bands of silicon and saving them in Si_bandsplot.png")
 
-    bands_structure, figure = compute_band_structure(prefix='Si', outdir='outdir', reference_energy=0,
-                               emin=-10, emax=20, fileplot='Si_bandsplot.png', show=True)
+    si_bands_structure, si_figure = compute_band_structure(
+            prefix='Si', outdir='si/out/bands', reference_energy=6.1423, emin=-10,
+            emax=20, fileplot='Si_bandsplot.png', show=True)
+
+    print("Plotting bands of Cobalt  and saving them in Co_bandsplot.png")
+  
+    compute_band_structure, co_figure = compute_band_structure(
+            prefix='co', outdir='./co/out/bands/', reference_energy=18.3568,
+            emin=8, emax=24, fileplot='Co_bandsplot.png', show=True)
