@@ -125,7 +125,7 @@ def vector(s):
 def window(s):
     """Parses a 2-dimension argument."""
     try:
-        emin, emax = map(int, s.split(','))
+        emin, emax = map(float, s.split(','))
     except (ValueError, AttributeError):
         raise argparse.ArgumentTypeError("Tuple must be: emin, emax")
     else:
@@ -154,9 +154,9 @@ def get_cli_parser():
     command_parser.add_argument(
         '-reference_energy', type=float, default=0, help=BANDS_REFERENCE_ENERGY_HELP)
     command_parser.add_argument(
-        '-emin', type=int, default=-50, help=BANDS_EMIN_HELP)
+        '-emin', type=float, default=-50, help=BANDS_EMIN_HELP)
     command_parser.add_argument(
-        '-emax', type=int, default=50, help=BANDS_EMAX_HELP)
+        '-emax', type=float, default=50, help=BANDS_EMAX_HELP)
 
     #COMPUTE DOS
     command_parser = subparsers.add_parser(

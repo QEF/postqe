@@ -7,6 +7,7 @@
 #
 
 import os
+import shutil
 import re
 import platform
 from pathlib import Path
@@ -22,10 +23,10 @@ from distutils.file_util import copy_file
 
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
 
-QE_SOURCE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-6.8.zip"
-QE_SOURCE_MD5SUM = "787c4aad3b203f7dd61d03a849a1c4e9"
+# QE_SOURCE_URL = "https://github.com/QEF/q-e/archive/refs/tags/qe-7.2.zip"
+# QE_SOURCE_MD5SUM = "787c4aad3b203f7dd61d03a849a1c4e9"
 
-with Path(__file__).parent.joinpath('requirements.txt').open() as fp:
+with Path(__file__).parent.joinpath("requirements.txt").open() as fp:
     REQUIREMENTS = fp.read()
 
 
@@ -36,10 +37,13 @@ def find_extension_module(pattern):
     :param: a glob pattern for finding the candidate extension modules.
     :return: A pathname string or `None` if no suitable module is found.
     """
-    python_version = ''.join(platform.python_version_tuple()[:2])
+    python_version = "".join(platform.python_version_tuple()[:2])
 
     for filename in map(str, Path(__file__).parent.glob(pattern)):
-        if f'-{python_version}-' not in filename and f'{python_version}m' not in filename:
+        if (
+            f"-{python_version}-" not in filename
+            and f"{python_version}m" not in filename
+        ):
             continue
         elif platform.python_implementation().lower() not in filename:
             continue
@@ -50,233 +54,254 @@ def find_extension_module(pattern):
         return filename
 
 
-def get_qe_topdir(target_dir):
-    """
-    Download, check and unpack Quantum ESPRESSO source code.
-
-    :param target_dir: target dir for download and unpack the archive.
-    :return: a pathlib.Path instance pointing to the QE source base.
-    """
-    import zipfile
-
-    if isinstance(target_dir, str):
-        target_dir = Path(target_dir)
-    if not target_dir.exists():
-        target_dir.mkdir(parents=True)
-
-    qe_topdir = next(target_dir.rglob('q-e-*'), None)
-    if qe_topdir is not None:
-        return Path(qe_topdir).absolute()
-
-    qe_source_path = str(target_dir.joinpath('q-e.zip'))
-    if not os.path.isfile(qe_source_path):
-        print("Download QE source code ...")
-        os.system(f'curl -SL {QE_SOURCE_URL} -o "{qe_source_path}"')
-
-    print("Checks MD5SUM of source archive ... ")
-    if os.system(f'echo `md5sum {qe_source_path}` | grep --quiet "^{QE_SOURCE_MD5SUM}[[:blank:]]"'):
-        raise ValueError("Checksum of source code archive doesn't match!")
-
-    print("Extract source files from archive ...")
-    with zipfile.ZipFile(qe_source_path, 'r') as zfp:
-        zfp.extractall(target_dir)
-
-    return Path(next(target_dir.rglob('q-e-*'))).absolute()
-
-
-def adjust_qe_config(config_file):
-    """
-    Adjusts QE configuration file (make.inc) adding the -fPIC option for
-    compilers. If the option is already included in CFLAGS and FFLAGS
-    variables leaves the configuration file unchanged.
-    """
-    if isinstance(config_file, str):
-        config_file = Path(config_file)
-
-    with config_file.open() as fp:
-        make_inc_lines = fp.readlines()
-
-    changed = False
-    for k in range(len(make_inc_lines)):
-        line = make_inc_lines[k]
-        if line.startswith("CFLAGS ") or line.startswith("FFLAGS "):
-            if '-fPIC' not in line:
-                make_inc_lines[k] = line.replace(' = ', ' = -fPIC ')
-                changed = True
-
-    if changed:
-        with config_file.open(mode='w') as fp:
-            fp.writelines(make_inc_lines)
-
-
 class BuildExtCommand(build_ext):
+    """
+    BuildExtCommand is a custom extension of the build_ext command for setuptools.
+
+    This class is responsible for building the Fortran modules and Quantum Espresso library,
+    as well as the pyqe Python module, during the package build process.
+
+    The following steps are performed during the build process:
+
+    - Prepare the build directory.
+    - Copy the Fortran source from the package directory to the build directory.
+    - Build f90utils Fortran module.
+    - Build Quantum Espresso library.
+    - Build pyqe Python module.
+
+    Attributes: build_temp (str): The temporary build directory.
+                inplace (bool): If True, the build is done in-place.
+                verbose (bool): If True, additional information is printed during build process.
+                dry_run (bool): If True, the build process will not actually be performed.
+
+    Methods: run(): Perform the build process.
+             _build_f90utils_module(build_dir: Path): Build the f90utils Fortran module.
+             _build_quantum_espresso(qe_build_dir: Path): Build Quantum Espresso library.
+             _build_pyqe_module(build_dir: Path): Build pyqe Python module.
+    """
 
     def run(self):
         build_ext.run(self)
 
-        build_dir = Path(self.build_temp).absolute().joinpath('postqe-fortran')
-        qe_build_dir = build_dir.joinpath('qe')
+        build_dir = Path(self.build_temp).absolute().joinpath("postqe-fortran")
+        qe_build_dir = build_dir.joinpath("qe")
         if not qe_build_dir.exists():
             qe_build_dir.mkdir(parents=True)
 
-        build_py = self.get_finalized_command('build_py')
-        package_dir = Path(build_py.get_package_dir('postqe'))
+        build_py = self.get_finalized_command("build_py")
+        package_dir = Path(build_py.get_package_dir("postqe"))
+        package_fortran_dir = str(package_dir.joinpath("fortran"))
 
-        copy_file(src=str(package_dir.joinpath('fortran/Makefile')),
-                  dst=str(build_dir), verbose=self.verbose, dry_run=self.dry_run)
+        for item in os.listdir(package_fortran_dir):
+            # Copy everything its inside the package postqe/fortran folder into
+            # the postqe-fortran folder inside the build dicrectory
+            source_item = os.path.join(package_fortran_dir, item)
+            destination_item = os.path.join(build_dir, item)
 
-        for filename in package_dir.glob('fortran/*.f90'):
-            copy_file(src=str(filename), dst=str(build_dir),
-                      verbose=self.verbose, dry_run=self.dry_run)
-
-        copy_file(src=str(package_dir.joinpath('fortran/qe/Makefile')),
-                  dst=str(qe_build_dir), verbose=self.verbose, dry_run=self.dry_run)
-        copy_file(src=str(package_dir.joinpath('fortran/qe/kind_map')),
-                  dst=str(qe_build_dir), verbose=self.verbose, dry_run=self.dry_run)
+            if os.path.isdir(source_item):
+                if os.path.exists(destination_item):
+                    shutil.rmtree(destination_item)
+                shutil.copytree(source_item, destination_item)
+            else:
+                shutil.copy2(source_item, destination_item)
 
         self._build_f90utils_module(build_dir)
         self._build_quantum_espresso(qe_build_dir)
-        self._build_pyqe_module(qe_build_dir)
+        self._build_pyqe_module(build_dir)
 
         if self.inplace:
-            copy_file(src=str(qe_build_dir.joinpath('pyqe.py')), dst=str(package_dir),
-                      verbose=self.verbose, dry_run=self.dry_run)
-            for filename in qe_build_dir.glob('_pyqe*.so'):
-                copy_file(src=str(filename), dst=str(package_dir),
-                          verbose=self.verbose, dry_run=self.dry_run)
-            for filename in build_dir.glob('f90utils*.so'):
-                copy_file(src=str(filename), dst=str(package_dir),
-                          verbose=self.verbose, dry_run=self.dry_run)
+            copy_file(
+                src=str(build_dir.joinpath("pyqe.py")),
+                dst=str(package_dir),
+                verbose=self.verbose,
+                dry_run=self.dry_run,
+            )
+            for filename in build_dir.glob("_pyqe*.so"):
+                copy_file(
+                    src=str(filename),
+                    dst=str(package_dir),
+                    verbose=self.verbose,
+                    dry_run=self.dry_run,
+                )
+            for filename in build_dir.glob("f90utils*.so"):
+                copy_file(
+                    src=str(filename),
+                    dst=str(package_dir),
+                    verbose=self.verbose,
+                    dry_run=self.dry_run,
+                )
 
     @staticmethod
     def _build_f90utils_module(build_dir):
         print("Build f90utils module ...")
-        os.system('make -C {} f90utils_module'.format(str(build_dir)))
+        os.system(f"make -f f90utils_Makefile -C {build_dir} f90utils_module")
 
     @staticmethod
-    def _build_quantum_espresso(build_dir):
+    def _build_quantum_espresso(qe_build_dir):
         try:
-            qe_topdir = Path(os.environ['QE_TOPDIR']).absolute()
+            qe_topdir = Path(os.environ["QE_TOPDIR"]).absolute()
         except KeyError:
-            qe_topdir = get_qe_topdir(build_dir)
-            os.environ['QE_TOPDIR'] = str(qe_topdir)
-
-        print("QE top directory {}".format(str(qe_topdir)))
+            print("Please specify the QE_TOPDIR before executing setup.py")
 
         # Check QE installation
-        for version_file in qe_topdir.glob('include/*version.h'):
+        for version_file in qe_topdir.glob("include/*version.h"):
             with version_file.open() as fp:
                 version_number = VERSION_NUMBER_PATTERN.search(fp.read())
 
             if version_number is None:
-                raise ValueError("Missing version label in {}".format(str(version_file)))
+                raise ValueError(f"Missing version label in {version_file}")
 
             print("QE {}".format(version_number.group(0)))
-            if version_number.group(1).strip('\'"') < '6.8':
+            if version_number.group(1).strip("'\"") < "7.1":
                 raise ValueError("Build aborted: QE version too old!")
 
             break
         else:
             raise FileNotFoundError("Missing QE version file info!")
 
-        if qe_topdir.joinpath('make.inc').is_file():
-            print("Check Quantum Espresso configuration ...")
-            # TODO: check_qe_config() ...
-        else:
-            print("Configure Quantum Espresso ...")
-            for configure_file in qe_topdir.rglob('**/configure'):
-                os.chmod(configure_file, 0o755)
+        print("Configure Quantum Espresso ...")
 
-            configure = str(qe_topdir.joinpath('configure'))
-            os.system(f'{configure} --enable-parallel=no')
-            adjust_qe_config(qe_topdir.joinpath('make.inc'))
-
+        os.system(
+            f"cmake -DQE_ENABLE_MPI=off "
+            f"-DCMAKE_Fortran_FLAGS=-fPIC "
+            f"-DCMAKE_C_FLAGS=-fPIC "
+            f"-B {qe_build_dir} "
+            f"-S {os.environ['QE_TOPDIR']}"
+        )
         print("Build Quantum Espresso ...")
-        os.system('make -C {} qe'.format(str(build_dir)))
+        os.system(f"make -C {qe_build_dir} -j qe_pp")
 
     @staticmethod
     def _build_pyqe_module(build_dir):
         print("Build pyqe module ...")
-        os.system('make -C {} pyqe'.format(str(build_dir)))
+        qe_build_dir = build_dir.joinpath("qe")
+        # Read the CMakeCache.txt file to find:
+        # LAPACK LIBS path
+        # BLAS LIBS path
+        # FFTW3 LIBS path
+        with open(f"{qe_build_dir}/CMakeCache.txt", "r") as file:
+            cmakecache_lines = list(filter(
+                lambda s: 'FIND_PACKAGE_MESSAGE_DETAILS' in s,
+                file.readlines()))
+        
+        def get_path(lib, lines):
+            PATTERN = r"(\[[^\s\[\]]+\])(\[[^\s\[\]]+\])+"
+            PATTERN2 = r"([/-][^;\s\[\]]+)"
+            line = next(filter(lambda s: lib in s, lines), None)
+            libpath = None if line is None else " ".join(re.findall(
+            PATTERN2,
+            re.search(PATTERN, line).group(1)
+            ))
+            return libpath       
 
+
+        lapack_path = get_path('LAPACK', cmakecache_lines)
+        blas_path = get_path('BLAS', cmakecache_lines) 
+        fftw3_first_path = get_path('FFTW', cmakecache_lines)
+
+        if fftw3_first_path:
+            print("FFTW3 first path found:", fftw3_first_path)
+            os.environ["FFTW3_LIBS"] = fftw3_first_path
+        else:
+            print("No FFTW3 path found")
+
+        if lapack_path:
+            print("LAPACK path found:", lapack_path)
+            os.environ["LAPACK_LIBS"] = lapack_path
+        else:
+            print("No LAPACK path found")
+
+        if blas_path:
+            print("BLAS path found:", blas_path)
+            if blas_path != lapack_path: 
+                os.environ["BLAS_LIBS"] = blas_path
+        else:
+            print("No BLAS path found")
+
+        # Run the make target to build the pyqe module
+        os.system(
+            f"make LAPACK_LIBS=\"{os.environ.get('LAPACK_LIBS','')}\" "
+            f"BLAS_LIBS=\"{os.environ.get('BLAS_LIBS','')}\" "
+            f"FFTW3_LIBS=\"{os.environ.get('FFTW3_LIBS','')}\" "
+            f"QE_BUILD_DIR={qe_build_dir} "
+            f"BUILD_DIR={build_dir} "
+            f"-f pyqe_Makefile "
+            f"-C {build_dir} "
+            f"pyqe"
+        )
         # Modify python wrapper module, fixing import in postqe package.
-        with build_dir.joinpath('pyqe.py').open() as fp:
+        with build_dir.joinpath("pyqe.py").open() as fp:
             python_wrapper_lines = fp.readlines()
 
-        with build_dir.joinpath('pyqe.py').open(mode='w') as fp:
+        with build_dir.joinpath("pyqe.py").open(mode="w") as fp:
             python_wrapper_lines[0] = "# Altered wrapper for postqe\n"
             python_wrapper_lines[1] = "from . import _pyqe\n"
             fp.writelines(python_wrapper_lines)
 
 
 class InstallCommand(install):
-
     distribution: Distribution  # for avoid static check warning
 
     def run(self):
-        if find_extension_module('postqe/_pyqe*.so') is None \
-                or find_extension_module('postqe/f90utils*.so'):
+        if find_extension_module("postqe/_pyqe*.so") is None or find_extension_module(
+            "postqe/f90utils*.so"
+        ):
             print("A required extension module not found, invoke build_ext ...")
-            cmd_obj = self.distribution.get_command_obj('build_ext')
+            cmd_obj = self.distribution.get_command_obj("build_ext")
             cmd_obj.inplace = True
-            self.run_command('build_ext')
+            self.run_command("build_ext")
         install.run(self)
 
 
 class CleanCommand(clean):
-
     def run(self):
         clean.run(self)
         if self.all:
-            log.info('Remove built extension modules ...')
-            source_dir = Path(__file__).parent.joinpath('postqe')
+            log.info("Remove built extension modules ...")
+            source_dir = Path(__file__).parent.joinpath("postqe")
 
-            wrapper_module = source_dir.joinpath('pyqe.py')
+            wrapper_module = source_dir.joinpath("pyqe.py")
             if wrapper_module.is_file():
-                log.info('Remove {}'.format(str(wrapper_module)))
+                log.info(f"Remove {wrapper_module}")
                 wrapper_module.unlink()
 
-            for ext_module in source_dir.glob('*.so'):
-                log.info(f'Remove {ext_module}')
+            for ext_module in source_dir.glob("*.so"):
+                log.info(f"Remove {ext_module}")
                 os.unlink(ext_module)
 
 
 setup(
-    name='postqe',
-    version='1.0.0',
-    packages=['postqe'],
-    package_data={'postqe': ['_pyqe.*.so', 'f90utils*.so']},
+    name="postqe",
+    version="1.0.0",
+    packages=["postqe"],
+    package_data={"postqe": ["_pyqe.*.so", "f90utils*.so"]},
     install_requires=REQUIREMENTS,
-    entry_points={
-        'console_scripts': [
-            'postqe=postqe.cli:main'
-        ]
-    },
+    entry_points={"console_scripts": ["postqe=postqe.cli:main"]},
     cmdclass={
-        'build_ext': BuildExtCommand,
-        'install': InstallCommand,
-        'clean': CleanCommand,
+        "build_ext": BuildExtCommand,
+        "install": InstallCommand,
+        "clean": CleanCommand,
     },
-    author='Mauro Palumbo, Pietro Delugas, Davide Brunato',
-    author_email='pdelugas@sissa.it, brunato@sissa.it',
-    license='LGPL-2.1',
-    long_description='Post processing tools for Quantum Espresso',
+    author="Mauro Palumbo, Pietro Delugas, Davide Brunato",
+    author_email="pdelugas@sissa.it, brunato@sissa.it",
+    license="LGPL-2.1",
+    long_description="Post processing tools for Quantum Espresso",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Science/Research',
-        'Operating System :: POSIX',
-        'Operating System :: POSIX :: Linux',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
-        'Natural Language :: English',
-        'Topic :: Scientific/Engineering :: Physics'
-    ]
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Science/Research",
+        "Operating System :: POSIX",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)",
+        "Natural Language :: English",
+        "Topic :: Scientific/Engineering :: Physics",
+    ],
 )

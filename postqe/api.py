@@ -302,11 +302,16 @@ def compute_dos(prefix='pwscf', outdir=None, schema=None, width=0.01, window=Non
 
     # get the dos and energies for further processing
     d = dos.get_dos()
+    if dos.nspins == 2:
+        dd = -dos.get_dos(1)
     e = dos.get_energies()
 
     # Plot the DOS with Matplotlib...
     import matplotlib.pyplot as plt
     plt.plot(e, d)
+    if dos.nspins == 2:
+        plt.plot(e,dd)
+    
     plt.xlabel('energy [eV]')
     plt.ylabel('DOS')
     plt.savefig(fileplot)
