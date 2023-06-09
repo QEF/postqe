@@ -48,88 +48,6 @@ SUBROUTINE vloc_of_g( mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, &
   REAL(DP), INTENT(OUT) :: vloc(ngl)
   !! the fourier transform of the potential
   !
-  ! ... local variables
-  !
-  REAL(DP) :: vlcp, fac, gx
-  REAL(DP), ALLOCATABLE :: aux(:), aux1(:)
-  INTEGER :: igl, igl0, ir
-  ! igl :counter on g shells vectors
-  ! igl0:first shell with g != 0
-  ! ir  :counter on mesh points
-  !
-  allocate ( aux(msh), aux1(msh) )
-  if (gl (1) < eps8) then
-     !
-     ! first the G=0 term
-     !
-     IF ( do_comp_esm .and. ( esm_bc .ne. 'pbc' ) ) THEN
-        !
-        ! ... temporarily redefine term for ESM calculation
-        !
-        do ir = 1, msh
-           aux (ir) = r (ir) * (r (ir) * vloc_at (ir) + zp * e2    &
-                      * erf (r (ir) ) )
-        enddo
-     ELSE IF (do_cutoff_2D) THEN 
-        !
-        !  TS This is necessary to correctly calculate the G=0 term 
-        !     when a 2D cutoff is applied
-        !
-        do ir = 1, msh
-            aux (ir) = r (ir) * (r (ir) * vloc_at (ir) + zp * e2    &
-                       * erf (r (ir) ) )
-        enddo
-        IF (r(msh) > lz) THEN 
-           call errore('vloc_of_g','2D cutoff is smaller than pseudo cutoff radius: &
-          & increase interlayer distance (or see Modules/read_pseudo.f90)',1)
-        END IF
-     ELSE
-        ! Normal case
-        do ir = 1, msh
-           aux (ir) = r (ir) * (r (ir) * vloc_at (ir) + zp * e2)
-        enddo
-     END IF
-     call simpson (msh, aux, rab, vlcp)
-     vloc (1) = vlcp        
-     igl0 = 2
-  else
-     !
-     ! no G=0 term on this processor
-     !
-     igl0 = 1
-  endif
-  !
-  !   here the G<>0 terms, we first compute the part of the integrand 
-  !   function independent of |G| in real space
-  !
-  do ir = 1, msh
-     aux1 (ir) = r (ir) * vloc_at (ir) + zp * e2 * erf (r (ir) )
-  enddo
-  fac = zp * e2 / tpiba2
-  !
-  !    and here we perform the integral, after multiplying for the |G|
-  !    dependent part
-  !
-  do igl = igl0, ngl
-     gx = sqrt (gl (igl) * tpiba2)
-     do ir = 1, msh
-        aux (ir) = aux1 (ir) * sin (gx * r (ir) ) / gx
-     enddo
-     call simpson (msh, aux, rab, vlcp)
-     IF ( .not. ( do_comp_esm .and. ( esm_bc .ne. 'pbc' ) ) .and. &
-          .not. do_cutoff_2D ) THEN
-        !
-        !   here we re-add the analytic fourier transform of the erf function
-        !   (except when a 2D cutoff is used)
-        !
-        vlcp = vlcp - fac * exp ( - gl (igl) * tpiba2 * 0.25d0) / gl (igl)
-     END IF
-     vloc (igl) = vlcp
-  enddo
-  vloc (:) = vloc(:) * fpi / omega
-  deallocate (aux, aux1)
-
-return
 END SUBROUTINE vloc_of_g
 !
 !----------------------------------------------------------------------
@@ -154,21 +72,5 @@ SUBROUTINE vloc_coul( zp, tpiba2, ngl, gl, omega, vloc )
   REAL(DP), INTENT(IN) :: gl(ngl)
   !! the moduli of g vectors for each shell
   !
-  ! ... local variables
-  !
-  REAL(DP), INTENT(OUT) :: vloc(ngl)
-  ! the fourier transform of the potential
-  INTEGER :: igl0
-  !
-  if (gl (1) < eps8) then
-     igl0 = 2
-     vloc(1) = 0.0_dp
-  else
-     igl0 = 1
-  endif
-
-  vloc (igl0:ngl) = - fpi * zp *e2 / omega / tpiba2 / gl (igl0:ngl)
-
-return
 END SUBROUTINE vloc_coul
 
