@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from .writecharge import write_1Dcharge_file, write_2Dcharge_file, write_3Dcharge_file
 from .constants import pi
+from .pyqe import Fft_Interpolation_Mod
 
 
 def fft_interp_1d(charge, G, a, x0, e1, nx):
@@ -192,33 +193,26 @@ def plot_1d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, yl
     'FFT' for Fourier interpolation
     :return: the matplotlib figure object
     """
-    if method == 'FFT':
-        try:
-            from compute_vs_cython import FFTinterp1D_Cython
-            X, Y = FFTinterp1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
-        except ImportError:
-            X, Y = fft_interp_1d(charge, G, struct_info['a'], x0, e1, nx)
+    fft = Fft_Interpolation_Mod()
+    m1 = np.sqrt(e1.dot(e1))
+    deltax = m1/(nx - 1)
+    line = np.array([x0+e1/m1 * ix * deltax for ix in range(nx)])
+    data1d = np.zeros(nx, dtype=np.complex128)
+    if method == 'FFT':    
+        fft.fft_1d_interpolate(charge, G.T, line.T, data1d)
     elif method == 'spherical':
-        try:
-            # TODO: Cython function to be implemented
-            from compute_vs_cython import spherical1D_Cython
-            X, Y = spherical1D_Cython(charge, G, struct_info['a'], x0, e1, nx)
-        except ImportError:
-            X, Y = spherical_1d(charge, G, struct_info['a'], x0, e1, nx)
+        fft.fft_spherical_average(charge, G.T, x0, deltax, data1d)
     else:
         raise NotImplementedError
-
     if plot_file != '':
-        write_1Dcharge_file(X, Y, nx, plot_file)
-
+        write_1Dcharge_file(np.linspace(0,m1,nx), data1d, nx, plot_file)
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
     fig = plt.figure()
     plt.xlabel(xlab)
     plt.ylabel(ylab)
-    plt.plot(X, np.real(Y), 'r')
+    plt.plot(np.linspace(0,m1,nx), np.real(data1d), 'r')
     plt.show()
-
     return fig
 
 
@@ -290,38 +284,27 @@ def plot_2d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1,
     :param format: output file format
     :return: the matplotlib figure object
     """
-    # TODO: check that e1 and e2 are orthonormal
-    #  if (abs(e1(1) * e2(1) + e1(2) * e2(2) + e1(3) * e2(3)) > 1e-6):
-    #  throw something
-
+    #orthogonalize e2 w.r.t e1 so that it is easier to make the plot 
+    m1 = np.sqrt(e1.dot(e1))
+    e2 = e2 - e2.dot(e1)*e1/m1
+    m2 = np.sqrt(e2.dot(e2))
     if method == 'FFT':
-        try:
-            from compute_vs_cython import FFTinterp2D_Cython
-            X, Y, Z = FFTinterp2D_Cython(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
-        except ImportError:
-            X, Y, Z = fft_interp_2d(charge, G, struct_info['a'], x0, e1, e2, nx, ny)
-    elif method == 'polar':
-        try:
-            # TODO: Cython function to be implemented
-            from compute_vs_cython import polar2D_Cython
-            X, Y, Z = polar2D_Cython(charge, G, nx, ny, radius, struct_info['alat'])
-        except ImportError:
-            X, Y, Z = polar_2d(charge, G, nx, ny, radius, struct_info['alat'])
-    elif method == 'splines':
-        # TODO: to be implemented
-        raise NotImplementedError
+        fft = Fft_Interpolation_Mod()
+        data2D = np.zeros([nx,ny],order='F', dtype=np.complex128) 
+        fft.fft_2d_interpolate(charge, G.T, nx, ny, x0, e1, e2, data2D)
     else:
         raise NotImplementedError
-
+    X = np.linspace(0, m1, nx)
+    Y = np.linspace(0, m2, ny) 
     if plot_file != '':
-        write_2Dcharge_file(X, Y, Z, struct_info, x0, e1, e2, nx, ny, plot_file, method, format)
+        write_2Dcharge_file(X, Y, data2D, struct_info, x0, e1, e2, nx, ny, plot_file, method, format)
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3)
-    cset = ax.contour(X, Y, Z, zdir='z', offset=Z.min(), cmap=cm.coolwarm)
-    cset = ax.contour(X, Y, Z, zdir='x', offset=X.min(), cmap=cm.coolwarm)
-    cset = ax.contour(X, Y, Z, zdir='y', offset=Y.max(), cmap=cm.coolwarm)
+    ax.plot_surface(X, Y, data2D.T.real, rstride=1, cstride=1, alpha=0.3)
+    cset = ax.contour(X, Y, data2D.T.real, zdir='z', offset=data2D.real.min(), cmap=cm.coolwarm)
+    cset = ax.contour(X, Y, data2D.T.real, zdir='x', offset=X.min(), cmap=cm.coolwarm)
+    cset = ax.contour(X, Y, data2D.T.real, zdir='y', offset=Y.max(), cmap=cm.coolwarm)
 
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"
@@ -332,7 +315,7 @@ def plot_2d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1,
     ax.set_ylabel(ylab)
     ax.set_ylim(Y.min(), Y.max())
     ax.set_zlabel(zlab)
-    ax.set_zlim(Z.min(), Z.max())
+    ax.set_zlim(data2D.real.min(), data2D.real.max())
     plt.show()
 
     return fig

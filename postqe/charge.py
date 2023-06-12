@@ -10,31 +10,9 @@ import numpy as np
 import h5py
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
-
+from qeschema.hdf5 import read_charge_file
 ####### TO BE MOVED TO QESCHEMA 1.2 #######
 
-def read_charge_file_hdf5(filename):
-    """
-    Reads a PW charge file in HDF5 format.
-
-    :param filename:
-    :return: a dictionary describing the content of file \
-    keys=[nr, ngm_g, gamma_only, rhog_, MillerIndexes]
-    """
-    with h5py.File(filename, "r") as h5f:
-        MI = h5f.get('MillerIndices')[:]
-        nr1 = 2*max(abs(MI[:, 0]))+1
-        nr2 = 2*max(abs(MI[:, 1]))+1
-        nr3 = 2*max(abs(MI[:, 2]))+1
-        nr = np.array([nr1, nr2, nr3])
-        res = dict(h5f.attrs.items())
-        res.update({'MillInd':MI,'nr_min': nr})
-        rhog = h5f['rhotot_g'][:].reshape(res['ngm_g'],2).dot([1.e0,1.e0j])
-        res.update({'rhotot_g':rhog})
-        if 'rhodiff_g' in h5f.keys():
-            rhog = h5f['rhodiff_g'][:].reshape(res['ngm_g'], 2).dot([1.e0,1.e0j])
-            res.update({'rhodiff_g':rhog})
-        return res
 
 def get_density_data_hdf5(filename, dataset='rhotot_g'):
     """
@@ -42,19 +20,22 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
     also in the non-collinear case
     :return: a dictionary with all attributes plus the required field if present, None otherwise
     """
-    with h5py.File(filename,"r") as h5f:
-        if not dataset in h5f.keys():
+    with h5py.File(filename, "r") as h5f:
+        if dataset not in h5f.keys():
             return None
-        MI = h5f.get('MillerIndices')[:]
+        MI = h5f.get('MillerIndices')
         nr1 = 2*max(abs(MI[:, 0]))+1
         nr2 = 2*max(abs(MI[:, 1]))+1
         nr3 = 2*max(abs(MI[:, 2]))+1
         nr = np.array([nr1, nr2, nr3])
         res = dict(h5f.attrs.items())
-        res.update({'MillInd':MI,'nr_min': nr})
-        rhog = h5f[dataset][:].reshape(res['ngm_g'],2).dot([1.e0,1e0j])
-        res.update({dataset:rhog})
-        domag = 'rhodiff_g' in h
+        res.update({'millind': MI[:], 'nr_min': nr})
+        res.update(dict([_ for _ in MI.attrs.items()]))
+        rhog = h5f[dataset][:].reshape(res['ngm_g'], 2).dot([1.e0, 1e0j])
+        res.update({dataset: rhog})
+        nspin = h5f.attrs['nspin']
+        domag = nspin > 1  
+        res.update({'domag': domag})
     return res
 
         
@@ -103,8 +84,7 @@ def get_charge_r(filename, nr=None):
     Besides, only the values of the charge > cutoff are stored, together with the Miller indexes.
     :returns: tot_charge
     """
-
-    cdata = read_charge_file_hdf5(filename)
+    cdata = read_charge_file(filename)
     if nr is None:
         nr1, nr2, nr3 = cdata['nr_min']
     else:
@@ -120,7 +100,8 @@ def get_charge_r(filename, nr=None):
 
     if gamma_only:
         rhotot_g = cdata['rhotot_g'].conjugate()
-        MI = get_minus_indexes(cdata['MillInd'][:,0], cdata['MillInd'][:,1], cdata['MillInd'][:,2])
+        MI = get_minus_indexes(cdata['MillInd'][:, 0],
+                               cdata['MillInd'][:, 1], cdata['MillInd'][:, 2])
         for (i, j, k), rho  in zip(MI, rhotot_g):
             try:
                 rho_temp[i, j, k] = rho
@@ -242,75 +223,72 @@ def write_charge(filename, charge, header):
 
 class Charge:
     """
-    A class for charge density (and data in real 3D grids)
+    A class for charge density (and data in 3D grids)
     """
     # TODO: include the Miller index as in HDF5 file?
     def __init__(self, *args, **kwargs):
         """Create charge object from """
         self.setvars(*args, **kwargs)
 
-    def setvars(self, nr_temp, charge=None, charge_diff=None):
-        nr = np.array(nr_temp)
-        assert nr.shape[0] == 3
-        self.nr = nr
-        try:
-            assert charge.shape == (nr[0], nr[1], nr[2])
-            self.charge = charge
-        except:
-            pass
-        try:
-            assert charge_diff.shape == (nr[0], nr[1], nr[2])
-            self.charge_diff = charge_diff
-        except:
-            pass
-
-    def set_calculator(self, calculator):
+    def setvars(self, filename, calculator):
+        """Initialize object inner variables"""
         self.calculator = calculator
+        tempdict = get_density_data_hdf5(filename)
+        self.nr = tempdict['nr_min']
+        self.charge = tempdict['rhotot_g']
+        self.MI = tempdict['millind']
+        self.bg = np.array([tempdict['bg1'],
+                            tempdict['bg2'],
+                            tempdict['bg3']])
+        self.ngm = tempdict['ngm_g']
+        self.gamma_only = 'true' in str(tempdict['gamma_only']).lower()
+        self.nspin = tempdict['nspin']
+        self.domag = tempdict['domag']
+        if self.nspin == 2:
+            self.magnetization = get_density_data_hdf5(filename, 'rhodiff_g')['rhog']
+        elif self.nspin == 4:
+            self.m_x = get_density_data_hdf5(filename, 'm_x')['rhog']
+            self.m_y = get_density_data_hdf5(filename, 'm_y')['rhog']
+            self.m_z = get_density_data_hdf5(filename, 'm_z')['rhog']
 
-
-    def read(self, filename, nr=None):
-        """
-        Read the charge from a HDF5 file.
-
-        :param filename: HDF5 file with charge data
-        :param nr: a numpy array or list of length 3 containing the grid dimensions
-        """
-        if not nr:
-            try:
-                nr = self.nr
-            except:
-                raise AttributeError("nr not defined in this Charge object")
-
-        charge  = get_charge_r(filename, np.array(nr))
-        self.charge = charge
-        noncolin, magnetization = get_magnetization_r(filename, np.array(nr), direction = 3) 
-        self.noncolin = noncolin 
-        if noncolin:
-            self.mz = magnetization 
-            dummy, self.mx = get_magnetization_r(filename, np.array(nr), direction = 1)
-            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction = 2)
-        else:
-            self.charge_diff = magnetization
-            self.magnetization =self.charge_diff
-
-
-    def write(self, filename):
-        header='# Charge file\n'
-        header+='# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
-        try:
-            self.charge
-            write_charge(filename, self.charge, header)
-        except:
-            pass
-        if self.calculator.get_spin_polarized():  # non magnetic calculation
-            charge_up = (self.charge + self.charge_diff) / 2.0
-            charge_down = (self.charge - self.charge_diff) / 2.0
+    def write(self, filename, nr = None):
+        if nr is None:
+            nr = self.nr
+        header = '# Charge file\n'
+        header += ' # nr1= '+str(nr[0])+' nr2= '+str(nr[1])+' nr3= '+str(nr[2])+'\n'
+        charge = charge_r_from_cdata(self.charge, self.MI, self.gamma_only, nr)
+        write_charge(filename, charge, header)
+        if self.nspin == 2:
+            magnetization = charge_r_from_cdata(self.magnetization, self.MI, self.gamma_only, nr)
+            charge_up = 0.5*(charge + magnetization)
+            charge_down = 0.5*(charge - magnetization)
             write_charge(filename + '_up', charge_up, header)
             write_charge(filename + '_down', charge_down, header)
 
+    def write_magnetization(self, filename, nr = None):
+        if nr is None:
+            nr = self.nr
+        header = ' Magnetization File\n'
+        header += f"# nr1 = {nr[0]} nr2 = {nr[1]} nr3 = {nr[2]}\n"
+        if self.nspin == 2: 
+            magnetization = charge_r_from_cdata(self.magnetization, self.MI, self.gamma_only, nr)
+            write_charge(f"{filename}_mag", magnetization, header)
+        elif self.nspin == 4:
+            magnetization = charge_r_from_cdata(self.m_x, self.MI, self.gamma_only, nr)
+            write_charge(f"{filename}_mx", magnetization, header)
+            magnetization = charge_r_from_cdata(self.m_y, self.MI, self.gamma_only, nr)
+            write_charge(f"{filename}_my", magnetization, header)
+            magnetization = charge_r_from_cdata(self.m_z, self.MI, self.gamma_only, nr)
+            write_charge(f"{filename}_mz", magnetization, header)
+        else:
+            raise ValueError("No magnetic charge object")
 
-    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), nz=50,
-             radius=1, dim=1, ifmagn='total', plot_file='', method='FFT', format='gnuplot', show=True):
+
+
+    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, 
+             e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), 
+             nz=50, radius=1, dim=1, ifmagn='total', plot_file='', method='FFT', 
+             format='gnuplot', show=True):
         """
         Plot a 1D, 2D or 3D section of the charge from x0 along e1 (e2, e3) direction(s) using Fourier interpolation
         or another method (see below). For 1D or 2D sections, the code produce a Matplotlib plot. For a 3D plot, the
@@ -340,80 +318,56 @@ class Charge:
         :return: a Matplotlib figure object for 1D and 2D sections, None for 3D sections
         """
         # TODO: implement a Matplotlib plot for polar 2D
-        try:
-            self.charge
-        except:
-            return None
-        # Extract some structural info in a dictionary
+                # Extract some structural info in a dictionary
         struct_info = {
             'a': self.calculator.get_a_vectors(),
-            'b': self.calculator.get_b_vectors(),
+            'b': self.bg,
             'alat': self.calculator.get_alat(),
             'nat': len(self.calculator.get_atomic_positions()),
             'atomic_positions': self.calculator.get_atomic_positions(),
             'atomic_species': self.calculator.get_atomic_species(),
         }
-        G = compute_G(struct_info['b'], self.nr)
-
-        if not self.calculator.get_spin_polarized():  # non magnetic calculation
-            if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
-                fig = plot_1d_charge(self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format)
-            elif dim == 2:  # 2D section
-                fig = plot_2d_charge(
-                    self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
-                )
-            else:           # 3D section
-                fig = plot_3d_charge(
-                    self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
-                )
-        else:  # magnetic calculation, plot as ifmagn
+        gbase = self.MI.dot(self.bg)*struct_info['alat']/2.0/np.pi 
+        e1 = np.asarray(e1) 
+        e2 = np.asarray(e2) 
+        e3 = np.asarray(e3) 
+        if self.nspin == 1:
+            charge = self.charge
+        elif self.nspin == 2:
             if ifmagn == 'up':
-                charge_up = (self.charge + self.charge_diff) / 2.0
-                if dim == 1:  # 1D section
-                    fig = plot_1d_charge(
-                        charge_up, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
-                    )
-                elif dim == 2:  # 2D section
-                    fig = plot_2d_charge(
-                        charge_up, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
-                    )
-                else:  # 3D section
-                    fig = plot_3d_charge(
-                        charge_up, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
-                    )
+                charge = 0.5*(self.charge + self.magnetization)
             elif ifmagn == 'down':
-                charge_down = (self.charge - self.charge_diff) / 2.0
-                if dim == 1:  # 1D section
-                    fig = plot_1d_charge(
-                        charge_down, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
-                    )
-                elif dim == 2:  # 2D section
-                    fig = plot_2d_charge(
-                        charge_down, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
-                    )
-                else:  # 3D section
-                    fig = plot_3d_charge(
-                        charge_down, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file, method, format
-                    )
+                charge = 0.5 * (self.charge - self.magnetization)
+            elif ifmagn == 'magn': 
+                charge = self.magnetization
             else:
-                if dim == 1:  # 1D section ylab='charge', plot_file='', format='', method='FFT'
-                    fig = plot_1d_charge(
-                        self.charge, G, struct_info, x0, e1, nx, 'charge', plot_file, method, format
-                    )
-                elif dim == 2:  # 2D section
-                    fig = plot_2d_charge(
-                        self.charge, G, struct_info, x0, e1, e2, nx, ny, radius, 'charge', plot_file, method, format
-                    )
-                else:  # 3D section
-                    fig = plot_3d_charge(self.charge, G, struct_info, x0, e1, e2, e3, nx, ny, nz, 'charge', plot_file,
-                                         method, format)
+                charge = self.charge
+        elif self.nspin == 4:
+            if ifmagn == 'm_x':
+                charge = self.m_x
+            elif ifmagn == 'm_y':
+                charge = self.m_y
+            elif ifmagn == 'm_z':
+                charge = self.m_z
+            else:
+                charge = self.charge
 
+        if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
+            fig = plot_1d_charge(charge, gbase, struct_info, x0, e1, nx,
+                                 'charge', plot_file, method, format)
+        elif dim == 2:  # 2D section
+            fig = plot_2d_charge(
+                    charge, gbase, struct_info, x0, e1, e2, nx, ny, radius, 
+                    'charge', plot_file, method, format)
+        else:           # 3D section
+            plot_3d_charge(
+                    charge, gbase, struct_info, x0, e1, e2, e3, nx, ny, nz, 
+                    'charge', plot_file, method, format)
         if dim < 3:
-            if show == True:
+            if show is True:
                 fig.show()
             return fig
-        else:
-            return None
+        return None
 
 
 class Potential(Charge):
