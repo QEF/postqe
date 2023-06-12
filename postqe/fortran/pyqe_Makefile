@@ -8,6 +8,9 @@
 F90 = gfortran
 FPP = ${F90} -E -cpp
 
+PP_SOURCES = \
+    fft_interpolation_mod.f90
+
 MODULES_SOURCES = \
     funct.f90 \
     recips.f90 \
@@ -17,10 +20,11 @@ MODULES_SOURCES = \
 PW_SOURCES = \
     vloc_of_g.f90
 
+PP_FILES = $(addprefix $(BUILD_DIR)/wrapfiles/, ${PP_SOURCES})
 MODULES_FILES = $(addprefix $(BUILD_DIR)/wrapfiles/,${MODULES_SOURCES})
 PW_FILES = $(addprefix $(BUILD_DIR)/wrapfiles/,${PW_SOURCES})
 
-WRAP_FILES = ${MODULES_FILES} ${PW_FILES}
+WRAP_FILES = ${PP_FILES} ${MODULES_FILES} ${PW_FILES}
 
 print_wrap_files:
 	@echo "WRAP_FILES: ${WRAP_FILES}"
@@ -56,6 +60,8 @@ f90wrappers:
 pyqe_module:
 	f2py-f90wrap -c -m _pyqe f90wrap_*.f90 \
 		-I$(QE_BUILD_DIR)/Modules/mod/qe_modules \
+		-I$(QE_BUILD_DIR)/PP/mod/qe_pp \
+		-L$(QE_BUILD_DIT)/lib -l:libqe_pp.a \
 		-L$(QE_BUILD_DIR)/lib -l:libqe_pw.a \
 		-L$(QE_BUILD_DIR)/lib -l:libqe_modules.a \
 		-L$(QE_BUILD_DIR)/lib -l:libqe_upflib.a \
