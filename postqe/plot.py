@@ -299,8 +299,8 @@ def plot_2d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1,
     if plot_file != '':
         write_2Dcharge_file(X, Y, data2D, struct_info, x0, e1, e2, nx, ny, plot_file, method, format)
 
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    fig, ax  = plt.subplots(subplot_kw={"projection":"3d"}) 
+    X,Y = np.meshgrid(X,Y) 
     ax.plot_surface(X, Y, data2D.T.real, rstride=1, cstride=1, alpha=0.3)
     cset = ax.contour(X, Y, data2D.T.real, zdir='z', offset=data2D.real.min(), cmap=cm.coolwarm)
     cset = ax.contour(X, Y, data2D.T.real, zdir='x', offset=X.min(), cmap=cm.coolwarm)
