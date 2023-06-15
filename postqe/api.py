@@ -9,6 +9,7 @@
 A collection of functions defining postqe API and exposed to the user.
 """
 import os
+from pathlib import Path
 
 from .eos import QEEquationOfState
 from .dos import QEDOS
@@ -334,17 +335,14 @@ def get_charge(prefix='pwscf', outdir=None, schema=None):
     """
     calc = get_calculator(prefix, outdir, schema, cls=PostqeCalculator)
     calc.read_results()
-
+    
     atoms = calc.get_atoms_from_xml_output()
     atoms.set_calculator(calc)
     atoms.calc.read_results()
 
-    nr = calc.get_nr()
-    charge_file = calc.label + '.save/' + "charge-density.hdf5"
+    charge_path = Path(outdir).absolute() / f"{prefix}.save/charge-density.hdf5"
 
-    charge = Charge(nr)
-    charge.read(charge_file)
-    charge.set_calculator(calc)
+    charge = Charge(str(charge_path), calc) 
 
     return charge
 
