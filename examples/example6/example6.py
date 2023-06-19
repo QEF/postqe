@@ -10,12 +10,12 @@ if __name__ == "__main__":
 
     v_bare = get_potential(prefix='Silicon', outdir='outdir', schema='../../schemas/qes.xsd', pot_type='v_bare')
     v_bare.write('v_bare.dat')
-    fig1 = v_bare.plot(x0=(0, 0, 0), e1=(1, 0, 0), nx=50, show=False)
+    fig1 = v_bare.plot(x0=(0, 0, 0), e1=(1, 0, 0), nx=50, dim=2, show=False)
     fig1.savefig("figure_v_bare.png")
 
     v_h = get_potential(prefix='Silicon', outdir='outdir', schema='../../schemas/qes.xsd', pot_type='v_h')
     v_h.write('v_h.dat')
-    fig2 = v_h.plot(x0=(0, 0, 0), e1=(1, 0, 0), nx=50, show = False)
+    fig2 = v_h.plot(x0=(0, 0, 0), e1=(1, 0, 0), nx=50, dim =2, show = False)
     fig2.savefig("figure_v_h.png")
 
     v_xc = get_potential(prefix='Silicon', outdir='outdir', schema='../../schemas/qes.xsd', pot_type='v_xc')
