@@ -194,6 +194,7 @@ def plot_1d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), nx=20, yl
     :return: the matplotlib figure object
     """
     fft = Fft_Interpolation_Mod()
+    e1 = np.asarray(e1)
     m1 = np.sqrt(e1.dot(e1))
     deltax = m1/(nx - 1)
     line = np.array([x0+e1/m1 * ix * deltax for ix in range(nx)])
@@ -285,6 +286,8 @@ def plot_2d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1,
     :return: the matplotlib figure object
     """
     #orthogonalize e2 w.r.t e1 so that it is easier to make the plot 
+    e1 = np.asarray(e1)
+    e2 = np.asarray(e2)
     m1 = np.sqrt(e1.dot(e1))
     e2 = e2 - e2.dot(e1)*e1/m1
     m2 = np.sqrt(e2.dot(e2))

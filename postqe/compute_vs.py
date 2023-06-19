@@ -93,14 +93,13 @@ def compute_Gs(b, nr, ecutrho, alat):
     return G, G2
 
 
-def compute_v_bare(ecutrho, alat, at1, at2, at3, nr, atomic_positions, species, pseudodir):
+def compute_v_bare(charge, pseudodir):
     """
     This function computes the bare potential. It calls the wrapper function
     wrap_setlocal from the setlocal python module which is an interface to
     call the proper fortran functions.
     """
-    v_F = wrap_setlocal(alat, at1, at2, at3, nr[0], nr[1], nr[2], atomic_positions,
-                        species, 2.0*ecutrho, pseudodir)
+    v_F = wrap_setlocal(charge, pseudodir)
     return v_F
 
 
@@ -137,7 +136,16 @@ def get_v_h_from_hdf5(filename, nr, dataset='rhotot_g'):
 
     return np.fft.ifftn(aux).real*8.e0*np.pi*nrrr
 
-
+def compute_v_h_g_from_cdata(cdata, mill, bg):
+    """
+    computes reciprocal space components of Hartree Potential
+    subracting constant compensating charge background. 
+    """
+    gbase = mill.dot(bg) 
+    gg = np.array([g.dot(g) for g in gbase]) * 8 * np.pi
+    return np.array([rhog/max(gg[ig],1e-10) if gg[ig] > 1.e0-10 else 0.e0+0.e0j 
+                     for ig,rhog in enumerate(cdata)])
+    
 def compute_v_h(charge, ecutrho, alat, b):
     """
     This function computes the hartree potential from the charge and
@@ -158,14 +166,13 @@ def compute_v_h(charge, ecutrho, alat, b):
     return v.real
 
 
-def compute_v_xc(charge, charge_core, functional):
+def compute_v_xc(charge, charge_core, mill, nr, functional):
     """
     This function computes the exchange-correlation potential from the charge and
     the type of functional given in input. The charge is a numpy matrix nr1*nr2*nr3.
     The functional is a string identifying the functional as in QE convention.
     """
     vanishing_charge = 1.0E-10
-    nr = charge.shape
     v = np.zeros(nr)
 
     for x in range(0, nr[0]):
@@ -178,5 +185,6 @@ def compute_v_xc(charge, charge_core, functional):
                     # FIXME: subroutine xc removed in QE 6.8!
                     ex, ec, vx, vc = pyqe.pyqe_xc(arhox, functional)
                     v[x, y, z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
-
-    return v
+    v = np.fft.fftn(v)
+    vxcg = np.array([ v[_[0], v[_[1]], v[_[2]]] for _ in mill])
+    return vxcg

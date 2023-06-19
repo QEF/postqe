@@ -6,10 +6,12 @@
 # https://opensource.org/licenses/LGPL-2.1
 #
 from operator import ge
+from pathlib import Path
+#
 import numpy as np
 import h5py
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
-from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
+from .compute_vs import compute_v_bare, compute_v_h_g_from_cdata, compute_v_xc
 from qeschema.hdf5 import read_charge_file
 ####### TO BE MOVED TO QESCHEMA 1.2 #######
 
@@ -190,7 +192,7 @@ def charge_r_from_cdata(cdata, MI, gamma_only, nr ):
                 rho_temp[i,j,k] = rhog
             except IndexError:
                 pass
-    return np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
+    return (np.fft.ifftn(rho_temp)).real * nr1 * nr2 * nr3
 
 
 
@@ -245,11 +247,11 @@ class Charge:
         self.nspin = tempdict['nspin']
         self.domag = tempdict['domag']
         if self.nspin == 2:
-            self.magnetization = get_density_data_hdf5(filename, 'rhodiff_g')['rhog']
+            self.magnetization = get_density_data_hdf5(filename, 'rhodiff_g')['rhodiff_g']
         elif self.nspin == 4:
-            self.m_x = get_density_data_hdf5(filename, 'm_x')['rhog']
-            self.m_y = get_density_data_hdf5(filename, 'm_y')['rhog']
-            self.m_z = get_density_data_hdf5(filename, 'm_z')['rhog']
+            self.m_x = get_density_data_hdf5(filename, 'm_x')['m_x']
+            self.m_y = get_density_data_hdf5(filename, 'm_y')['m_y']
+            self.m_z = get_density_data_hdf5(filename, 'm_z')['m_z']
 
     def write(self, filename, nr = None):
         if nr is None:
@@ -379,20 +381,22 @@ class Potential(Charge):
         self.setvars(*args, **kwargs)
         try:
             self.pot_type = pot_type
-        except:
+        except AttributeError:
             self.pot_type = 'v_tot'
 
-    def write(self, filename):
+    def write(self, filename, nr = None):
         """
         Write the potential in a text file. The potential must have been calculated before.
         :param filename: name of the output file
         """
+        if nr is None:
+            nr = self.nr
         header='# Potential file '+self.pot_type+'\n'
         header+='# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
         try:
-            self.v
-            write_charge(filename, self.v, header)
-        except:
+            vofr = charge_r_from_cdata(self.v, self.MI, self.gamma_only, nr)
+            write_charge(filename, vofr, header)
+        except AttributeError:
             pass
 
     def compute_potential(self):
@@ -415,29 +419,28 @@ class Potential(Charge):
         # pseudofile = self.calculator.get_pseudofile()
         # pseudodir = self.calculator.get_pseudodir()
         outdir = self.calculator.get_outdir()
-        pseudo_location='{}/{}.save'.format(outdir, prefix)
+        pseudo_location = Path(outdir).absolute() / f"{prefix}.save"
 
-        if self.pot_type=='v_bare':
+        if self.pot_type == 'v_bare':
             # self.v = compute_v_bare(
             #     ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
             # )
-            self.v = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
-            )
+            self.v = compute_v_bare(self, pseudo_location)
         elif self.pot_type=='v_h':
-            self.v = compute_v_h(self.charge, ecutrho, alat, b)
+            self.v = compute_v_h_g_from_cdata(self.charge, self.MI, self.bg)
         elif self.pot_type=='v_xc':
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
-            self.v = compute_v_xc(self.charge, charge_core, str(functional))
+            charge = charge_r_from_cdata(self.charge, self.MI, self.gamma_only, self.nr)
+            self.v = compute_v_xc(charge, charge_core, self.MI, self.nr, 
+                                  str(functional))
         elif self.pot_type=='v_tot':
-            v_bare = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
-            )
-            v_h =  compute_v_h(self.charge, ecutrho, alat, b)
+            v_bare = compute_v_bare(self, pseudo_location)
+            v_h =  compute_v_h_g_from_cdata(self.charge, self.MI, self.bg) 
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
-            v_xc = compute_v_xc(self.charge, charge_core, str(functional))
+            charge = charge_r_from_cdata(self.charge, self.MI, self.gamma_only, self.nr)
+            v_xc = compute_v_xc(charge, charge_core, self.MI, self.nr, str(functional))
             self.v = v_bare + v_h + v_xc
 
 
@@ -472,9 +475,8 @@ class Potential(Charge):
         # TODO: implement a Matplotlib plot for polar 2D
         try:
             self.v
-        except:
+        except AttributeError:
             self.compute_potential()
-
         # Extract some structural info in a dictionary
         struct_info = {
             'a': self.calculator.get_a_vectors(),
@@ -484,17 +486,18 @@ class Potential(Charge):
             'atomic_positions': self.calculator.get_atomic_positions(),
             'atomic_species': self.calculator.get_atomic_species(),
         }
-        G = compute_G(struct_info['b'], self.nr)
+        tpiba = 2.0 * np.pi / struct_info['alat'] 
+        gbase = self.MI.dot(self.bg) / tpiba
 
         if dim == 1:    # 1D section ylab='charge', plot_file='', format='', method='FFT'
-            fig = plot_1d_charge(self.v, G, struct_info, x0, e1, nx, self.pot_type, plot_file, method, format)
+            fig = plot_1d_charge(self.v, gbase, struct_info, x0, e1, nx, self.pot_type, plot_file, method, format)
         elif dim == 2:  # 2D section
             fig = plot_2d_charge(
-                self.v, G, struct_info, x0, e1, e2, nx, ny, radius, self.pot_type, plot_file, method, format
+                self.v, gbase, struct_info, x0, e1, e2, nx, ny, radius, self.pot_type, plot_file, method, format
             )
         else:           # 3D section
             fig = plot_3d_charge(
-                self.v, G, struct_info, x0, e1, e2, e3, nx, ny, nz, self.pot_type, plot_file, method, format
+                self.v, gbase, struct_info, x0, e1, e2, e3, nx, ny, nz, self.pot_type, plot_file, method, format
             )
 
         if dim < 3:
