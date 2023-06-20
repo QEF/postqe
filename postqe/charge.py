@@ -415,7 +415,7 @@ class Potential(Charge):
         b = self.calculator.get_b_vectors()
         atomic_positions = self.calculator.get_atomic_positions()
         atomic_species = self.calculator.get_atomic_species()
-        prefix = self.calculator.get_prefix()
+        prefix = self.calculator.get_prefix() 
         # pseudofile = self.calculator.get_pseudofile()
         # pseudodir = self.calculator.get_pseudodir()
         outdir = self.calculator.get_outdir()
@@ -427,20 +427,21 @@ class Potential(Charge):
             # )
             self.v = compute_v_bare(self, pseudo_location)
         elif self.pot_type=='v_h':
-            self.v = compute_v_h_g_from_cdata(self.charge, self.MI, self.bg)
+            self.v = compute_v_h_g_from_cdata(self.charge, self.MI, self.bg, self.nr)
         elif self.pot_type=='v_xc':
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
             charge = charge_r_from_cdata(self.charge, self.MI, self.gamma_only, self.nr)
-            self.v = compute_v_xc(charge, charge_core, self.MI, self.nr, 
-                                  str(functional))
+            self.v = compute_v_xc(charge, charge_core, self.MI, self.nr,
+                                  str(functional))[0, :]
+            
         elif self.pot_type=='v_tot':
             v_bare = compute_v_bare(self, pseudo_location)
-            v_h =  compute_v_h_g_from_cdata(self.charge, self.MI, self.bg) 
+            v_h =  compute_v_h_g_from_cdata(self.charge, self.MI, self.bg, self.nr) 
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
             charge = charge_r_from_cdata(self.charge, self.MI, self.gamma_only, self.nr)
-            v_xc = compute_v_xc(charge, charge_core, self.MI, self.nr, str(functional))
+            v_xc = compute_v_xc(charge, charge_core, self.MI, self.nr, str(functional))[0, :]
             self.v = v_bare + v_h + v_xc
 
 

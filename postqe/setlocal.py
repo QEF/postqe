@@ -48,26 +48,42 @@ def vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl):
     """
     msh = len(rab)
     tpiba2 = (np.pi * 2.e0 / alat) ** 2
-    vloc = np.empty(0)  # TODO: check this
+    vloc = np.zeros([len(gl)], dtype=np.float64) 
     # mesh = TODO
     # ngl = TODO
     # FIXME: vloc_of_g now is wrapped but its missing parameters in the call!
     # pyqe.vloc_of_g(mesh, msh, rab, r, vloc_at, zp, tpiba2, ngl, gl, omega, vloc) missing ngl and mesh and vloc
-    pyqe.vloc_of_g(msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp,
-                   tpiba2=tpiba2, gl=gl, omega=omega, vloc=vloc)
+    pyqe.vloc_of_g(msh, msh, r=r, rab=rab, vloc_at=vloc_r, zp=zp,
+                   tpiba2=tpiba2, ngl=len(gl), gl=gl, omega=omega, vloc=vloc)
     return vloc
 
 
 def shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl):
     aux = np.zeros([nr1, nr2, nr3], dtype="D")
-    for nt in range(len(vlocs)):
-        for ig in range(len(mill)):
-            ijk = mill[ig]
-            i = int(ijk[0])
-            j = int(ijk[1])
-            k = int(ijk[2])
-            aux[i, j, k] += strct_facs[nt][ig] * vlocs[nt][igtongl[ig]-1]
+    envloc = enumerate(vlocs) 
+    enmil = enumerate(mill) 
+    for nt , vloc in envloc:
+        for ig, ijk  in enmil:
+            aux[ijk[0], ijk[1], ijk[2]] += strct_facs[nt][ig] * vlocs[nt][igtongl[ig]-1]
     return np.fft.ifftn(aux)*(nr1*nr2*nr3)
+
+
+def shift_and_sum(vlocs, strct_facs, igtongl):
+    """
+    returns the G components of total vloc potential summing single besser transforms in vlocs
+    shifting and phasing thenm with strct_facs 
+    parameters:
+    vlocs: list of float64 np.ndarray one per each species
+    strct_facs: list of complex128 np.ndarray with structure factor of each species
+    igtongl:  integer np.ndarray: map from ig index to ngl index 
+    """
+    vtot_g = np.zeros([len(igtongl)], dtype = np.complex128)
+    envloc = enumerate(vlocs) 
+    for nt, vloc in envloc: 
+        for ig, ngl in enumerate(igtongl):
+            vtot_g[ig] += strct_facs[nt][ig] * vloc[ngl-1]
+    return vtot_g 
+
 
 
 def compute_struct_fact(tau, alat, g):
@@ -75,13 +91,24 @@ def compute_struct_fact(tau, alat, g):
     return str_fact
 
 
-def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species, ecutrho,
-                  pseudodir):
-    omega = abs(at1[0] * at2[1] * at3[2] + at1[1] * at2[2] * at3[0] + at1[2] * at2[0] * at3[1] -
-                at3[0] * at2[1] * at1[2] - at3[1] * at2[2] * at1[0] - at3[2] * at2[0] * at3[1])
-
-    g, gg, mill, igtongl, gl = generate_glists(alat, at1, at2, at3, nr1, nr2, nr3, ecutrho)
-
+def wrap_setlocal(charge, pseudodir):
+    """
+    Parameters:
+    alat: lattice constant 
+    charge: Charge or Potential instance
+    pseudodir: string of pathlib.Path instance with the location of the pseudos
+    """
+    alat = charge.calculator.get_alat()
+    tpiba = (2.0 * np.pi / alat) 
+    at = np.zeros([3,3],dtype=np.float64)
+    pyqe.recips(*charge.bg/2.0/np.pi, *at)
+    omega = at[0].dot(np.cross(at[1], at[2]))
+    g = charge.MI.dot(charge.bg) / tpiba
+    gg = np.array([_.dot(_) for _ in g])
+    igtongl, ngl = f90utils.get_igtongl(gg) 
+    gl = f90utils.get_gl(gg, ngl) 
+    species = charge.calculator.get_atomic_species()
+    atomic_positions = charge.calculator.get_atomic_positions()
     strct_facs = []
 
     for typ in species:
@@ -90,7 +117,7 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
         for pos in atomic_positions:
             if pos["@name"] == name:
                 coords = [float(x) for x in pos['$']]
-                new_atomic_positions = np.array(coords) * alat
+                new_atomic_positions = np.array(coords) 
                 tau_spec.append(new_atomic_positions)
         tau_spec = np.array(tau_spec)
         str_fact = compute_struct_fact(tau_spec, alat, g)
@@ -115,11 +142,9 @@ def wrap_setlocal(alat, at1, at2, at3, nr1, nr2, nr3, atomic_positions, species,
             with open(filename, 'r') as f:
                 line = [s for s in f.readlines() if 'z_valence=' in s][0]
                 zp = float(line.split('"')[1])
-
-        vloc_g = vloc_of_g(rab, r, vloc_r, zp, alat, omega,  gl)
+        vloc_g = vloc_of_g(rab, r, vloc_r, zp, alat, omega, gl)
 
         vlocs.append(vloc_g)
 
-    vltot = shift_and_transform(nr1, nr2, nr3, vlocs, strct_facs, mill, igtongl)
-    prova = np.real(vltot)
-    return prova
+    vltot = shift_and_sum(vlocs, strct_facs, igtongl) 
+    return vltot

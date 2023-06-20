@@ -136,15 +136,16 @@ def get_v_h_from_hdf5(filename, nr, dataset='rhotot_g'):
 
     return np.fft.ifftn(aux).real*8.e0*np.pi*nrrr
 
-def compute_v_h_g_from_cdata(cdata, mill, bg):
+def compute_v_h_g_from_cdata(cdata, mill, bg, nr):
     """
     computes reciprocal space components of Hartree Potential
     subracting constant compensating charge background. 
     """
+    nrrr = nr[0] * nr[1] * nr[2]
     gbase = mill.dot(bg) 
     gg = np.array([g.dot(g) for g in gbase]) * 8 * np.pi
     return np.array([rhog/max(gg[ig],1e-10) if gg[ig] > 1.e0-10 else 0.e0+0.e0j 
-                     for ig,rhog in enumerate(cdata)])
+                     for ig,rhog in enumerate(cdata)]) * nrrr
     
 def compute_v_h(charge, ecutrho, alat, b):
     """
@@ -172,19 +173,30 @@ def compute_v_xc(charge, charge_core, mill, nr, functional):
     the type of functional given in input. The charge is a numpy matrix nr1*nr2*nr3.
     The functional is a string identifying the functional as in QE convention.
     """
-    vanishing_charge = 1.0E-10
-    v = np.zeros(nr)
-
-    for x in range(0, nr[0]):
-        for y in range(0, nr[1]):
-            for z in range(0, nr[2]):
-                rhox = charge[x, y, z] + charge_core[x, y, z]
-                arhox = abs(rhox)
-                if arhox > vanishing_charge:
-
-                    # FIXME: subroutine xc removed in QE 6.8!
-                    ex, ec, vx, vc = pyqe.pyqe_xc(arhox, functional)
-                    v[x, y, z] = 2.0 * (vx+vc)   # the factor 2.0 is e2 in a.u.
-    v = np.fft.fftn(v)
-    vxcg = np.array([ v[_[0], v[_[1]], v[_[2]]] for _ in mill])
+    nrrr = nr[0] * nr[1] * nr[2]
+    nspin = 1 if len(charge.shape) == 3 else charge.shape[3]
+    shapecharge = [nrrr, nspin]  
+    if nspin > 1: 
+        shapepot = [nrrr,2]
+        nspinv = 2
+    else:
+        nspinv = 1
+        shapepot = [nrrr, 1] 
+    vx = np.zeros(shapepot, order='F')
+    vc = np.zeros(shapepot, order='F')
+    ex = np.zeros(shapepot, order='F')
+    ec = np.zeros(shapepot, order='F')
+    v =  np.zeros(shapepot, order='F', dtype=np.complex128)
+    charge = charge + charge_core 
+    np.reshape(charge, shapecharge, order='F')
+    pyqe.dft_setting_routines.xclib_set_dft_from_name('LDA') 
+    pyqe.xc_lib.xc(nrrr, nspin, nspinv, charge, ex, ec, vx, vc, False)
+    v = v.reshape(list(nr)+[nspinv], order='F') +  2.0 * (
+        vx.reshape(list(nr)+[nspinv], order='F') + 
+        vc.reshape(list(nr)+[nspinv], order='F'))   # the factor 2.0 is e2 in a.u.
+    for ispin in range(nspinv):
+        v[:, :, :, ispin] = np.fft.fftn(v[:, :, :, ispin])/np.sqrt(nrrr)
+    vxcg = np.array([ 
+        np.array([v[_[0], _[1], _[2],ispin] for _ in mill])
+        for ispin in range(nspinv)])
     return vxcg
