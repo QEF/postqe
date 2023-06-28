@@ -5,22 +5,16 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-from distutils.log import error
-from importlib.resources import path
 from collections import deque
 from pathlib import Path
 
 # from modulefinder import EXTENDED_ARG
-from operator import ge
 import os
 import re
 import subprocess
-from datetime import datetime
-from tabnanny import check
 import numpy as np
 import pathlib
 import qeschema
-import logging
 
 from .pp_dict import pp_dict
 
@@ -28,12 +22,7 @@ from ase.atoms import Atoms, Atom
 from ase.data import chemical_symbols, atomic_masses
 from ase.spectrum.band_structure import BandStructure
 from ase.dft.kpoints import labels_from_kpts, BandPath
-from ase.calculators.calculator import (
-    all_changes,
-    FileIOCalculator,
-    Calculator,
-    kpts2ndarray,
-)
+from ase.calculators.calculator import all_changes, FileIOCalculator
 import ase.units as units
 
 
@@ -271,8 +260,8 @@ def get_band_structure(atoms=None, calc=None, labels=None, ref=0):
         ]
     hs_kpoints = [_[0] for _ in get_hs_points(kpts)]
     special_kpoints = dict(zip(labels, hs_kpoints))
-    energies = np.array([calc._get_all_eigenvalues()[:,s,:] 
-                         for s in range(calc.get_number_of_spins())]) 
+    energies = np.array([calc._get_all_eigenvalues()[:, s, :]
+                         for s in range(calc.get_number_of_spins())])
     bp = BandPath(cell=atoms.cell, kpts=kpts, special_points=special_kpoints)
     return BandStructure(path=bp, energies=energies, reference=ref)
 
@@ -290,7 +279,9 @@ def get_hs_points(points, m=None):
         k2 = buff[2] - buff[1]
         ps = k1.dot(k2) / np.sqrt(k1.dot(k1) * k2.dot(k2))
         if m is not None:
-            nng = lambda v: np.array([round(_, 0) for _ in v.dot(m.T)])
+            def nng(v):
+                return np.array([round(_, 0) for _ in v.dot(m.T)])
+
             nng1 = nng(buff[1])
             nng2 = nng(buff[2])
             #
@@ -356,8 +347,9 @@ class EspressoCalculator(FileIOCalculator):
     >>> from postqe import EspressoCalculator
     >>> from ase.build import bulk
     >>> copper_bulk = bulk('Cu', 'fcc', a=3.6, cubic=True)
-    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(calculation=scf, ecutwfc=40, occupations='smearing', smearing='gaussian',
-                                                                degauss=0.001, conv_thr=1e-8, kpoints=[2,2,2,0,0,0], pseudo_dir='../'))
+    >>> h = Atoms(copper_bulk, calculator=EspressoCalculator(
+    ... calculation=scf, ecutwfc=40, occupations='smearing', smearing='gaussian',
+    ... degauss=0.001, conv_thr=1e-8, kpoints=[2,2,2,0,0,0], pseudo_dir='../'))
     >>> h.center(vacuum=3.0)
     >>> e = h.get_potential_energy()
     >>> print(e)
@@ -368,7 +360,9 @@ class EspressoCalculator(FileIOCalculator):
 
     implemented_properties = ["energy", "forces"]
 
-    # this gives /some_path/venvPostQE/lib/python3.10/site-packages/postqe/fortran/build/q-e/bin/pw.x ??? folder fortran/build/q-e/bin/ does not exist
+    # this gives
+    #   /some_path/venvPostQE/lib/python3.10/site-packages/postqe/fortran/build/q-e/bin/pw.x
+    # but folder fortran/build/q-e/bin/ does not exist
     # command = str(pathlib.Path(__file__).parent.joinpath(
     #     'fortran/build/q-e/bin/pw.x < PREFIX.in > PREFIX.out'
     # ))
@@ -481,7 +475,8 @@ class EspressoCalculator(FileIOCalculator):
         for Z in self.species:
             finput.write(chemical_symbols[Z] + " " + str(atomic_masses[Z]) + " ")
             finput.write("%s\n" % self.pp_dict[Z])
-            # SUGGESTION: maybe add somewhere a automatic download of the pseudo file as in the pp_dict ?
+            # SUGGESTION: maybe add somewhere a automatic download
+            # of the pseudo file as in the pp_dict ?
             pass
 
         # Write the ATOMIC_POSITIONS section

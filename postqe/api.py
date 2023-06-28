@@ -23,6 +23,7 @@ def get_label(prefix='pwscf', outdir=None):
         outdir = os.environ.get('ESPRESSO_TMPDIR', './')
     return os.path.join(outdir, f'{prefix}.save/')
 
+
 def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=None, **kwargs):
     """
     Returns a calculator instance for QuantumEspresso.
@@ -46,7 +47,7 @@ def get_calculator(prefix='pwscf', outdir=None, schema=None, pp_dict=None, cls=N
     return cls(label=prefix, schema=schema, pp_dict=pp_dict, **kwargs)
 
 
-## New CLI-API interfaces ###'{}.save/data-file-schema.xml'.format(prefix))
+# New CLI-API interfaces ###'{}.save/data-file-schema.xml'.format(prefix))
 
 def new_get_charge(prefix=None, output=None, filplot=None):
     plot = []
@@ -57,7 +58,7 @@ def new_get_charge(prefix=None, output=None, filplot=None):
     return plot
 
 
-## New CLI-API interfaces ###
+# New CLI-API interfaces ###
 
 def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     """
@@ -76,7 +77,7 @@ def get_plot(plot_num, filplot=None, prefix=None, output=None, **kwargs):
     print(plot_num, prefix, output, filplot, kwargs)
 
     if plot_num == '0':
-        spin = kwargs.get('spin', 0)
+        # TODO?  spin = kwargs.get('spin', 0)
         pass
     elif plot_num == '1':
         pass
@@ -131,7 +132,8 @@ def get_eos(prefix='volumes_and_energies.dat', outdir=None, eos_type='murnaghan'
     Fits an Equation of state of type *eos* and returns an QEEquationOfState object.
     Different equation of states are available (see below).
 
-    :param prefix: name of the input file with volumes and energies (default: volumes_and_energies.dat)
+    :param prefix: name of the input file with volumes and energies \
+    (default: volumes_and_energies.dat)
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are:\n\
@@ -151,7 +153,7 @@ def get_eos(prefix='volumes_and_energies.dat', outdir=None, eos_type='murnaghan'
 
     # FIXME!! bisogna computare il filename o spostiamo read_EtotV nel calculator ...
     # label = get_label(prefix, outdir)
-    #Temporary fix
+    # Temporary fix
     if outdir is None:
         try:
             outdir = os.environ['ESPRESSO_TMPDIR']
@@ -173,7 +175,8 @@ def compute_eos(prefix, outdir=None, eos_type='murnaghan', fileout='',
     Fits an Equation of state of type *eos_type*, writes the results into *fileout* (optionally)
     and creates a Matplotlib figure. Different equation of states are available (see below).
 
-    :param prefix: name of the input file with volumes and energies (default: volumes_and_energies.dat)
+    :param prefix: name of the input file with volumes and energies \
+    (default: volumes_and_energies.dat)
     :param outdir: directory containing the input data. Default to the value of \
     ESPRESSO_TMPDIR environment variable if set, or current directory ('.') otherwise
     :param eos_type: type of equation of state (EOS) for fitting. Available types are: \
@@ -310,8 +313,8 @@ def compute_dos(prefix='pwscf', outdir=None, schema=None, width=0.01, window=Non
     import matplotlib.pyplot as plt
     plt.plot(e, d)
     if dos.nspins == 2:
-        plt.plot(e,dd)
-    
+        plt.plot(e, dd)
+
     plt.xlabel('energy [eV]')
     plt.ylabel('DOS')
     plt.savefig(fileplot)
@@ -441,9 +444,9 @@ def get_potential(prefix='pwscf', outdir=None, schema=None, pot_type='v_tot'):
 
 
 def compute_potential(prefix='pwscf', outdir=None, schema=None, pot_type='v_tot', fileout='',
-                      x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.),
-                      ny = 50, e3 = (0., 0., 1.), nz = 50, radius = 1, dim = 1,
-                      plot_file = '', method = 'FFT', format = 'gnuplot', show = True):
+                      x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.),
+                      ny=50, e3=(0., 0., 1.), nz=50, radius=1, dim=1,
+                      plot_file='', method='FFT', format='gnuplot', show=True):
     """
     Returns an Potential object from an output xml Espresso file and the
     corresponding HDF5 charge file containing the results of a calculation.

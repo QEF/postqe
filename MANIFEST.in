@@ -7,7 +7,7 @@ include requirements.txt
 include tox.ini
 include doc/*
 include postqe/*.py
-include postqe/pyqe*.so
+include postqe/_pyqe*.so
 include postqe/f90utils*.so
 include postqe/fortran/*.f90
 recursive-include tests *
