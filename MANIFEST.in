@@ -7,11 +7,11 @@ include requirements.txt
 include requirements-dev.txt
 include tox.ini
 include doc/*
-include postqe/*.py
-include postqe/fortran/*
-include postqe/fortran/wrapfiles/*.f90
+include src/postqe/*.py
+include src/postqe/fortran/*
+include src/postqe/fortran/wrapfiles/*.f90
 recursive-include tests *
 recursive-include examples *
 
-exclude postqe/pyqe.py
+exclude src/postqe/pyqe.py
 global-exclude *.py[cod]

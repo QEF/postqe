@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import cast
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install_lib import install_lib
@@ -182,7 +182,8 @@ class InstallLibCommand(install_lib):
 setup(
     name='postqe',
     version='1.0.0',
-    packages=['postqe'],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     package_data={
         'postqe': ['fortran/*', 'fortran/wrapfiles/*.f90']
     },

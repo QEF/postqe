@@ -16,7 +16,7 @@
 !.coveragerc
 dist/
 build/
-postqe/pyqe.py
+src/postqe/pyqe.py
 pqenv/
 .idea/
 .tox/
