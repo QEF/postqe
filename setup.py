@@ -1,5 +1,5 @@
 #
-# Copyright (c), 2016-2017, Quantum Espresso Foundation and SISSA (Scuola
+# Copyright (c), 2016-2023, Quantum Espresso Foundation and SISSA (Scuola
 # Internazionale Superiore di Studi Avanzati). All rights reserved.
 # This file is distributed under the terms of the LGPL-2.1 license. See the
 # file 'LICENSE' in the root directory of the present distribution, or
@@ -39,20 +39,16 @@ class BuildExtCommand(build_ext):
         self._build_pyqe_module(build_dir)
 
         if self.inplace:
-            # Develop mode: move extension modules to source package dir
+            # Develop mode: copy extension modules to source package dir
             build_py_cmd = cast(build_py, self.get_finalized_command('build_py'))
-            dst_dir = build_py_cmd.get_package_dir('postqe')
-        else:
-            # Install mode: move extension modules to lib package dir
-            dst_dir = str(build_dir.parent)
+            package_dir = build_py_cmd.get_package_dir('postqe')
 
-        self.move_file(src=str(build_dir.joinpath("pyqe.py")), dst=dst_dir)
-
-        for srcfile in build_dir.glob("_pyqe*.so"):
-            self.move_file(src=str(srcfile), dst=dst_dir)
-
-        for srcfile in build_dir.glob("f90utils*.so"):
-            self.move_file(src=str(srcfile), dst=dst_dir)
+            self.copy_file(
+                infile=str(build_dir.parent.joinpath("pyqe.py")),
+                outfile=package_dir
+            )
+            for srcfile in build_dir.parent.glob("*.so"):
+                self.copy_file(infile=str(srcfile), outfile=package_dir)
 
     @staticmethod
     def _build_quantum_espresso(qe_build_dir):
@@ -99,13 +95,14 @@ class BuildExtCommand(build_ext):
         print("Build Quantum Espresso ...")
         os.system(f"make -C {qe_build_dir} -j qe_pp")
 
-    @staticmethod
-    def _build_f90utils_module(build_dir):
+    def _build_f90utils_module(self, build_dir):
         print("Build f90utils module ...")
-        os.system(f"make -f f90utils_Makefile -C {build_dir} f90utils_module")
 
-    @staticmethod
-    def _build_pyqe_module(build_dir):
+        os.system(f"make -f f90utils_Makefile -C {build_dir} f90utils_module")
+        for srcfile in build_dir.glob("f90utils*.so"):
+            self.move_file(src=str(srcfile), dst=str(build_dir.parent))
+
+    def _build_pyqe_module(self, build_dir):
         print("Build pyqe module ...")
 
         qe_build_dir = build_dir.joinpath("qe").absolute()
@@ -169,6 +166,10 @@ class BuildExtCommand(build_ext):
             python_wrapper_lines[0] = "# Altered wrapper for postqe\n"
             python_wrapper_lines[1] = "from . import _pyqe\n"
             _fp.writelines(python_wrapper_lines)
+
+        self.move_file(src=str(build_dir.joinpath("pyqe.py")), dst=str(build_dir.parent))
+        for srcfile in build_dir.glob("_pyqe*.so"):
+            self.move_file(src=str(srcfile), dst=str(build_dir.parent))
 
 
 class InstallLibCommand(install_lib):
