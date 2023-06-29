@@ -8,15 +8,13 @@
 
 import os
 import re
-import platform
 from pathlib import Path
+from typing import cast
 
 from setuptools import setup
+from setuptools.command.build_py import build_py
+from setuptools.command.build_ext import build_ext
 from setuptools.command.install_lib import install_lib
-
-from distutils import log
-from distutils.command.clean import clean  # type: ignore[attr-defined]
-from distutils.file_util import move_file
 
 
 VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\")")
@@ -25,93 +23,53 @@ with Path(__file__).parent.joinpath("requirements.txt").open() as fp:
     REQUIREMENTS = fp.read()
 
 
-def find_extension_module(pattern):
-    """
-    Returns the absolute pathname of an extension module built for the running platform.
+class BuildExtCommand(build_ext):
 
-    :param pattern: a glob pattern iterable for finding the candidate extension modules.
-    :return: A pathname string or `None` if no suitable module is found.
-    """
-    python_version = "".join(platform.python_version_tuple()[:2])
+    def run(self):
+        build_ext.run(self)
 
-    for filename in map(str, pattern):
-        if (
-            f"-{python_version}-" not in filename
-            and f"{python_version}m" not in filename
-        ):
-            continue
-        elif platform.python_implementation().lower() not in filename:
-            continue
-        elif platform.system().lower() not in filename:
-            continue
-        elif platform.machine() not in filename:
-            continue
-        return filename
-    else:
-        return None
+        # Build Fortran based modules
+        build_dir = Path(self.build_lib).joinpath('postqe/fortran')
+        qe_build_dir = build_dir.joinpath("qe")
+        if not qe_build_dir.exists():
+            qe_build_dir.mkdir(parents=True)
 
+        self._build_quantum_espresso(qe_build_dir)
+        self._build_f90utils_module(build_dir)
+        self._build_pyqe_module(build_dir)
 
-class InstallLibCommand(install_lib):
-    verbose: bool
-    dry_run: bool
+        if self.inplace:
+            # Develop mode: move extension modules to source package dir
+            build_py_cmd = cast(build_py, self.get_finalized_command('build_py'))
+            dst_dir = build_py_cmd.get_package_dir('postqe')
+        else:
+            # Install mode: move extension modules to lib package dir
+            dst_dir = str(build_dir.parent)
 
-    def build(self):
-        # base method builds python modules (build_py) and C extensions (build_ext)
-        install_lib.build(self)
+        self.move_file(src=str(build_dir.joinpath("pyqe.py")), dst=dst_dir)
 
-        if not self.skip_build:
-            # Build Fortran based modules
-            # TODO: clean steps, checking if binary modules already exist
-            #   and reading the QE_TOPDIR variable
-            build_dir = Path(self.build_dir).joinpath('postqe/fortran')
-            qe_build_dir = build_dir.joinpath("qe")
-            if not qe_build_dir.exists():
-                qe_build_dir.mkdir(parents=True)
+        for srcfile in build_dir.glob("_pyqe*.so"):
+            self.move_file(src=str(srcfile), dst=dst_dir)
 
-            self._build_f90utils_module(build_dir)
-            self._build_quantum_espresso(qe_build_dir)
-            self._build_pyqe_module(build_dir)
-
-            move_file(
-                src=str(build_dir.joinpath("pyqe.py")),
-                dst=str(build_dir.parent),
-                verbose=self.verbose,
-                dry_run=self.dry_run,
-            )
-
-            for srcfile in build_dir.glob("_pyqe*.so"):
-                move_file(
-                    src=str(srcfile),
-                    dst=str(build_dir.parent),
-                    verbose=self.verbose,
-                    dry_run=self.dry_run,
-                )
-
-            for srcfile in build_dir.glob("f90utils*.so"):
-                move_file(
-                    src=str(srcfile),
-                    dst=str(build_dir.parent),
-                    verbose=self.verbose,
-                    dry_run=self.dry_run,
-                )
-
-    @staticmethod
-    def _build_f90utils_module(build_dir):
-        print("Build f90utils module ...")
-        os.system(f"make -f f90utils_Makefile -C {build_dir} f90utils_module")
+        for srcfile in build_dir.glob("f90utils*.so"):
+            self.move_file(src=str(srcfile), dst=dst_dir)
 
     @staticmethod
     def _build_quantum_espresso(qe_build_dir):
         try:
-            qe_topdir = Path(os.environ["QE_TOPDIR"]).absolute()
+            qe_topdir = Path(os.environ["QE_TOPDIR"])
         except KeyError:
-            print("Please specify the QE_TOPDIR before executing setup.py")
-            raise
+            raise RuntimeError("Missing the QE_TOPDIR variable!")
         else:
-            if not qe_topdir.is_dir():
-                raise FileNotFoundError(
-                    f"Missing QE_TOPDIR={str(qe_topdir)!r} directory!"
-                )
+            if not qe_topdir.is_absolute():
+                msg = f"QE_TOPDIR variable: must be an absolute filepath!"
+                raise ValueError(msg)
+            elif not qe_topdir.exists():
+                msg = f"QE_TOPDIR variable: directory {str(qe_topdir)} does not exist!"
+                raise FileNotFoundError(msg)
+            elif not qe_topdir.is_dir():
+                msg = f"QE_TOPDIR variable: file {str(qe_topdir)} is not a directory!"
+                raise TypeError(msg)
 
         # Check QE installation
         for version_file in qe_topdir.glob("include/*version.h"):
@@ -142,6 +100,11 @@ class InstallLibCommand(install_lib):
         os.system(f"make -C {qe_build_dir} -j qe_pp")
 
     @staticmethod
+    def _build_f90utils_module(build_dir):
+        print("Build f90utils module ...")
+        os.system(f"make -f f90utils_Makefile -C {build_dir} f90utils_module")
+
+    @staticmethod
     def _build_pyqe_module(build_dir):
         print("Build pyqe module ...")
 
@@ -151,7 +114,6 @@ class InstallLibCommand(install_lib):
         # BLAS LIBS path
         # FFTW3 LIBS path
         with open(f"{qe_build_dir}/CMakeCache.txt", "r") as file:
-            print(file)
             cmake_cache_lines = list(filter(
                 lambda s: 'FIND_PACKAGE_MESSAGE_DETAILS' in s,
                 file.readlines()))
@@ -165,28 +127,27 @@ class InstallLibCommand(install_lib):
             )
             return libpath
 
-        lapack_path = get_path('LAPACK', cmake_cache_lines)
-        blas_path = get_path('BLAS', cmake_cache_lines)
-        fftw3_first_path = get_path('FFTW', cmake_cache_lines)
-
-        if fftw3_first_path:
-            print("FFTW3 first path found:", fftw3_first_path)
-            os.environ["FFTW3_LIBS"] = fftw3_first_path
+        fftw3_path = get_path('FFTW', cmake_cache_lines)
+        if fftw3_path:
+            print("FFTW3 library path found:", fftw3_path)
+            os.environ["FFTW3_LIBS"] = fftw3_path
         else:
-            print("No FFTW3 path found")
+            raise RuntimeError("No FFTW3 library path found!")
 
+        lapack_path = get_path('LAPACK', cmake_cache_lines)
         if lapack_path:
-            print("LAPACK path found:", lapack_path)
+            print("LAPACK library path found:", lapack_path)
             os.environ["LAPACK_LIBS"] = lapack_path
         else:
-            print("No LAPACK path found")
+            raise RuntimeError("No LAPACK library path found!")
 
+        blas_path = get_path('BLAS', cmake_cache_lines)
         if blas_path:
-            print("BLAS path found:", blas_path)
+            print("BLAS library path found:", blas_path)
             if blas_path != lapack_path:
                 os.environ["BLAS_LIBS"] = blas_path
         else:
-            print("No BLAS path found")
+            raise RuntimeError("No BLAS library path found!")
 
         # Run the make target to build the pyqe module
         os.system(
@@ -210,21 +171,12 @@ class InstallLibCommand(install_lib):
             _fp.writelines(python_wrapper_lines)
 
 
-class CleanCommand(clean):
-    def run(self):
-        clean.run(self)
-        if self.all:
-            log.info("Remove built extension modules ...")
-            source_dir = Path(__file__).parent.joinpath("postqe")
+class InstallLibCommand(install_lib):
 
-            wrapper_module = source_dir.joinpath("pyqe.py")
-            if wrapper_module.is_file():
-                log.info(f"Remove {wrapper_module}")
-                wrapper_module.unlink()
-
-            for ext_module in source_dir.glob("*.so"):
-                log.info(f"Remove {ext_module}")
-                os.unlink(ext_module)
+    def build(self):
+        if not self.skip_build:
+            self.run_command('build_py')
+            self.run_command('build_ext')
 
 
 setup(
@@ -237,8 +189,8 @@ setup(
     install_requires=REQUIREMENTS,
     entry_points={'console_scripts': ['postqe=postqe.cli:main']},
     cmdclass={
+        'build_ext': BuildExtCommand,
         'install_lib': InstallLibCommand,
-        'clean': CleanCommand,
     },
     author="Mauro Palumbo, Pietro Delugas, Davide Brunato",
     author_email="pdelugas@sissa.it, brunato@sissa.it",
