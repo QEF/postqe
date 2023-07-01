@@ -14,6 +14,7 @@ from typing import cast
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py
 from setuptools.command.build_ext import build_ext
+from setuptools.command.editable_wheel import editable_wheel  # noqa
 from setuptools.command.install_lib import install_lib
 
 
@@ -21,6 +22,18 @@ VERSION_NUMBER_PATTERN = re.compile(r"version_number\s*=\s*(\'[^\']*\'|\"[^\"]*\
 
 with Path(__file__).parent.joinpath("requirements.txt").open() as fp:
     REQUIREMENTS = fp.read()
+
+
+class EditableWheelCommand(editable_wheel):
+
+    def run(self):
+        editable_wheel.run(self)
+
+        # Compile and install inplace Fortran and f90wrap extensions
+        self.reinitialize_command('build_py', editable_mode=False)
+        self.run_command('build_py')
+        self.reinitialize_command('build_ext', inplace=1)
+        self.run_command('build_ext')
 
 
 class BuildExtCommand(build_ext):
@@ -192,6 +205,7 @@ setup(
     entry_points={'console_scripts': ['postqe=postqe.cli:main']},
     cmdclass={
         'build_ext': BuildExtCommand,
+        'editable_wheel': EditableWheelCommand,
         'install_lib': InstallLibCommand,
     },
     author="Mauro Palumbo, Pietro Delugas, Davide Brunato",
