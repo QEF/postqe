@@ -5,36 +5,12 @@
 # file 'LICENSE' in the root directory of the present distribution, or
 # https://opensource.org/licenses/LGPL-2.1
 #
-from operator import ge
 import numpy as np
+from qeschema.hdf5 import read_charge_file
 import h5py
 from .plot import plot_1d_charge, plot_2d_charge, plot_3d_charge
 from .compute_vs import compute_G, compute_v_bare, compute_v_h, compute_v_xc
 
-####### TO BE MOVED TO QESCHEMA 1.2 #######
-
-def read_charge_file_hdf5(filename):
-    """
-    Reads a PW charge file in HDF5 format.
-
-    :param filename:
-    :return: a dictionary describing the content of file \
-    keys=[nr, ngm_g, gamma_only, rhog_, MillerIndexes]
-    """
-    with h5py.File(filename, "r") as h5f:
-        MI = h5f.get('MillerIndices')[:]
-        nr1 = 2*max(abs(MI[:, 0]))+1
-        nr2 = 2*max(abs(MI[:, 1]))+1
-        nr3 = 2*max(abs(MI[:, 2]))+1
-        nr = np.array([nr1, nr2, nr3])
-        res = dict(h5f.attrs.items())
-        res.update({'MillInd':MI,'nr_min': nr})
-        rhog = h5f['rhotot_g'][:].reshape(res['ngm_g'],2).dot([1.e0,1.e0j])
-        res.update({'rhotot_g':rhog})
-        if 'rhodiff_g' in h5f.keys():
-            rhog = h5f['rhodiff_g'][:].reshape(res['ngm_g'], 2).dot([1.e0,1.e0j])
-            res.update({'rhodiff_g':rhog})
-        return res
 
 def get_density_data_hdf5(filename, dataset='rhotot_g'):
     """
@@ -43,7 +19,7 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
     :return: a dictionary with all attributes plus the required field if present, None otherwise
     """
     with h5py.File(filename,"r") as h5f:
-        if not dataset in h5f.keys():
+        if dataset not in h5f.keys():
             return None
         MI = h5f.get('MillerIndices')[:]
         nr1 = 2*max(abs(MI[:, 0]))+1
@@ -54,7 +30,7 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
         res.update({'MillInd':MI,'nr_min': nr})
         rhog = h5f[dataset][:].reshape(res['ngm_g'],2).dot([1.e0,1e0j])
         res.update({dataset:rhog})
-        domag = 'rhodiff_g' in h
+        # domag = 'rhodiff_g' in h
     return res
 
         
@@ -104,7 +80,7 @@ def get_charge_r(filename, nr=None):
     :returns: tot_charge
     """
 
-    cdata = read_charge_file_hdf5(filename)
+    cdata = read_charge_file(filename)
     if nr is None:
         nr1, nr2, nr3 = cdata['nr_min']
     else:
@@ -112,15 +88,19 @@ def get_charge_r(filename, nr=None):
     gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
     # Load the total charge
     rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-    for (i, j, k),rho in zip( cdata['MillInd'],cdata['rhotot_g']):
+    for (i, j, k),rho in zip( cdata['MillInd'], cdata['rhotot_g']):
         try:
-            rho_temp[i, j, k]=rho
+            rho_temp[i, j, k] = rho
         except IndexError:
             pass
 
     if gamma_only:
         rhotot_g = cdata['rhotot_g'].conjugate()
-        MI = get_minus_indexes(cdata['MillInd'][:,0], cdata['MillInd'][:,1], cdata['MillInd'][:,2])
+        MI = get_minus_indexes(
+            cdata['MillInd'][:, 0],
+            cdata['MillInd'][:, 1],
+            cdata['MillInd'][:, 2]
+        )
         for (i, j, k), rho  in zip(MI, rhotot_g):
             try:
                 rho_temp[i, j, k] = rho
@@ -130,12 +110,14 @@ def get_charge_r(filename, nr=None):
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
     return rhotot_r.real 
 
+
 def get_magnetization_r(filename, nr = None, direction = 3 ):
     """
-    Reads a charge file writteb by QE in HDF5 format, returns magnetization,
-    For non collinear case one has to indicate the direction to be read. 3 i.e. z by default
-    :return: boolean true in a noncolinear file is read, magnetization in 3D grid nr = [nr1, nr2, nr3 ]
-             or None in case no magnetization ha been found in file.
+    Reads a charge file written by QE in HDF5 format, returns magnetization,
+    For non-collinear case one has to indicate the direction to be read. 3 i.e. z by default
+
+    :return: boolean true in a non-collinear file is read, magnetization in 3D \
+    grid nr = [nr1, nr2, nr3] or None in case no magnetization ha been found in file.
     """
     cdata = get_density_data_hdf5(filename, dataset='rhodiff_g')
     if cdata is not None:
@@ -183,30 +165,31 @@ def get_magnetization_r(filename, nr = None, direction = 3 ):
     return noncolin, rhotot_r.real
 
 
-
-def charge_r_from_cdata(cdata, MI, gamma_only, nr ):
+def charge_r_from_cdata(cdata, MI, gamma_only, nr):
     """
-    Computes density in real space from data"
-    :cdata: complex coefficients for 3D grid. correspondi G vectors are read from MI
+    Computes density in real space from data
+
+    :cdata: complex coefficients for 3D grid. corresponding G vectors are read from MI
     :MI:    integer array of dim=3 with the corresponding indexs for data in the FFT 3D grid
-    :gamma_only: boolean, if true data are real in real space, complex data for -G  are implicitly provided as conjg(rho(G))
+    :gamma_only: boolean, if true data are real in real space, complex data for -G \
+    are implicitly provided as conjg(rho(G))
     :nr:  integer array with the 3 dimensions on the FFT grid
     :returns: 3D data in real space.
     """
-    nr1,nr2,nr3 = nr
+    nr1, nr2, nr3 = nr
     rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-    for (i,j,k),rho in zip ( MI, cdata):
+    for (i, j, k), rho in zip(MI, cdata):
         try:
-            rho_temp [i,j,k] = rho
+            rho_temp[i, j, k] = rho
         except IndexError:
             pass
     #
     if gamma_only:
-        MI_minus = (get_minus_indexes(_) for _ in MI )
-        rhog = ( _.conjugate() for _ in cdata)
-        for (i,j,k),rho in zip ( MI_minus, rhog):
+        MI_minus = (get_minus_indexes(_) for _ in MI)
+        rhog = (_.conjugate() for _ in cdata)
+        for (i, j, k), rho in zip ( MI_minus, rhog):
             try:
-                rho_temp[i,j,k] = rhog
+                rho_temp[i, j, k] = rhog
             except IndexError:
                 pass
     return np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3

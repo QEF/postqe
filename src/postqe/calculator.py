@@ -16,7 +16,7 @@ import numpy as np
 import pathlib
 import qeschema
 
-from .pp_dict import pp_dict
+from .pp_dict import PP_DICT
 
 from ase.atoms import Atoms, Atom
 from ase.data import chemical_symbols, atomic_masses
@@ -388,19 +388,12 @@ class EspressoCalculator(FileIOCalculator):
         command=None,
         directory=".",
         schema=None,
-        pp_dict=pp_dict,
+        pp_dict=None,
         **kwargs,
     ):
-        if label is None and "/" not in str(directory):
-            label = "pwscf"
-        self.pp_dict = pp_dict
-        if schema is None:
-            self.xml_document = qeschema.PwDocument(
-                source = str(
-                Path(directory) / f"{label}.save/data-file-schema.xml"
-                ))
-        else:
-            self.xml_document = qeschema.PwDocument(schema=schema)
+        if label is None:
+            label = "pwscf"  # the default label for QE
+
         super().__init__(
             restart,
             ignore_bad_restart_file,
@@ -410,6 +403,11 @@ class EspressoCalculator(FileIOCalculator):
             directory=directory,
             **kwargs,
         )
+
+        self.pp_dict = pp_dict if pp_dict is not None else PP_DICT.copy()
+        if schema is None:
+            schema = str(Path(directory).joinpath(f"{self.label}.save/data-file-schema.xml"))
+        self.xml_document = qeschema.PwDocument(schema=schema)
 
     @property
     def schema(self):
@@ -498,7 +496,8 @@ class EspressoCalculator(FileIOCalculator):
         # finput.write('K_POINTS tpiba\n')
         # finput.write('%d\n' % len(self.kpts))   # first write the number of k-points
         # for i in range(0, len(self.kpts)):
-        #     finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')  # assume unary weight for all
+        #     # assume unary weight for all
+        #     finput.write('%f %f %f' % tuple(self.kpts[i]) + ' 1.0\n')
         # TEMPORARY FIX ?
         finput.write("K_POINTS automatic\n")
         for i in range(0, len(self.kpoints)):
@@ -520,7 +519,8 @@ class EspressoCalculator(FileIOCalculator):
         self.parameters["ntyp"] = len(self.species)
         self.kpoints = self.parameters["kpoints"]
         self.spinpol = atoms.get_initial_magnetic_moments().any()
-        # self.prefix = 'pwscf' #must define the default pw.x value or else its going to be non and fail on line 324
+        # must define the default pw.x value or else it's going to be non and fail on line 324
+        # self.prefix = 'pwscf' #
 
     def calculate(self, atoms=None, properties=("energy",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
@@ -578,8 +578,8 @@ class EspressoCalculator(FileIOCalculator):
         """Return the number of bands."""
         nbnd = self.output["band_structure"].get("nbnd", None)
         if nbnd is None:
-            nbnd = self.output["band_structure"].get("nbnd_up") 
-        return int(nbnd) 
+            nbnd = self.output["band_structure"].get("nbnd_up")
+        return int(nbnd)
 
     def get_xc_functional(self):
         """Returns the XC-functional identifier ('LDA', 'PBE', ...)."""
@@ -601,9 +601,6 @@ class EspressoCalculator(FileIOCalculator):
         kpoints = self.get_k_points()
         iik = get_hs_points(kpoints)
         return list(deque(iik))
-
-    def get_alat(self):
-        return self.output["atomic_structure"]["@alat"]
 
     def get_atoms_from_xml_output(self):
         """
@@ -687,11 +684,12 @@ class EspressoCalculator(FileIOCalculator):
             eigs = el.find('./eigenvalues')
             return np.fromstring(eigs.text, sep=' ') * units.Ha
 
-        return np.array([ks_eigenvalues(el) for el in ks_energy_iterator]).reshape([nks,nspin,nbnd]) 
+        return np.array([ks_eigenvalues(el) for el in ks_energy_iterator]).\
+            reshape([nks, nspin, nbnd])
 
     def _get_all_eigenvalues(self):
         """
-        returns all eigevalues in the calculatore with 
+        returns all eigenvalues in the calculator with
         as an array of shape [nks, nspin, nbnd]
         """
         try:
@@ -702,14 +700,13 @@ class EspressoCalculator(FileIOCalculator):
         if '_get_all_eigenvalues' not in cache:
             cache['_get_all_eigenvalues'] = self.__get_all_eigenvalues()
         return cache['_get_all_eigenvalues']
-            
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalues array.
         For spin polarized specify spin=0 (up)  or spin=1 (dw), default spin=0
         """
-        eiv = self._get_all_eigenvalues() 
-        #
+        eiv = self._get_all_eigenvalues()
+
         try:
             kiter = iter(kpt)
             kpt_iterable = True
@@ -719,16 +716,18 @@ class EspressoCalculator(FileIOCalculator):
             ]
             kiter = iter(kpt)
             kpt_iterable = False
-        #
+
         if kpt_iterable:
             res = np.array([eiv[ik, spin, :] for ik in kiter])
         else:
             res = eiv[next(kiter), spin, :]
-        #
+
         return res
-    
+
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array.  For spin polarized case specify spin=1 or spin=2"""
+        nbnd_up = nbnd_dw = nbnd = 0
+
         try:
             nbnd = int(self.output["band_structure"]["nbnd"])
             use_updw = False
@@ -864,8 +863,10 @@ class EspressoCalculator(FileIOCalculator):
         kpoints = self.get_k_points() / self.get_alat()
         m = self.get_a_vectors()
         res = kpoints.dot(m.T)
-        nint = lambda d: int(round(d, 0))
-        center = lambda x: round(x - nint(x), 8)
+
+        def nint(d): int(round(d, 0))
+        def center(x): round(x - nint(x), 8)
+
         res = np.array([np.array([center(c) for c in _]) for _ in res[:]])
         return res
 
@@ -934,8 +935,8 @@ class EspressoCalculator(FileIOCalculator):
                 filename = str(root_path.joinpath("".join(["wfc", str(kpt), ".hdf5"])))
             attrs = get_wf_attributes(filename=filename)
         #
-        xk = attrs["xk"]
-        igwx = attrs["igwx"]
+        # xk = attrs["xk"]
+        # igwx = attrs["igwx"]
         data = get_wavefunctions(filename, band - 1, band)[0]
         MI = get_wfc_miller_indices(filename)
         nr1 = 2 * max(abs(MI[:, 0])) + 1
