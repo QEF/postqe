@@ -13,7 +13,6 @@ import os
 import re
 import subprocess
 import numpy as np
-import pathlib
 import qeschema
 
 from .pp_dict import PP_DICT
@@ -552,18 +551,8 @@ class EspressoCalculator(FileIOCalculator):
 
         self.read_results()
 
-    def read_results(self, filename=None):
-        if filename is None:
-            filename = os.path.join(
-                self.directory, f"{self.prefix}.save/data-file-schema.xml"
-            )
-            # if self.prefix is None:
-            #     filename = os.path.join(self.directory, 'data-file-schema.xml')
-            # else:
-            #     filename = f"{self.label}.xml"
-        elif "/" not in filename:
-            filename = os.path.join(self.directory, filename)
-
+    def read_results(self):
+        filename = os.path.join(self.directory, f"{self.prefix}.save/data-file.xml")
         self.xml_document.read(filename)
         self.atoms = self.get_atoms_from_xml_output()
         self.results["energy"] = float(self.output["total_energy"]["etot"]) * units.Ry
@@ -866,8 +855,8 @@ class EspressoCalculator(FileIOCalculator):
         m = self.get_a_vectors()
         res = kpoints.dot(m.T)
 
-        def nint(d): int(round(d, 0))
-        def center(x): round(x - nint(x), 8)
+        def nint(d): return int(round(d, 0))
+        def center(x): return round(x - nint(x), 8)
 
         res = np.array([np.array([center(c) for c in _]) for _ in res[:]])
         return res
@@ -879,18 +868,17 @@ class EspressoCalculator(FileIOCalculator):
         raise NotImplementedError
         # return kpoints
 
-    def get_pseudo_density(
-        self, dataset="total", direction=3, check_noncolin=False, filename=None
-    ):
+    def get_pseudo_density(self, dataset="total", direction=3, check_noncolin=False):
         """Return pseudo-density array.
-        dataset string is used  to chose which density is retrieved, possible values are
-        'total' (default) and 'magnetization' For the noncollinear case the variable direction
+
+        Dataset string is used to choose which density is retrieved, possible values are
+        'total' (default) and 'magnetization' For the non-collinear case the variable direction
         specifies the direction (3 is the default)
         """
         from .charge import get_charge_r, get_magnetization_r
 
-        if filename is None:
-            filename = str(pathlib.Path(self.directory).joinpath("charge-density.hdf5"))
+        filename = str(Path(self.directory).joinpath(f"{self.prefix}.save/charge-density.hdf5"))
+
         if dataset == "total":
             return get_charge_r(filename)
         elif dataset == "magnetization":
@@ -926,7 +914,7 @@ class EspressoCalculator(FileIOCalculator):
             attrs = get_wf_attributes(filename=filename)
             kpt = attrs["ik"]
         else:
-            root_path = pathlib.Path(self.directory).joinpath(f"{self.prefix}.save")
+            root_path = Path(self.directory).joinpath(f"{self.prefix}.save")
             if self.get_spin_polarized():
                 filename = str(
                     root_path.joinpath(

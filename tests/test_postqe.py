@@ -121,14 +121,14 @@ class TestPostqeCalculators(unittest.TestCase):
 
 class TestNiCase01(unittest.TestCase):
 
-    directory = examples_dir.joinpath('Ni_pz_nc')
+    label = 'Ni_pz_nc'
     calc: PostqeCalculator
 
     @classmethod
     def setUpClass(cls):
         cls.calc = PostqeCalculator(
-            label='Ni',
-            directory=str(cls.directory),
+            label=cls.label,
+            directory=str(examples_dir),
             schema='qes-20180510.xsd'
         )
         cls.calc.read_results()
@@ -258,7 +258,7 @@ class TestNiCase01(unittest.TestCase):
 
 class TestNiCase02(TestNiCase01):
 
-    directory = examples_dir.joinpath('Ni_pbe_us')
+    label = 'Ni_pbe_us'
 
     def test_get_potential_energy(self):
         potential_energy = self.calc.get_potential_energy()
@@ -311,8 +311,7 @@ class TestPostqeAPI(unittest.TestCase):
 
     def test_get_band_structure(self):
         bs = get_band_structure(
-            # FIXME!! the QE-style prefix here is useless ...
-            prefix=abspath('examples/Si/Si.xml'),
+            prefix=abspath('examples/Si'),
             schema="releases/qes-20180510.xsd",
             reference_energy=0
         )
