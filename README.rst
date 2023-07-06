@@ -45,35 +45,23 @@ Installation
 
 Download all package's files from GitHub (unpack the downloaded archive
 or clone the repository).
+
+You also have to download Quantum ESPRESSO v7.2 sources by your own and then unpack
+the archive in another directory. Then provide the variable `QE_TOPDIR` to the install
+command, setting it with the path of the directory containing the Quantum ESPRESSO sources.
+
 If you are in a virtual environment you can install it with the command:
 
 .. code-block:: bash
 
-   pip install -r requirements.txt
-   python setup.py install
+   QE_TOPDIR=<path-to-QE-sources-base-dir> pip install .
 
 Otherwise avoid system wide installations with root privileges but install it in user-space
 with the command:
 
 .. code-block:: bash
 
-   pip install -r requirements.txt --user
-   python setup.py install --user
-
-The setup script takes care to download, configure and compile a fresh installation of
-Quantum ESPRESSO v6.8 into the setup's directory `build/`.
-
-Alternatively you can download Quantum ESPRESSO v6.8 sources by your own and then unpack
-the archive in another directory. Then provide the variable `QE_TOPDIR` to the install
-command, setting it with the path of the directory containing the Quantum ESPRESSO sources,
-for example:
-
-.. code-block:: bash
-
-   QE_TOPDIR=<path-to-QE-sources-base-dir> python setup.py install
-
-The advantage of the alternate method is that you don't need to recompile Quantum ESPRESSO
-after a clean of the build directories (`python setup.py clean`).
+   QE_TOPDIR=<path-to-QE-sources-base-dir> pip install . --user
 
 
 Usage
