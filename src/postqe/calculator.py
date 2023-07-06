@@ -406,7 +406,9 @@ class EspressoCalculator(FileIOCalculator):
 
         self.pp_dict = pp_dict if pp_dict is not None else PP_DICT.copy()
         if schema is None:
-            schema = str(Path(directory).joinpath(f"{self.label}.save/data-file-schema.xml"))
+            default_schema = Path(self.directory).joinpath(f"{self.prefix}.save/data-file-schema.xml")
+            if default_schema.exists():
+                schema = str(default_schema)
         self.xml_document = qeschema.PwDocument(schema=schema)
 
     @property

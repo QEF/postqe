@@ -70,15 +70,15 @@ class TestPostqeCalculators(unittest.TestCase):
                      'a relative path to examples/ dir is not available!')
     def test_calculator_paths(self):
         si_dir = rel_examples_dir.joinpath('Si')
-        label = str(si_dir.joinpath('Si.xml'))
+        label = str(si_dir.joinpath('Si'))
 
         calculator = EspressoCalculator(label=label)
-        self.assertEqual(calculator.prefix, 'Si.xml')
+        self.assertEqual(calculator.prefix, 'Si')
         self.assertEqual(calculator.directory, str(si_dir))
         self.assertEqual(calculator.label, label)
 
-        calculator = EspressoCalculator(label='Si.xml', directory=str(si_dir))
-        self.assertEqual(calculator.prefix, 'Si.xml')
+        calculator = EspressoCalculator(label='Si', directory=str(si_dir))
+        self.assertEqual(calculator.prefix, 'Si')
         self.assertEqual(calculator.directory, str(si_dir))
         self.assertEqual(calculator.label, label)
 
@@ -91,9 +91,9 @@ class TestPostqeCalculators(unittest.TestCase):
         directory = str(rel_examples_dir.joinpath('Si'))
         calc = EspressoCalculator(directory=directory)
 
-        self.assertIsNone(calc.prefix)
+        self.assertEqual(calc.prefix, 'pwscf')
         self.assertEqual(calc.directory, directory)
-        self.assertEqual(calc.label, directory + '/')
+        self.assertEqual(calc.label, directory + '/pwscf')
 
     def test_calculator_schema(self):
         calculator = EspressoCalculator()
@@ -127,7 +127,7 @@ class TestNiCase01(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.calc = PostqeCalculator(
-            label='Ni.xml',
+            label='Ni',
             directory=str(cls.directory),
             schema='qes-20180510.xsd'
         )
