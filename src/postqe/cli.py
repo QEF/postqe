@@ -40,7 +40,8 @@ SHOW_HELP = """
 True -> plot results with Matplotlib; None or False -> do nothing (default = True).
 For DOS only for 1D and 2D sections.
 """
-FILEPLOT_HELP = "Output plot file in png format (default = 'plot'). Other formats are available from the Matplotlib GUI."
+FILEPLOT_HELP = "Output plot file in png format (default = 'plot'). " \
+                "Other formats are available from the Matplotlib GUI."
 
 EOS_PREFIX_HELP = "Name of the file containing the energy/volume data."
 EOS_TYPE_HELP = """
@@ -57,7 +58,8 @@ antonschmidt -> Anton-Schmidt EOS, Intermetallics 11, 23 - 32(2003);
 p3 -> A third order inverse polynomial fit.
 """
 EOS_FILEOUT_HELP = "Text output file with fitting data and results (default = 'eos_data.dat')."
-EOS_AX_HELP = "A Matplotlib 'Axes' instance (see Matplotlib documentation for details (default = None, creates a new one)."
+EOS_AX_HELP = "A Matplotlib 'Axes' instance (see Matplotlib documentation " \
+              "for details (default = None, creates a new one)."
 
 BANDS_REFERENCE_ENERGY_HELP = "The Fermi level, defines the zero of the plot along y axis (default = 0)."
 BANDS_EMIN_HELP = "The minimum energy for the band plot (default = -50)."
@@ -106,7 +108,8 @@ Format of the (optional) exported file. Available choices are:
 # SPIN_CHOICES = [0, 1, 2]
 SPIN_CHOICES = ['total', 'up', 'down']
 METHOD_CHOICES = ['FFT', 'polar', 'spherical']
-EOS_CHOICES = ['murnaghan', 'sjeos', 'taylor', 'vinet', 'birch', 'birchmurnaghan', 'pouriertarantola', 'antonschmidt', 'p3']
+EOS_CHOICES = ['murnaghan', 'sjeos', 'taylor', 'vinet', 'birch',
+               'birchmurnaghan', 'pouriertarantola', 'antonschmidt', 'p3']
 FORMAT_CHOICES = ['gnuplot', 'xsf', 'cube', 'contour', 'plotrho']
 BOOL_CHOICES = [True, False]
 DIM_CHOICES = [1, 2, 3]
@@ -121,7 +124,8 @@ def vector(s):
         raise argparse.ArgumentTypeError("Vectors must be x,y,z")
     else:
         return x, y, z
-#
+
+
 def window(s):
     """Parses a 2-dimension argument."""
     try:
@@ -131,15 +135,16 @@ def window(s):
     else:
         return emin, emax
 
+
 def get_cli_parser():
     parser = argparse.ArgumentParser(description='QE post processing')
     subparsers = parser.add_subparsers(metavar="command", dest='command', required=True,
                                        help='Selects what to save in filplot')
 
-    #COMPUTE EOS
+    # COMPUTE EOS
     command_parser = subparsers.add_parser(
         'eos', help=EOS_HELP)
-    #SPECIFIC OPTIONS
+    # SPECIFIC OPTIONS
     command_parser.add_argument(
         '-eos_type', type=str, default='murnaghan', choices=EOS_CHOICES, help=EOS_TYPE_HELP)
     command_parser.add_argument(
@@ -147,10 +152,10 @@ def get_cli_parser():
     command_parser.add_argument(
         '-ax', type=str, default=None, help=EOS_AX_HELP)
 
-    #COMPUTE BANDS
+    # COMPUTE BANDS
     command_parser = subparsers.add_parser(
         'bands', help=BANDS_HELP)
-    #SPECIFIC OPTIONS
+    # SPECIFIC OPTIONS
     command_parser.add_argument(
         '-reference_energy', type=float, default=0, help=BANDS_REFERENCE_ENERGY_HELP)
     command_parser.add_argument(
@@ -158,10 +163,10 @@ def get_cli_parser():
     command_parser.add_argument(
         '-emax', type=float, default=50, help=BANDS_EMAX_HELP)
 
-    #COMPUTE DOS
+    # COMPUTE DOS
     command_parser = subparsers.add_parser(
         'dos', help=DOS_HELP)
-    #SPECIFIC OPTIONS
+    # SPECIFIC OPTIONS
     command_parser.add_argument(
         '-window', type=window, default=None, help=DOS_WINDOW_HELP)
     command_parser.add_argument(
@@ -171,26 +176,26 @@ def get_cli_parser():
     command_parser.add_argument(
         '-fileout', type=str, default='dos', help=DOS_FILEOUT_HELP)
 
-    #COMPUTE CHARGE
+    # COMPUTE CHARGE
     command_parser = subparsers.add_parser(
         'charge', help=CHARGE_HELP)
-    #SPECIFIC OPTIONS
+    # SPECIFIC OPTIONS
     command_parser.add_argument(
         '-fileout', type=str, default='charge.dat', help=CHARGE_FILEOUT_HELP)
     command_parser.add_argument(
         '-ifmagn', type=str, default=None, choices=SPIN_CHOICES, help=CHARGE_IFMAGN_HELP)
     command_parser.add_argument(
-        '-x0', type=vector, default=(0.,0.,0.), help=CHARGE_X0_HELP)
+        '-x0', type=vector, default=(0., 0., 0.), help=CHARGE_X0_HELP)
     command_parser.add_argument(
-        '-e1', type=vector, default=(1.,0.,0.), help=CHARGE_E1_HELP)
+        '-e1', type=vector, default=(1., 0., 0.), help=CHARGE_E1_HELP)
     command_parser.add_argument(
         '-nx', type=int, default=50, help=CHARGE_NX_HELP)
     command_parser.add_argument(
-        '-e2', type=vector, default=(0.,1.,0.), help=CHARGE_E2_HELP)
+        '-e2', type=vector, default=(0., 1., 0.), help=CHARGE_E2_HELP)
     command_parser.add_argument(
         '-ny', type=int, default=50, help=CHARGE_NY_HELP)
     command_parser.add_argument(
-        '-e3', type=vector, default=(0.,0.,1.), help=CHARGE_E3_HELP)
+        '-e3', type=vector, default=(0., 0., 1.), help=CHARGE_E3_HELP)
     command_parser.add_argument(
         '-nz', type=int, default=50, help=CHARGE_NZ_HELP)
     command_parser.add_argument(
@@ -204,15 +209,13 @@ def get_cli_parser():
     command_parser.add_argument(
         '-plot_file', type=str, default='plot_data.dat', help=CHARGE_EXPORTFILE_HELP)
 
-
     parser.add_argument('-prefix', type=str, default='pwscf', help=PREFIX_HELP)
     parser.add_argument('-outdir', type=str, default=None, help=OUTDIR_HELP)
     parser.add_argument('-fileplot', type=str, default='plot', help=FILEPLOT_HELP)
     parser.add_argument('-schema', type=str, default=None, help=SCHEMA_HELP)
     parser.add_argument('-show', type=bool, default=True, choices=BOOL_CHOICES, help=SHOW_HELP)
 
-    #TODO:
-    #COMPUTE POTENTIAL
+    # TODO: COMPUTE POTENTIAL
 
     return parser
 

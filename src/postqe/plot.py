@@ -321,7 +321,7 @@ def plot_2d_charge(charge, G, struct_info, x0=(0, 0, 0), e1=(1, 0, 0), e2=(0, 1,
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.3)
     cset = ax.contour(X, Y, Z, zdir='z', offset=Z.min(), cmap=cm.coolwarm)
     cset = ax.contour(X, Y, Z, zdir='x', offset=X.min(), cmap=cm.coolwarm)
-    cset = ax.contour(X, Y, Z, zdir='y', offset=Y.max(), cmap=cm.coolwarm)
+    cset = ax.contour(X, Y, Z, zdir='y', offset=Y.max(), cmap=cm.coolwarm)  # noqa: F841 (variable is not used!)
 
     xlab = "("+str(x0[0])+","+str(x0[1])+","+str(x0[2])+") + "
     xlab += "x*("+str(e1[0])+","+str(e1[1])+","+str(e1[2])+")"

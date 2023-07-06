@@ -18,7 +18,7 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
     also in the non-collinear case
     :return: a dictionary with all attributes plus the required field if present, None otherwise
     """
-    with h5py.File(filename,"r") as h5f:
+    with h5py.File(filename, "r") as h5f:
         if dataset not in h5f.keys():
             return None
         MI = h5f.get('MillerIndices')[:]
@@ -27,13 +27,13 @@ def get_density_data_hdf5(filename, dataset='rhotot_g'):
         nr3 = 2*max(abs(MI[:, 2]))+1
         nr = np.array([nr1, nr2, nr3])
         res = dict(h5f.attrs.items())
-        res.update({'MillInd':MI,'nr_min': nr})
-        rhog = h5f[dataset][:].reshape(res['ngm_g'],2).dot([1.e0,1e0j])
-        res.update({dataset:rhog})
+        res.update({'MillInd': MI, 'nr_min': nr})
+        rhog = h5f[dataset][:].reshape(res['ngm_g'], 2).dot([1.e0, 1e0j])
+        res.update({dataset: rhog})
         # domag = 'rhodiff_g' in h
     return res
 
-        
+
 def get_minus_indexes(g1, g2, g3):
     """
     Used for getting the corresponding minus Miller Indexes. It is meant to be used
@@ -88,7 +88,7 @@ def get_charge_r(filename, nr=None):
     gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
     # Load the total charge
     rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-    for (i, j, k),rho in zip( cdata['MillInd'], cdata['rhotot_g']):
+    for (i, j, k), rho in zip(cdata['MillInd'], cdata['rhotot_g']):
         try:
             rho_temp[i, j, k] = rho
         except IndexError:
@@ -101,17 +101,17 @@ def get_charge_r(filename, nr=None):
             cdata['MillInd'][:, 1],
             cdata['MillInd'][:, 2]
         )
-        for (i, j, k), rho  in zip(MI, rhotot_g):
+        for (i, j, k), rho in zip(MI, rhotot_g):
             try:
                 rho_temp[i, j, k] = rho
             except IndexError:
                 pass
 
     rhotot_r = np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-    return rhotot_r.real 
+    return rhotot_r.real
 
 
-def get_magnetization_r(filename, nr = None, direction = 3 ):
+def get_magnetization_r(filename, nr=None, direction=3):
     """
     Reads a charge file written by QE in HDF5 format, returns magnetization,
     For non-collinear case one has to indicate the direction to be read. 3 i.e. z by default
@@ -132,8 +132,9 @@ def get_magnetization_r(filename, nr = None, direction = 3 ):
             dataset = 'm_z'
         else:
             raise ValueError("valid directions from 1 to 3")
+
         noncolin = True
-        cdata = get_density_data_hdf5(filename, dataset = dataset)
+        cdata = get_density_data_hdf5(filename, dataset=dataset)
         if cdata is None:
             noncolin = False
             return noncolin, None
@@ -145,17 +146,19 @@ def get_magnetization_r(filename, nr = None, direction = 3 ):
     gamma_only = 'TRUE' in str(cdata['gamma_only']).upper()
     # Load the total charge
     rho_temp = np.zeros([nr1, nr2, nr3], dtype=np.complex128)
-    for (i, j, k),rho in zip( cdata['MillInd'],cdata[dataset]):
+    for (i, j, k), rho in zip(cdata['MillInd'], cdata[dataset]):
         try:
-            rho_temp[i, j, k]=rho
+            rho_temp[i, j, k] = rho
         except IndexError:
             pass
 
     if gamma_only:
         rhotot_g = cdata[dataset].conjugate()
-        MI = get_minus_indexes(cdata['MillInd'][:,0], cdata['MillInd'][:,1], cdata['MillInd'][:,2])
+        MI = get_minus_indexes(
+            cdata['MillInd'][:, 0], cdata['MillInd'][:, 1], cdata['MillInd'][:, 2]
+        )
         print("MI", MI)
-        for (i, j, k), rho  in zip(MI, rhotot_g):
+        for (i, j, k), rho in zip(MI, rhotot_g):
             try:
                 rho_temp[i, j, k] = rho
             except IndexError:
@@ -183,17 +186,16 @@ def charge_r_from_cdata(cdata, MI, gamma_only, nr):
             rho_temp[i, j, k] = rho
         except IndexError:
             pass
-    #
+
     if gamma_only:
         MI_minus = (get_minus_indexes(_) for _ in MI)
         rhog = (_.conjugate() for _ in cdata)
-        for (i, j, k), rho in zip ( MI_minus, rhog):
+        for (i, j, k), rho in zip(MI_minus, rhog):
             try:
                 rho_temp[i, j, k] = rhog
             except IndexError:
                 pass
     return np.fft.ifftn(rho_temp) * nr1 * nr2 * nr3
-
 
 
 def write_charge(filename, charge, header):
@@ -218,10 +220,6 @@ def write_charge(filename, charge, header):
 
     fout.close()
 
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-####### TO BE MOVED TO QESCHEMA #######
-
-
 
 class Charge:
     """
@@ -237,19 +235,19 @@ class Charge:
         assert nr.shape[0] == 3
         self.nr = nr
         try:
-            assert charge.shape == (nr[0], nr[1], nr[2])
-            self.charge = charge
-        except:
+            if charge.shape == (nr[0], nr[1], nr[2]):
+                self.charge = charge
+        except (AttributeError, IndexError):
             pass
+
         try:
-            assert charge_diff.shape == (nr[0], nr[1], nr[2])
-            self.charge_diff = charge_diff
-        except:
+            if charge_diff.shape == (nr[0], nr[1], nr[2]):
+                self.charge_diff = charge_diff
+        except (AttributeError, IndexError):
             pass
 
     def set_calculator(self, calculator):
         self.calculator = calculator
-
 
     def read(self, filename, nr=None):
         """
@@ -261,38 +259,37 @@ class Charge:
         if not nr:
             try:
                 nr = self.nr
-            except:
+            except AttributeError:
                 raise AttributeError("nr not defined in this Charge object")
 
-        charge  = get_charge_r(filename, np.array(nr))
+        charge = get_charge_r(filename, np.array(nr))
         self.charge = charge
-        noncolin, magnetization = get_magnetization_r(filename, np.array(nr), direction = 3) 
-        self.noncolin = noncolin 
+        noncolin, magnetization = get_magnetization_r(filename, np.array(nr), direction=3)
+        self.noncolin = noncolin
         if noncolin:
-            self.mz = magnetization 
-            dummy, self.mx = get_magnetization_r(filename, np.array(nr), direction = 1)
-            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction = 2)
+            self.mz = magnetization
+            dummy, self.mx = get_magnetization_r(filename, np.array(nr), direction=1)
+            dummy, self.my = get_magnetization_r(filename, np.array(nr), direction=2)
         else:
             self.charge_diff = magnetization
-            self.magnetization =self.charge_diff
-
+            self.magnetization = self.charge_diff
 
     def write(self, filename):
-        header='# Charge file\n'
-        header+='# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
+        header = '# Charge file\n'
+        header += '# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
         try:
             self.charge
             write_charge(filename, self.charge, header)
-        except:
+        except AttributeError:
             pass
+
         if self.calculator.get_spin_polarized():  # non magnetic calculation
             charge_up = (self.charge + self.charge_diff) / 2.0
             charge_down = (self.charge - self.charge_diff) / 2.0
             write_charge(filename + '_up', charge_up, header)
             write_charge(filename + '_down', charge_down, header)
 
-
-    def plot(self, x0 = (0., 0., 0.), e1 = (1., 0., 0.), nx = 50, e2 = (0., 1., 0.), ny=50, e3 = (0., 0., 1.), nz=50,
+    def plot(self, x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.), ny=50, e3=(0., 0., 1.), nz=50,
              radius=1, dim=1, ifmagn='total', plot_file='', method='FFT', format='gnuplot', show=True):
         """
         Plot a 1D, 2D or 3D section of the charge from x0 along e1 (e2, e3) direction(s) using Fourier interpolation
@@ -325,7 +322,7 @@ class Charge:
         # TODO: implement a Matplotlib plot for polar 2D
         try:
             self.charge
-        except:
+        except AttributeError:
             return None
         # Extract some structural info in a dictionary
         struct_info = {
@@ -392,7 +389,7 @@ class Charge:
                                          method, format)
 
         if dim < 3:
-            if show == True:
+            if show is True:
                 fig.show()
             return fig
         else:
@@ -401,14 +398,15 @@ class Charge:
 
 class Potential(Charge):
     """
-    A class for a potential. This is derived from a Charge class and additionally contains the potential.
+    A class for a potential. This is derived from a Charge class and additionally
+    contains the potential.
     """
     def __init__(self, *args, pot_type='v_tot', **kwargs):
         """Call the Charge constructor, define self.pot_type """
         self.setvars(*args, **kwargs)
         try:
             self.pot_type = pot_type
-        except:
+        except AttributeError:
             self.pot_type = 'v_tot'
 
     def write(self, filename):
@@ -416,23 +414,24 @@ class Potential(Charge):
         Write the potential in a text file. The potential must have been calculated before.
         :param filename: name of the output file
         """
-        header='# Potential file '+self.pot_type+'\n'
-        header+='# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
+        header = '# Potential file '+self.pot_type+'\n'
+        header += '# nr1= '+str(self.nr[0])+' nr2= '+str(self.nr[1])+' nr3= '+str(self.nr[2])+'\n'
         try:
             self.v
             write_charge(filename, self.v, header)
-        except:
+        except AttributeError:
             pass
 
     def compute_potential(self):
         """
-        Compute the potential from the electronic charge. The type of potential is defined in self.pot_type when
-        an instance of the class Potential is create (default 'v_tot').
+        Compute the potential from the electronic charge. The type of potential is defined in
+        self.pot_type when an instance of the class Potential is created (default 'v_tot').
         """
         try:
             self.charge
-        except:
+        except AttributeError:
             return
+
         alat = self.calculator.get_alat()
         ecutrho = self.calculator.get_ecutrho()
         functional = self.calculator.get_xc_functional()
@@ -444,64 +443,64 @@ class Potential(Charge):
         # pseudofile = self.calculator.get_pseudofile()
         # pseudodir = self.calculator.get_pseudodir()
         outdir = self.calculator.get_outdir()
-        pseudo_location='{}/{}.save'.format(outdir, prefix)
+        pseudo_location = '{}/{}.save'.format(outdir, prefix)
 
-        if self.pot_type=='v_bare':
+        if self.pot_type == 'v_bare':
             # self.v = compute_v_bare(
             #     ecutrho, alat, a, self.nr, atomic_positions, atomic_species, pseudodir
             # )
-            self.v = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
-            )
-        elif self.pot_type=='v_h':
+            self.v = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], self.nr,
+                                    atomic_positions, atomic_species, pseudo_location)
+        elif self.pot_type == 'v_h':
             self.v = compute_v_h(self.charge, ecutrho, alat, b)
-        elif self.pot_type=='v_xc':
+        elif self.pot_type == 'v_xc':
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
             self.v = compute_v_xc(self.charge, charge_core, str(functional))
-        elif self.pot_type=='v_tot':
-            v_bare = compute_v_bare(
-                ecutrho, alat, a[0], a[1], a[2], self.nr, atomic_positions, atomic_species, pseudo_location
-            )
-            v_h =  compute_v_h(self.charge, ecutrho, alat, b)
+        elif self.pot_type == 'v_tot':
+            v_bare = compute_v_bare(ecutrho, alat, a[0], a[1], a[2], self.nr,
+                                    atomic_positions, atomic_species, pseudo_location)
+            v_h = compute_v_h(self.charge, ecutrho, alat, b)
             # TODO: core charge to be implemented
             charge_core = np.zeros(self.nr)
             v_xc = compute_v_xc(self.charge, charge_core, str(functional))
             self.v = v_bare + v_h + v_xc
 
-
-    def plot(self, x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.), ny=50, e3=(0., 0., 1.), nz=50,
-             radius=1, dim=1, plot_file='', method='FFT', format='gnuplot', show=True):
+    def plot(self, x0=(0., 0., 0.), e1=(1., 0., 0.), nx=50, e2=(0., 1., 0.),
+             ny=50, e3=(0., 0., 1.), nz=50, radius=1, dim=1, plot_file='',
+             method='FFT', format='gnuplot', show=True):
         """
-        Plot a 1D, 2D or 3D section of the potential from x0 along e1 (e2, e3) direction(s) using Fourier interpolation
-        or another method (see below). For 1D or 2D sections, the code produce a Matplotlib plot. For a 3D plot, the
-        charge must be exported in 'plotfile' with a suitable format ('xsf' or 'cube') and can be visualized with
-        the corresponding external codes.
+        Plot a 1D, 2D or 3D section of the potential from x0 along e1 (e2, e3)
+        direction(s) using Fourier interpolation or another method (see below).
+        For 1D or 2D sections, the code produce a Matplotlib plot. For a 3D plot,
+        the charge must be exported in 'plotfile' with a suitable format ('xsf'
+        or 'cube') and can be visualized with the corresponding external codes.
 
         :param x0: 3D vector (a tuple), origin of the line
         :param e1, e2, e3: 3D vectors (tuples) which determines the plotting lines
         :param nx, ny, nz: number of points along e1, e2, e3
         :param radius: radius of the sphere in the polar average method
         :param dim: 1, 2, 3 for a 1D, 2D or 3D section respectively
-        :param plot_file: file where plot data are exported in the chosen format (Gnuplot, XSF, cube Gaussian, etc.)
+        :param plot_file: file where plot data are exported in the chosen format \
+        (Gnuplot, XSF, cube Gaussian, etc.)
         :param method: interpolation method. Available choices are:\n
-                        'FFT' -> Fourier interpolation (default)
-                        'polar' -> 2D polar plot on a sphere
-                        'spherical' -> 1D plot of the spherical average
-                        'splines' -> not implemented
+            'FFT' -> Fourier interpolation (default)
+            'polar' -> 2D polar plot on a sphere
+            'spherical' -> 1D plot of the spherical average
+            'splines' -> not implemented
         :param format: format of the (optional) exported file. Available choices are:\n
-                        'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.
-                        'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.
-                        'cube' -> cube Gaussian format. Available for 3D sections.
-                        'contour' -> format for the contour.x code of Quantum Espresso
-                        'plotrho' -> format for the plotrho.x code of Quantum Espresso
+            'gnuplot' -> plain text format for Gnuplot (default). Available for 1D and 2D sections.
+            'xsf' -> XSF format for the XCrySDen program. Available for 2D and 3D sections.
+            'cube' -> cube Gaussian format. Available for 3D sections.
+            'contour' -> format for the contour.x code of Quantum Espresso
+            'plotrho' -> format for the plotrho.x code of Quantum Espresso
         :param show: if True, show the Matplotlib plot (only for 1D and 2D sections)
         :return: a Matplotlib figure object for 1D and 2D sections, None for 3D sections
         """
         # TODO: implement a Matplotlib plot for polar 2D
         try:
             self.v
-        except:
+        except AttributeError:
             self.compute_potential()
 
         # Extract some structural info in a dictionary

@@ -29,7 +29,7 @@ def get_wf_attributes(filename):
         bg = np.array(mi_attrs.get(x) for x in ['bg1', 'bg2', 'bg3'])
         res.update({'bg': bg})
     return res
-        
+
 
 def get_wavefunctions(filename, start_band=None, stop_band=None):
     """
@@ -39,21 +39,21 @@ def get_wavefunctions(filename, start_band=None, stop_band=None):
 
     :param filename: path to the wfc file;
     :param start_band: first band to read, default first band in the file;
-    :param stop_band:  last band to read, default last band in the file 
+    :param stop_band: last band to read, default last band in the file
     :return: a numpy array with shape [nbnd,npw]
-    """ 
+    """
     with h5py.File(filename, "r") as f:
-        igwx = f.attrs.get('igwx') 
+        igwx = f.attrs.get('igwx')
         if start_band is None:
             start_band = 0
         if stop_band is None:
             stop_band = f.attrs.get('nbnd')
         if stop_band == start_band:
-            stop_band = start_band + 1 
+            stop_band = start_band + 1
         res = f.get('evc')[start_band:stop_band, :]
 
     res = np.asarray([x.reshape([igwx, 2]).dot([1.e0, 1.e0j]) for x in res[:]])
-    return res 
+    return res
 
 
 def get_wfc_miller_indices(filename):
@@ -202,7 +202,7 @@ def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_speci
 
     # TODO This line is to be implemented
     text += "#      "+4*"XXXX   "+"\n"
-    
+
     ityp = 1
     for typ in atomic_species:
         text += "# {:4d} ".format(ityp)+typ["@name"]+"\n"
@@ -215,14 +215,14 @@ def create_header(prefix, nr, nr_smooth, ibrav, celldms, nat, ntyp, atomic_speci
         text += " {:9E} {:9E} {:9E}  ".format(*coords)
         text += pos["@name"]+"\n"
         ipos += 1
-    
+
     return text
-    
- 
+
+
 def read_postqe_output_file(filename):
     """
-    This function reads the output charge (or other quantity) as the output 
-    format of postqe. 
+    This function reads the output charge (or other quantity) as the output
+    format of postqe.
     """
     tempcharge = []
     count = 0
