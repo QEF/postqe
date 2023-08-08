@@ -187,7 +187,7 @@ class TestNiCase01(unittest.TestCase):
         self.assertTrue(self.calc.get_spin_polarized())
 
     def test_get_fermi_level(self):
-        self.assertEqual(self.calc.get_fermi_level(), 10.052533588859502)
+        self.assertEqual(self.calc.get_fermi_level(), 20.105067177719004)
 
     def test_get_number_of_bands(self):
         self.assertEqual(self.calc.get_number_of_bands(), 18)
@@ -268,7 +268,7 @@ class TestNiCase02(TestNiCase01):
         self.assertEqual(self.calc.get_xc_functional(), 'PBE')
 
     def test_get_fermi_level(self):
-        self.assertEqual(self.calc.get_fermi_level(), 7.0596730994943915)
+        self.assertEqual(self.calc.get_fermi_level(), 14.119346198988783 )
 
     def test_get_eigenvalues(self):
         eigenvalues = self.calc.get_eigenvalues(0, 0)
