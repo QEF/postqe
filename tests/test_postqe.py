@@ -230,7 +230,7 @@ class TestNiCase01(unittest.TestCase):
              -2.688859669326466e-86, -2.68885967336249e-86]
         )
 
-        occupation_numbers = self.calc.get_occupation_numbers(0, 1)
+        occupation_numbers = self.calc.get_occupation_numbers(0, 2)
         self.assertIsInstance(occupation_numbers, np.ndarray)
         self.assertListEqual(
             occupation_numbers.tolist(),
@@ -298,7 +298,7 @@ class TestNiCase02(TestNiCase01):
              -3.551820011139861e-86, -3.806921827316206e-86]
         )
 
-        occupation_numbers = self.calc.get_occupation_numbers(0, 1)
+        occupation_numbers = self.calc.get_occupation_numbers(0, 2)
         self.assertIsInstance(occupation_numbers, np.ndarray)
         self.assertListEqual(
             occupation_numbers.tolist(),
