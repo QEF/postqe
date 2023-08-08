@@ -667,9 +667,10 @@ class EspressoCalculator(FileIOCalculator):
         so that the result is cached and reused if needed
         """
         ks_energy_iterator = iter(self.xml_document.findall('.//ks_energies'))
-        nbnd = int(self.xml_document.find('.//nbnd').text)
-        nks = int(self.xml_document.find('.//output//nks').text)
         nspin = 2 if 'true' in self.xml_document.find('.//lsda').text else 1
+        nbtag = './/output//nbnd_up' if nspin == 2 else  './/output//nbnd'
+        nbnd =  int(self.xml_document.find(nbtag).text)
+        nks = int(self.xml_document.find('.//output//nks').text)
 
         def ks_eigenvalues(el):
             eigs = el.find('./eigenvalues')
