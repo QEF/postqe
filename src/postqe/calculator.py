@@ -306,27 +306,12 @@ class EspressoCalculator(FileIOCalculator):
     and running the code. The input file for the current release is the old
     text format which will be substituted by a new XML format in the future.
 
-        restart: str
-            Prefix for restart file.  May contain a directory. Default
-            is None: don't restart        ignore_bad_restart_file: bool
-            Ignore broken or missing restart file.  By default, it is an
-            error if the restart file is missing or broken.
-        directory: str or PurePath
-            Working directory in which to read and write files and
-            perform calculations.
-        label: str
-            Name used for all files.  Not supported by all calculators.
-            May contain a directory, but please use the directory parameter
-            for that instead.
-        atoms: Atoms object
-            Optional Atoms object to which the calculator will be
-            attached.  When restarting, atoms will get its positions and
-            unit-cell updated from file.
-
     :param restart: prefix for restart file. May contain a directory. Default \
     is `None`: don't restart.
-    :param ignore_bad_restart_file: ignore broken or missing restart file. \
-    By default, it is an error if the restart file is missing or broken.
+    :param ignore_bad_restart_file: deprecated, please do not use. Passing more \
+    than one positional argument to Calculator() is deprecated and will stop \
+    working in the future.  Ignore broken or missing restart file. By default, \
+    it is an error if the restart file is missing or broken.
     :param label: identify the XML input/output file or the directory where \
     to find it. By the directory `pwscf.save/` is used and the basename \
     `data-file-schema.xml` is used for the XML file.
@@ -378,10 +363,12 @@ class EspressoCalculator(FileIOCalculator):
     spinpol = None
     kpts = None
 
+    _deprecated = object()
+
     def __init__(
         self,
         restart=None,
-        ignore_bad_restart_file=False,
+        ignore_bad_restart_file=_deprecated,
         label=None,
         atoms=None,
         command=None,
@@ -394,11 +381,11 @@ class EspressoCalculator(FileIOCalculator):
             label = "pwscf"  # the default label for QE
 
         super().__init__(
-            restart,
-            ignore_bad_restart_file,
-            label,
-            atoms,
-            command,
+            restart=restart,
+            ignore_bad_restart_file=ignore_bad_restart_file,
+            label=label,
+            atoms=atoms,
+            command=command,
             directory=directory,
             **kwargs,
         )
@@ -668,8 +655,8 @@ class EspressoCalculator(FileIOCalculator):
         """
         ks_energy_iterator = iter(self.xml_document.findall('.//ks_energies'))
         nspin = 2 if 'true' in self.xml_document.find('.//lsda').text else 1
-        nbtag = './/output//nbnd_up' if nspin == 2 else  './/output//nbnd'
-        nbnd =  int(self.xml_document.find(nbtag).text)
+        nbtag = './/output//nbnd_up' if nspin == 2 else './/output//nbnd'
+        nbnd = int(self.xml_document.find(nbtag).text)
         nks = int(self.xml_document.find('.//output//nks').text)
 
         def ks_eigenvalues(el):
@@ -951,7 +938,7 @@ class PostqeCalculator(EspressoCalculator):
     def __init__(
         self,
         restart=None,
-        ignore_bad_restart_file=False,
+        ignore_bad_restart_file=EspressoCalculator._deprecated,
         label=None,
         atoms=None,
         directory=".",
@@ -960,6 +947,7 @@ class PostqeCalculator(EspressoCalculator):
     ):
         kwargs.pop("command", None)
         kwargs.pop("pp_dict", None)
+
         super().__init__(
             restart=restart,
             ignore_bad_restart_file=ignore_bad_restart_file,
