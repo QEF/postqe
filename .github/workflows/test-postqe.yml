@@ -1,0 +1,53 @@
+name: postqe
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  build:
+
+    runs-on:  ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install pip, setuptools and wheel
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools
+          pip install wheel
+      - name: Lint with flake8
+        run: |
+          pip install flake8
+          flake8 src/postqe --max-line-length=120 --statistics
+      - name: Download Quantum ESPRESSO 7.2
+        run: |
+          curl -LJO https://github.com/QEF/q-e/archive/refs/tags/qe-7.2.zip
+          sha256sum q-e-qe-7.2.zip | grep 1938b5c998e1485564b54b6eb27db31b2686ca8d8cb71a50afc50fe6adef07fc
+      - name: Unzip Quantum ESPRESSO 7.2
+        run: |
+          unzip -q q-e-qe-7.2.zip
+          rm q-e-qe-7.2.zip
+      - name: Install lapack and fftw3 libs
+        run: |
+          sudo apt-get update -y
+          sudo apt install liblapack-dev libfftw3-dev
+      - name: Install postqe
+        run: |
+          export QE_TOPDIR=`realpath q-e-qe-7.2`
+          pip install .
+      - name: Test with unittest
+        run: |
+          python -m unittest
+

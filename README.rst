@@ -11,7 +11,8 @@ potentials) on 1D or 2D sections, fitting the total energy with Murnaghan Equati
 
 It is meant to be imported in your own Python code or used from the command line (see the
 Tutorial part of this documentation). It is also meant for people who want to tinker with
-the code and adapt it to their own needs. The package is based on numpy, scipy and matplotlib libraries.
+the code and adapt it to their own needs. The package is based on numpy, scipy and
+matplotlib libraries.
 
 
 Current features of the package include:
@@ -27,14 +28,44 @@ Current features of the package include:
 .. [#F2PY]  https://docs.scipy.org/doc/numpy-dev/f2py/
 
 
+Package requirements
+--------------------
+There are some non-Python packages required to be installed in your system before installing *postqe*:
+
+Fortran compiler:
+    Maybe *gfortran* on a Gnu Linux platform for free or another commercial package, like PGI or Intel Fortran.
+
+Lapack development libraries:
+    the basename of this package should be *lapack-devel* on a RHEL-based system or *liblapack-dev*
+    on a Debian-based system.
+
+FFTW3 development libraries:
+    the basename of this package should be *fftw-devel* on a RHEL-based system or *libfftw3-dev*
+    on a Debian-based system.
+
+
 Installation
 ------------
 
-You can download all package files from GitHub  and then install it with the command:
+Download all package's files from GitHub (unpack the downloaded archive
+or clone the repository).
+
+You also have to download Quantum ESPRESSO v7.2 sources by your own and then unpack
+the archive in another directory. Then provide the variable `QE_TOPDIR` to the install
+command, setting it with the path of the directory containing the Quantum ESPRESSO sources.
+
+If you are in a virtual environment you can install it with the command:
 
 .. code-block:: bash
 
-   sudo python setup.py install
+   QE_TOPDIR=<path-to-QE-sources-base-dir> pip install .
+
+Otherwise avoid system wide installations with root privileges but install it in user-space
+with the command:
+
+.. code-block:: bash
+
+   QE_TOPDIR=<path-to-QE-sources-base-dir> pip install . --user
 
 
 Usage
@@ -54,7 +85,16 @@ Note, however, that most of these functions are less well documented and are mea
 users or if you want to tinker with the code.
 
 
-Status
-------
+Authors
+-------
+Mauro Palumbo
+Davide Brunato
+Pietro Delugas
 
-Development(Alpha)
+
+License
+-------
+This software is distributed under the terms of the LGPL-2.1 license. See
+the file 'LICENSE' in the root directory of the present distribution, or
+https://opensource.org/licenses/LGPL-2.1 .
+

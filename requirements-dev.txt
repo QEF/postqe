@@ -1,0 +1,7 @@
+-r requirements.txt
+tox
+flake8
+coverage
+Sphinx
+sphinx_rtd_theme
+-e .

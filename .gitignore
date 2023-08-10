@@ -12,9 +12,14 @@
 *~
 *.swp
 *.egg-info
+.coverage*
+!.coveragerc
 dist/
 build/
+src/postqe/pyqe.py
+pqenv/
 .idea/
-doc/_*
-postqe/__pycache__/
-tests/__pycache__/
+.tox/
+doc/_*/
+__pycache__/
+localfiles/

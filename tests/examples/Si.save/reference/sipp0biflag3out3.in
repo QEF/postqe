@@ -1,0 +1,23 @@
+ &inputpp
+/
+ &plot
+   filepp='ppout0',
+   iflag = 3,
+   output_format = 3,
+   e1(1) = 1.0, 
+   e1(2) = 0.0, 
+   e1(3) = 0.0, 
+   e2(1) = 0.0, 
+   e2(2) = 1.0, 
+   e2(3) = 0.0, 
+   e3(1) = 0.0, 
+   e3(2) = 0.0, 
+   e3(3) = 1.0, 
+   x0(1) = 0.0, 
+   x0(2) = 0.0,
+   x0(3) = 0.0,
+   nx = 10,
+   ny = 10,
+   nz = 10,
+   fileout = 'ppout0iflag3out3.out' 
+/

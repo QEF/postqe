@@ -1,9 +1,17 @@
-include MANIFEST.in
 include LICENSE
+include MANIFEST.in
 include README.rst
-include postqe *.py
-include postqe/ase *.py
-include postqe *.so
-include postqe/fortran *.f90
+include setup.py
+include pyproject.toml
+include requirements.txt
+include requirements-dev.txt
+include tox.ini
+include doc/*
+include src/postqe/*.py
+include src/postqe/fortran/*
+include src/postqe/fortran/wrapfiles/*.f90
 recursive-include tests *
 recursive-include examples *
+
+exclude src/postqe/pyqe.py
+global-exclude *.py[cod]

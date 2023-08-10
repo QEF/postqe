@@ -1,0 +1,10 @@
+numpy
+ase
+qeschema
+f90wrap
+scipy
+h5py
+matplotlib
+colormath
+natsort
+# moviepy
