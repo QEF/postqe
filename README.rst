@@ -37,7 +37,11 @@ Fortran compiler:
 
 Lapack development libraries:
     the basename of this package should be *lapack-devel* on a RHEL-based system or *liblapack-dev*
-    on a Debian-based system).
+    on a Debian-based system.
+
+FFTW3 development libraries:
+    the basename of this package should be *fftw-devel* on a RHEL-based system or *libfftw3-dev*
+    on a Debian-based system.
 
 
 Installation
